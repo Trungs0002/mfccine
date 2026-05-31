@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 const LandingPage = ({ events, setView, setEvent }) => {
   const galaEvent = events[0] || {
@@ -16,7 +16,7 @@ const LandingPage = ({ events, setView, setEvent }) => {
   };
 
   // Real-time Countdown Timer (Target: October 24)
-  const calculateTimeLeft = () => {
+  const calculateTimeLeft = useCallback(() => {
     const difference = +new Date(galaEvent.date) - +new Date();
     let timeLeft = {};
 
@@ -31,7 +31,7 @@ const LandingPage = ({ events, setView, setEvent }) => {
       timeLeft = { days: 0, hours: 0, minutes: 0, seconds: 0 };
     }
     return timeLeft;
-  };
+  }, [galaEvent.date]);
 
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
@@ -40,7 +40,7 @@ const LandingPage = ({ events, setView, setEvent }) => {
       setTimeLeft(calculateTimeLeft());
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [calculateTimeLeft]);
 
   const handleBookNow = () => {
     setEvent(galaEvent);
