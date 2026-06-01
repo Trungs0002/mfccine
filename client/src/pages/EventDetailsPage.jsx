@@ -1,6 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const EventDetailsPage = ({ event, setView, setEvent }) => {
+const EventDetailsPage = ({ event, setEvent }) => {
+  const navigate = useNavigate();
   if (!event) return null;
 
   return (
@@ -9,10 +11,10 @@ const EventDetailsPage = ({ event, setView, setEvent }) => {
       <div className="mb-8 select-none">
         <button 
           onClick={() => {
-            setView('landing');
+            navigate('/');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
-          className="flex items-center gap-2 font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors uppercase tracking-widest"
+          className="flex items-center gap-2 font-label-sm text-[13px] text-on-surface-variant hover:text-primary transition-colors uppercase tracking-widest"
         >
           <span className="material-symbols-outlined text-[18px]">keyboard_backspace</span>
           Back to Events
@@ -32,7 +34,7 @@ const EventDetailsPage = ({ event, setView, setEvent }) => {
 
         {/* Right Side: Showcase Metadata */}
         <div className="lg:col-span-5 flex flex-col justify-center h-full">
-          <span className="font-label-sm text-label-sm text-primary uppercase tracking-[0.2em] mb-3 block">
+          <span className="font-label-sm text-[12px] text-primary uppercase tracking-[0.2em] mb-3 block">
             {event.location} • {event.venueName}
           </span>
           <h1 className="font-display-xl text-[36px] md:text-[50px] text-on-surface font-extrabold leading-[1.2] mb-6">
@@ -43,7 +45,7 @@ const EventDetailsPage = ({ event, setView, setEvent }) => {
           </p>
 
           <div className="bg-surface-container/30 border border-outline-variant/15 p-6 rounded-lg mb-8 select-none">
-            <h3 className="font-label-sm text-label-sm text-primary uppercase tracking-widest mb-4">Event Date</h3>
+            <h3 className="font-label-sm text-[11px] text-primary uppercase tracking-widest mb-4">Event Date</h3>
             <div className="flex items-center gap-4 text-on-surface">
               <span className="material-symbols-outlined text-3xl font-light text-primary">calendar_today</span>
               <div>
@@ -59,7 +61,8 @@ const EventDetailsPage = ({ event, setView, setEvent }) => {
 
           <button 
             onClick={() => {
-              setView('seating');
+              setEvent(event);
+              navigate('/seating');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             className="bg-primary text-on-primary w-full py-6 rounded font-label-sm text-[15px] uppercase tracking-widest hover:bg-white hover:text-black transition-colors select-none shadow-[0_10px_30px_rgba(221,186,238,0.2)]"
@@ -71,7 +74,7 @@ const EventDetailsPage = ({ event, setView, setEvent }) => {
 
       {/* 3. SCHEDULE & SEAT TIERS DUAL COLUMN */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-20">
-        {/* Left Side: The Runway Timeline */}
+        {/* Left Side: Timeline */}
         <div className="lg:col-span-6 flex flex-col gap-6">
           <h2 className="font-title-md text-title-md text-on-surface border-b border-outline-variant/20 pb-4">
             THE EVENING SCHEDULE
@@ -79,7 +82,6 @@ const EventDetailsPage = ({ event, setView, setEvent }) => {
           <div className="space-y-8 select-none">
             {event.schedule && event.schedule.map((item, idx) => (
               <div key={idx} className="flex gap-6 items-start relative group">
-                {/* Visual Timeline Marker */}
                 <div className="flex flex-col items-center">
                   <span className="w-12 h-12 rounded-full border border-primary/30 bg-primary/5 flex items-center justify-center font-display-xl text-[14px] text-primary group-hover:bg-primary group-hover:text-on-primary transition-all">
                     {item.time}
@@ -88,7 +90,6 @@ const EventDetailsPage = ({ event, setView, setEvent }) => {
                     <div className="w-[1px] h-16 bg-outline-variant/30 mt-2"></div>
                   )}
                 </div>
-                {/* Timeline Content */}
                 <div>
                   <h4 className="font-body-lg text-body-lg font-semibold text-on-surface mb-1">
                     {item.title}
@@ -116,9 +117,7 @@ const EventDetailsPage = ({ event, setView, setEvent }) => {
                   <h4 className="font-body-lg text-body-lg font-semibold text-on-surface">VIP FRONT ROW</h4>
                   <span className="font-title-md text-[18px] text-primary">${event.pricingTiers?.vip?.price || 450}</span>
                 </div>
-                <p className="font-body-md text-[13px] text-on-surface-variant">
-                  Guaranteed front row seat directly adjacent to the T-Runway, exclusive backstage lounge invitations, premium designer gift bag, and complimentary champagne service.
-                </p>
+                <p className="font-body-md text-[13px] text-on-surface-variant">Front row access, backstage lounge, and premium gift bag.</p>
               </div>
             </div>
 
@@ -130,9 +129,7 @@ const EventDetailsPage = ({ event, setView, setEvent }) => {
                   <h4 className="font-body-lg text-body-lg font-semibold text-on-surface">GOLD EXPOSURE</h4>
                   <span className="font-title-md text-[18px] text-secondary">${event.pricingTiers?.gold?.price || 250}</span>
                 </div>
-                <p className="font-body-md text-[13px] text-on-surface-variant">
-                  Elevated row views of the full stage layout, complimentary event portfolio booklet, and access to premium networking pre-cocktail zones.
-                </p>
+                <p className="font-body-md text-[13px] text-on-surface-variant">Elevated views and event portfolio booklet.</p>
               </div>
             </div>
 
@@ -144,39 +141,12 @@ const EventDetailsPage = ({ event, setView, setEvent }) => {
                   <h4 className="font-body-lg text-body-lg font-semibold text-on-surface">SILVER ATTIRE</h4>
                   <span className="font-title-md text-[18px] text-on-surface">${event.pricingTiers?.silver?.price || 150}</span>
                 </div>
-                <p className="font-body-md text-[13px] text-on-surface-variant">
-                  General standard access to the rear viewing rows, full entry to the central gallery, and digital ticket portal convenience.
-                </p>
+                <p className="font-body-md text-[13px] text-on-surface-variant">Standard access to rear viewing rows.</p>
               </div>
             </div>
           </div>
         </div>
       </section>
-
-      {/* 4. REHEARSAL PEEK / HORIZONTAL LOOKBOOK */}
-      {event.rehearsalImages && event.rehearsalImages.length > 0 && (
-        <section className="flex flex-col gap-6 mb-16 select-none">
-          <h2 className="font-title-md text-title-md text-on-surface border-b border-outline-variant/20 pb-4">
-            REHEARSAL PEEKS
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
-            {event.rehearsalImages.map((img, idx) => (
-              <div key={idx} className="glass-panel rounded-xl overflow-hidden relative group aspect-video">
-                <img 
-                  src={img} 
-                  alt={`Rehearsal Peek ${idx + 1}`} 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-103 group-hover:rotate-1"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent"></div>
-                <div className="absolute bottom-6 left-6">
-                  <p className="font-label-sm text-label-sm text-primary uppercase tracking-[0.2em] mb-1">BTS LOOKBOOK</p>
-                  <h4 className="font-body-lg text-body-lg text-on-surface font-semibold">Behind The Scenes Rehearsal</h4>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   );
 };

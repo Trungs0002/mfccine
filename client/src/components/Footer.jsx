@@ -1,20 +1,23 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const Footer = ({ setView, setIsAdminMode, settings }) => {
+const Footer = ({ setIsAdminMode, settings }) => {
+  const navigate = useNavigate();
+
   return (
     <footer className="bg-surface-container-lowest w-full border-t border-outline-variant/15 relative z-10">
       <div className="flex flex-col gap-12 px-margin-mobile md:px-margin-desktop py-16 max-w-container-max mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
           {/* Headline brand label */}
-          <div
+          <div 
             onClick={() => {
               setIsAdminMode(false);
-              setView('landing');
+              navigate('/');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             className="font-display-xl text-display-xl text-on-surface italic tracking-tight cursor-pointer hover:opacity-85 select-none transition-opacity"
           >
-            {settings?.siteName || 'MFC FTU'}
+            {settings?.siteName || 'EVENT PRO'}
           </div>
 
           {/* Links navigation columns */}
@@ -35,7 +38,7 @@ const Footer = ({ setView, setIsAdminMode, settings }) => {
         </div>
 
         <div className="text-tertiary-fixed-dim font-body-md text-[14px] pt-8 border-t border-outline-variant/10 flex flex-col md:flex-row justify-between gap-4">
-          <span>© 2026 {settings?.siteName || 'MFC FTU'}. Elevating experiences through excellence.</span>
+          <span>© 2026 {settings?.siteName || 'EVENT PRO'}. Elevating experiences through excellence.</span>
           <span className="text-[12px] opacity-60">Handcrafted utilizing luxury dark presets.</span>
         </div>
       </div>

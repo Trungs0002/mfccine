@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const LandingPage = ({ events, setView, setEvent, settings }) => {
+const LandingPage = ({ events, setEvent, settings }) => {
+  const navigate = useNavigate();
   const galaEvent = events[0] || {
     title: 'THE HAUTE ETHER GALA',
     description: 'An evening of transcendent high fashion, sensory exploration, and digital art installations in the heart of the Grand Palais.',
@@ -15,7 +17,7 @@ const LandingPage = ({ events, setView, setEvent, settings }) => {
     ]
   };
 
-  // Real-time Countdown Timer (Target: October 24)
+  // Real-time Countdown Timer
   const calculateTimeLeft = useCallback(() => {
     const difference = +new Date(galaEvent.date) - +new Date();
     let timeLeft = {};
@@ -44,21 +46,21 @@ const LandingPage = ({ events, setView, setEvent, settings }) => {
 
   const handleBookNow = () => {
     setEvent(galaEvent);
-    setView('seating');
+    navigate('/seating');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <div className="w-full flex-grow flex flex-col relative z-10">
-
+      
       {/* 1. CINEMATIC HERO HEADER */}
       <section className="relative min-h-[90vh] flex flex-col justify-center items-center px-margin-mobile md:px-margin-desktop text-center overflow-hidden pt-16">
         {/* Background Image Layer */}
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/70 to-background z-10"></div>
-          <img
-            src={galaEvent.image}
-            alt="Editorial Hero Banner"
+          <img 
+            src={galaEvent.image} 
+            alt="Editorial Hero Banner" 
             className="w-full h-full object-cover mix-blend-luminosity opacity-45 scale-102 blur-[1px]"
           />
         </div>
@@ -66,10 +68,10 @@ const LandingPage = ({ events, setView, setEvent, settings }) => {
         {/* Hero Title & Countdown Details */}
         <div className="relative z-20 max-w-[850px] flex flex-col items-center select-none">
           <p className="font-label-sm text-[12px] text-primary uppercase tracking-[0.3em] mb-4">
-            {settings?.siteName || 'MFC FTU'} EXCLUSIVE SHOWCASE
+            {settings?.siteName || 'EVENT PRO'} EXCLUSIVE SHOWCASE
           </p>
           <h1 className="font-display-xl text-[46px] md:text-[88px] text-on-surface font-extrabold leading-[1.1] mb-8 tracking-tight">
-            THE HAUTE<br />ETHER GALA
+            THE HAUTE<br/>ETHER GALA
           </h1>
 
           {/* Luxury Floating Clock */}
@@ -87,13 +89,13 @@ const LandingPage = ({ events, setView, setEvent, settings }) => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <button
+            <button 
               onClick={handleBookNow}
               className="bg-primary text-on-primary px-14 py-6 rounded font-label-sm text-[14px] uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-[0_10px_35px_rgba(221,186,238,0.3)] hover:scale-102 duration-300"
             >
               Book Passes Now
             </button>
-            <button
+            <button 
               onClick={() => {
                 const el = document.getElementById('details-section');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -106,17 +108,17 @@ const LandingPage = ({ events, setView, setEvent, settings }) => {
         </div>
       </section>
 
-      {/* 2. SHOW DETAILS & METADATA SECTION */}
+      {/* 2. SHOW DETAILS SECTION */}
       <section id="details-section" className="py-20 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto w-full relative z-20 border-t border-outline-variant/10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-20">
-
+        <div id="events-section" className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-20">
+          
           {/* Show presentation column */}
           <div className="lg:col-span-7 flex flex-col justify-center">
             <span className="font-label-sm text-[12px] text-primary uppercase tracking-[0.25em] mb-3 block">
               {galaEvent.location} • {galaEvent.venueName}
             </span>
             <h2 className="font-headline-lg-mobile md:font-headline-lg text-on-surface font-extrabold leading-tight mb-6 uppercase">
-              THE PRESTIGIOUS FASHION COUTURE
+              THE PRESTIGIOUS SHOWCASE
             </h2>
             <p className="font-body-lg text-body-lg text-on-surface-variant leading-relaxed mb-8">
               {galaEvent.description}
@@ -131,17 +133,17 @@ const LandingPage = ({ events, setView, setEvent, settings }) => {
                     {new Date(galaEvent.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                   </p>
                   <p className="font-label-sm text-[12px] text-on-surface-variant uppercase tracking-widest mt-1">
-                    Doors Open at 7:00 PM • Catwalk starts at 8:00 PM
+                    Doors Open at 7:00 PM • Main event starts at 8:00 PM
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Privileges card column */}
+          {/* Privileges column */}
           <div className="lg:col-span-5 space-y-4 select-none">
             <h3 className="font-label-sm text-[11px] text-on-surface-variant uppercase tracking-widest mb-4">ACCESS LEVELS</h3>
-
+            
             <div className="glass-panel p-5 rounded-lg border-l-4 border-l-primary flex items-start gap-4">
               <span className="material-symbols-outlined text-primary text-2xl">stars</span>
               <div>
@@ -149,7 +151,7 @@ const LandingPage = ({ events, setView, setEvent, settings }) => {
                   <h4 className="font-body-md font-semibold text-on-surface">VIP FRONT ROW</h4>
                   <span className="font-title-md text-[16px] text-primary">${galaEvent.pricingTiers?.vip?.price || 450}</span>
                 </div>
-                <p className="font-body-md text-[12px] text-on-surface-variant">Front row seating directly adjacent to the T-Runway, private lounge access, and designer gift bags.</p>
+                <p className="font-body-md text-[12px] text-on-surface-variant">Front row seating, private lounge access, and exclusive gift bags.</p>
               </div>
             </div>
 
@@ -160,7 +162,7 @@ const LandingPage = ({ events, setView, setEvent, settings }) => {
                   <h4 className="font-body-md font-semibold text-on-surface">GOLD EXPOSURE</h4>
                   <span className="font-title-md text-[16px] text-secondary">${galaEvent.pricingTiers?.gold?.price || 250}</span>
                 </div>
-                <p className="font-body-md text-[12px] text-on-surface-variant">Premium elevation view of the stage runway, and complimentary exhibition portfolios.</p>
+                <p className="font-body-md text-[12px] text-on-surface-variant">Premium elevation view and complimentary event portfolios.</p>
               </div>
             </div>
 
@@ -171,17 +173,17 @@ const LandingPage = ({ events, setView, setEvent, settings }) => {
                   <h4 className="font-body-md font-semibold text-on-surface">SILVER ATTIRE</h4>
                   <span className="font-title-md text-[16px] text-on-surface">${galaEvent.pricingTiers?.silver?.price || 150}</span>
                 </div>
-                <p className="font-body-md text-[12px] text-on-surface-variant">General attendance in the rear and side viewing rows, plus digital portal access.</p>
+                <p className="font-body-md text-[12px] text-on-surface-variant">General attendance in rear viewing rows and digital portal access.</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Evening Timeline */}
+        {/* Timeline */}
         <div className="border-t border-outline-variant/10 pt-16 flex flex-col md:flex-row gap-12">
           <div className="md:w-1/3">
             <p className="font-label-sm text-[12px] text-primary uppercase tracking-wider mb-2">The Night flow</p>
-            <h3 className="font-title-md text-[24px] uppercase text-on-surface leading-tight font-extrabold">CHRONICLES OF COUTURE</h3>
+            <h3 className="font-title-md text-[24px] uppercase text-on-surface leading-tight font-extrabold">CHRONICLES OF EVENT</h3>
           </div>
           <div className="md:w-2/3 space-y-8 select-none">
             {galaEvent.schedule && galaEvent.schedule.map((item, idx) => (
@@ -207,7 +209,7 @@ const LandingPage = ({ events, setView, setEvent, settings }) => {
       {/* 3. FINAL ACTION BUTTON ANCHOR */}
       <section className="py-16 text-center select-none relative z-20 bg-surface-container/20 border-t border-b border-outline-variant/10">
         <h3 className="font-title-md text-[26px] text-on-surface italic mb-4">Are you ready to witness the experience?</h3>
-        <button
+        <button 
           onClick={handleBookNow}
           className="bg-primary text-on-primary px-16 py-7 rounded font-label-sm text-[15px] uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-[0_8px_32px_rgba(221,186,238,0.25)]"
         >

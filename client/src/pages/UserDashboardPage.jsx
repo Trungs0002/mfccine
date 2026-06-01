@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const UserDashboardPage = ({ userEmail, setView, setCompletedBookingId, settings }) => {
+const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('tickets');
@@ -62,7 +64,7 @@ const UserDashboardPage = ({ userEmail, setView, setCompletedBookingId, settings
 
         <button 
           onClick={() => {
-            setView('landing');
+            navigate('/');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           className="mt-auto hidden md:block w-full py-4.5 border border-outline-variant/30 text-on-surface-variant hover:text-white font-label-sm text-[12px] uppercase tracking-widest hover:bg-surface-container-highest/20 transition-all rounded"
@@ -94,7 +96,7 @@ const UserDashboardPage = ({ userEmail, setView, setCompletedBookingId, settings
                   <p className="font-body-md text-on-surface-variant text-[14px]">You haven't reserved access for any active showcases yet.</p>
                 </div>
                 <button 
-                  onClick={() => setView('landing')}
+                  onClick={() => navigate('/')}
                   className="bg-primary text-on-primary px-6 py-2.5 rounded font-label-sm text-[11px] uppercase tracking-widest hover:bg-white hover:text-black transition-colors"
                 >
                   Browse Events
@@ -168,7 +170,7 @@ const UserDashboardPage = ({ userEmail, setView, setCompletedBookingId, settings
                           <button 
                             onClick={() => {
                               setCompletedBookingId(booking._id);
-                              setView('ticket');
+                              navigate('/ticket');
                               window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
                             className="bg-primary text-on-primary px-10 py-4 rounded font-label-sm text-[13px] uppercase tracking-widest hover:bg-white hover:text-black transition-colors"
