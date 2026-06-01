@@ -10,7 +10,12 @@ const connectDB = require('./connect');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const JWT_SECRET = process.env.JWT_SECRET || 'mfcluxe_secret_key_2026';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  console.error('FATAL ERROR: JWT_SECRET is not defined in .env');
+  process.exit(1);
+}
 
 // Enable CORS and Express JSON parsing with 10mb limit for base64 uploads
 app.use(cors());
@@ -18,9 +23,9 @@ app.use(express.json({ limit: '10mb' }));
 
 // Cloudinary Configuration
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'mfc',
-  api_key: process.env.CLOUDINARY_API_KEY || '123118897662632',
-  api_secret: process.env.CLOUDINARY_API_SECRET || 'jCM3M80_iK0hqSkt3yyoGTO1trU'
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 // Database Models
@@ -184,7 +189,7 @@ app.post('/api/auth/register', async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({ fullName, email, password: hashedPassword });
-    
+
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { id: user._id, fullName: user.fullName, email: user.email, role: user.role } });
   } catch (err) {
@@ -304,7 +309,7 @@ app.post('/api/bookings/check-in/:id', async (req, res) => {
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ error: 'Ticket not found' });
     if (booking.isCheckedIn) return res.status(400).json({ error: 'Ticket already checked in' });
-    
+
     booking.isCheckedIn = true;
     booking.checkInDate = new Date();
     await booking.save();
@@ -329,7 +334,7 @@ app.get('/api/analytics', async (req, res) => {
 });
 
 // Connect to MongoDB & Start Server
-connectDB(process.env.MONGODB_URI || 'mongodb+srv://admin:admin123@cluster0.mongodb.net/mfc?retryWrites=true&w=majority').then(() => {
+connectDB(process.env.MONGODB_URI).then(() => {
   seedDatabase().catch(err => console.error('Seeding failed:', err));
   app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
 });
