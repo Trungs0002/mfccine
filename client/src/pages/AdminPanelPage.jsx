@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
   const navigate = useNavigate();
   const [activeAdminTab, setActiveTab] = useState('events'); // 'events' or 'bookings'
+  const [showEventForm, setShowEventForm] = useState(false); // Controls visibility of the Create/Edit form
+  
   const [analytics, setAnalytics] = useState({
     totalRevenue: 0,
     ticketsSold: 0,
@@ -110,7 +112,8 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
     setStandardPrice(evt.pricingTiers?.standard?.price || 100);
     setImage(null);
     setImageName('');
-    window.scrollTo({ top: 300, behavior: 'smooth' });
+    setShowEventForm(true); // Show form
+    window.scrollTo({ top: 800, behavior: 'smooth' }); // Scroll to form area
   };
 
   const resetForm = () => {
@@ -126,6 +129,13 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
     setStandardPrice(100);
     setImage(null);
     setImageName('');
+    setShowEventForm(false); // Hide form
+  };
+
+  const handleAddNewEvent = () => {
+    resetForm();
+    setShowEventForm(true);
+    window.scrollTo({ top: 800, behavior: 'smooth' });
   };
 
   const handleSubmitEvent = async (e) => {
@@ -219,6 +229,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
   return (
     <div className="w-full flex-grow flex flex-col pt-[100px] pb-section-gap px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto relative z-10 gap-12">
       
+      {/* HEADER */}
       <div className="flex flex-col gap-8 border-b border-outline-variant/15 pb-8 select-none">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div>
@@ -240,6 +251,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
         </div>
       </div>
 
+      {/* ANALYTICS */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6 select-none">
         <div className="glass-panel p-6 rounded-xl border border-outline-variant/20 flex flex-col gap-1">
           <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">Revenue</span>
@@ -265,6 +277,8 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
 
       {activeAdminTab === 'events' ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fade-in">
+          
+          {/* LEFT: Branding & Scanner */}
           <div className="lg:col-span-5 flex flex-col gap-8">
             <div className="glass-panel p-8 rounded-xl border border-secondary/20 bg-secondary/5">
               <h3 className="font-label-sm text-[11px] text-secondary uppercase tracking-widest mb-4">WEBSITE BRANDING</h3>
@@ -282,84 +296,120 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
               </form>
               {scanResult && <p className={`mt-3 text-[12px] font-bold ${scanResult.success ? 'text-secondary' : 'text-error'}`}>{scanResult.message}</p>}
             </div>
-
-            <div className="glass-panel p-8 rounded-xl border border-outline-variant/15">
-              <h3 className="font-title-md text-[20px] text-on-surface border-b border-outline-variant/15 pb-4 mb-6 uppercase italic">
-                {editingEventId ? 'Modify Active Event' : 'Launch New Brand Showcase'}
-              </h3>
-              <form onSubmit={handleSubmitEvent} className="space-y-5">
-                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Event Title" className="w-full bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[14px] text-on-surface focus:border-primary outline-none" required />
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description..." className="w-full bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[14px] text-on-surface h-24 focus:border-primary outline-none" required />
-                <div className="grid grid-cols-2 gap-4">
-                  <input type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} className="bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[14px] text-on-surface focus:border-primary outline-none" required />
-                  <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City" className="bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[14px] text-on-surface focus:border-primary outline-none" required />
-                </div>
-                <input type="text" value={venueName} onChange={(e) => setVenueName(e.target.value)} placeholder="Venue Landmark" className="w-full bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[14px] text-on-surface focus:border-primary outline-none" required />
-                
-                <div className="p-4 bg-surface-container-highest/20 rounded-lg border border-outline-variant/10 space-y-4">
-                  <h4 className="font-label-sm text-[10px] text-primary uppercase tracking-widest font-bold italic">Ticket Pricing Override (4 Tiers)</h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[9px] text-on-surface-variant uppercase">Standard</span>
-                      <input type="number" value={standardPrice} onChange={(e) => setStandardPrice(e.target.value)} className="bg-background border border-outline-variant/30 rounded p-2 text-[12px] text-on-surface outline-none" />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[9px] text-on-surface-variant uppercase">Silver</span>
-                      <input type="number" value={silverPrice} onChange={(e) => setSilverPrice(e.target.value)} className="bg-background border border-outline-variant/30 rounded p-2 text-[12px] text-on-surface outline-none" />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[9px] text-secondary uppercase font-bold">Gold</span>
-                      <input type="number" value={goldPrice} onChange={(e) => setGoldPrice(e.target.value)} className="bg-background border border-outline-variant/30 rounded p-2 text-[12px] text-on-surface outline-none" />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[9px] text-primary uppercase font-bold">VIP</span>
-                      <input type="number" value={vipPrice} onChange={(e) => setVipPrice(e.target.value)} className="bg-background border border-outline-variant/30 rounded p-2 text-[12px] text-on-surface outline-none" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" id="cloudinaryInput" />
-                  <button type="button" onClick={() => document.getElementById('cloudinaryInput').click()} className="w-full py-3 border border-outline-variant/30 bg-surface-container/30 rounded text-[11px] font-label-sm uppercase tracking-wider text-on-surface hover:bg-surface-container-highest/40 transition-all">
-                    {imageName ? `Attached: ${imageName.slice(0,25)}...` : editingEventId ? 'Replace Brand Visual' : 'Upload Thumbnail'}
-                  </button>
-                </div>
-
-                <div className="flex gap-3">
-                  {editingEventId && <button type="button" onClick={resetForm} className="flex-1 py-5 border border-outline-variant/30 text-on-surface-variant rounded font-label-sm text-[13px] uppercase tracking-widest hover:text-white transition-all">Cancel</button>}
-                  <button type="submit" disabled={submittingEvent} className="flex-[2] bg-primary text-on-primary py-5 rounded font-label-sm text-[13px] uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-lg font-bold">{submittingEvent ? 'Uploading...' : editingEventId ? 'Confirm Updates' : 'Launch Showcase'}</button>
-                </div>
-              </form>
-            </div>
           </div>
 
-          <div className="lg:col-span-7 flex flex-col gap-6">
-            <h3 className="font-title-md text-[20px] text-on-surface border-b border-outline-variant/15 pb-4">ACTIVE REPERTOIRE</h3>
-            <div className="grid grid-cols-1 gap-4">
-              {events.map((evt) => (
-                <div key={evt._id} className="glass-panel p-6 rounded-xl border border-outline-variant/15 flex flex-col sm:flex-row justify-between items-center gap-6 group hover:border-primary/30 transition-all">
-                  <div className="flex items-center gap-6 w-full">
-                    <img src={evt.image} alt={evt.title} className="w-20 h-20 rounded-lg object-cover mix-blend-luminosity group-hover:mix-blend-normal transition-all border border-outline-variant/10" />
-                    <div className="flex-1">
-                      <h4 className="font-title-md text-[18px] text-on-surface leading-tight mb-1">{evt.title}</h4>
-                      <p className="font-body-md text-[13px] text-on-surface-variant italic">{evt.location}</p>
-                      <div className="flex gap-4 mt-2 text-[10px] text-on-surface-variant font-mono uppercase flex-wrap">
-                        <span>VIP: ${evt.pricingTiers?.vip?.price}</span>
-                        <span>Gold: ${evt.pricingTiers?.gold?.price}</span>
-                        <span>Silver: ${evt.pricingTiers?.silver?.price}</span>
-                        <span>Standard: ${evt.pricingTiers?.standard?.price}</span>
+          {/* RIGHT: Active List & Form below */}
+          <div className="lg:col-span-7 flex flex-col gap-10">
+            <div className="flex flex-col gap-6">
+              <h3 className="font-title-md text-[20px] text-on-surface border-b border-outline-variant/15 pb-4">ACTIVE REPERTOIRE</h3>
+              <div className="grid grid-cols-1 gap-4">
+                {events.map((evt) => (
+                  <div key={evt._id} className="glass-panel p-6 rounded-xl border border-outline-variant/15 flex flex-col sm:flex-row justify-between items-center gap-6 group hover:border-primary/30 transition-all">
+                    <div className="flex items-center gap-6 w-full">
+                      <img src={evt.image} alt={evt.title} className="w-20 h-20 rounded-lg object-cover mix-blend-luminosity group-hover:mix-blend-normal transition-all border border-outline-variant/10" />
+                      <div className="flex-1">
+                        <h4 className="font-title-md text-[18px] text-on-surface leading-tight mb-1">{evt.title}</h4>
+                        <p className="font-body-md text-[13px] text-on-surface-variant italic">{evt.location}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 w-full sm:w-auto shrink-0 select-none">
+                      <button onClick={() => handleEditClick(evt)} className="px-4 py-3 bg-surface-container-high rounded text-on-surface hover:bg-white hover:text-black transition-all font-label-sm text-[10px] uppercase tracking-widest border border-outline-variant/20 flex items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-[16px]">edit</span> Edit
+                      </button>
+                      <button onClick={() => handleDeleteEvent(evt._id)} className="px-4 py-3 bg-error/10 border border-error/30 text-error hover:bg-error hover:text-white rounded transition-all"><span className="material-symbols-outlined text-[16px]">delete</span></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {!showEventForm && (
+                <button 
+                  onClick={handleAddNewEvent}
+                  className="w-full py-8 border-2 border-dashed border-outline-variant/20 rounded-xl text-on-surface-variant hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-2 group"
+                >
+                  <span className="material-symbols-outlined text-3xl group-hover:scale-110 transition-transform">add_circle</span>
+                  <span className="font-label-sm text-[12px] uppercase tracking-[0.2em]">Add New Brand Event</span>
+                </button>
+              )}
+            </div>
+
+            {/* THE DYNAMIC EVENT FORM (Hides by default, appears below list) */}
+            {showEventForm && (
+              <div id="event-form-section" className="glass-panel p-8 rounded-xl border border-outline-variant/25 animate-fade-in">
+                <div className="flex justify-between items-center border-b border-outline-variant/15 pb-4 mb-8">
+                  <h3 className="font-title-md text-[20px] text-on-surface uppercase italic">
+                    {editingEventId ? 'Modify Event Blueprint' : 'Launch New Showcase'}
+                  </h3>
+                  <button onClick={resetForm} className="text-on-surface-variant hover:text-white"><span className="material-symbols-outlined">close</span></button>
+                </div>
+                
+                <form onSubmit={handleSubmitEvent} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">Event Title</label>
+                      <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. THE FALL SYMPHONY" className="bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[14px] text-on-surface focus:border-primary outline-none" required />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">Metropolitan City</label>
+                      <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Tokyo" className="bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[14px] text-on-surface focus:border-primary outline-none" required />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">Showcase Narrative</label>
+                    <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the aesthetic direction..." className="bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[14px] text-on-surface h-24 focus:border-primary outline-none" required />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">Event Timestamp</label>
+                      <input type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} className="bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[14px] text-on-surface focus:border-primary outline-none" required />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">Venue Landmark</label>
+                      <input type="text" value={venueName} onChange={(e) => setVenueName(e.target.value)} placeholder="e.g. Shibuya Sky" className="bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[14px] text-on-surface focus:border-primary outline-none" required />
+                    </div>
+                  </div>
+
+                  <div className="p-5 bg-surface-container-highest/20 rounded-xl border border-outline-variant/15 space-y-4">
+                    <h4 className="font-label-sm text-[11px] text-primary uppercase tracking-widest font-bold italic">Dynamic Ticket Pricing (USD)</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] text-on-surface-variant uppercase">Standard</span>
+                        <input type="number" value={standardPrice} onChange={(e) => setStandardPrice(e.target.value)} className="bg-background border border-outline-variant/30 rounded p-2.5 text-[13px] text-on-surface outline-none focus:border-primary" />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] text-on-surface-variant uppercase">Silver</span>
+                        <input type="number" value={silverPrice} onChange={(e) => setSilverPrice(e.target.value)} className="bg-background border border-outline-variant/30 rounded p-2.5 text-[13px] text-on-surface outline-none focus:border-primary" />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] text-secondary uppercase font-bold">Gold</span>
+                        <input type="number" value={goldPrice} onChange={(e) => setGoldPrice(e.target.value)} className="bg-background border border-outline-variant/30 rounded p-2.5 text-[13px] text-on-surface outline-none focus:border-primary" />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] text-primary uppercase font-bold">VIP</span>
+                        <input type="number" value={vipPrice} onChange={(e) => setVipPrice(e.target.value)} className="bg-background border border-outline-variant/30 rounded p-2.5 text-[13px] text-on-surface outline-none focus:border-primary" />
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2 w-full sm:w-auto">
-                    <button onClick={() => handleEditClick(evt)} className="flex-1 px-4 py-3 bg-surface-container-high rounded text-on-surface hover:bg-white hover:text-black transition-all font-label-sm text-[10px] uppercase tracking-widest border border-outline-variant/20 flex items-center justify-center gap-2">
-                      <span className="material-symbols-outlined text-[16px]">edit</span> Edit
+
+                  <div className="flex flex-col gap-1.5">
+                    <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" id="cloudinaryInput" />
+                    <button type="button" onClick={() => document.getElementById('cloudinaryInput').click()} className="w-full py-4 border border-outline-variant/30 bg-surface-container/30 rounded-lg text-[11px] font-label-sm uppercase tracking-wider text-on-surface hover:bg-surface-container-highest/40 transition-all flex items-center justify-center gap-3">
+                      <span className="material-symbols-outlined text-[18px]">image</span>
+                      {imageName ? `Attached: ${imageName.slice(0,25)}...` : editingEventId ? 'Replace Event Visual' : 'Upload Event Thumbnail'}
                     </button>
-                    <button onClick={() => handleDeleteEvent(evt._id)} className="px-4 py-3 bg-error/10 border border-error/30 text-error hover:bg-error hover:text-white rounded transition-all"><span className="material-symbols-outlined text-[16px]">delete</span></button>
                   </div>
-                </div>
-              ))}
-            </div>
+
+                  <div className="flex gap-4 pt-4">
+                    <button type="button" onClick={resetForm} className="flex-1 py-5 border border-outline-variant/30 text-on-surface-variant rounded-xl font-label-sm text-[13px] uppercase tracking-widest hover:text-white transition-all">Cancel</button>
+                    <button type="submit" disabled={submittingEvent} className="flex-[2] bg-primary text-on-primary py-5 rounded-xl font-label-sm text-[13px] uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-lg font-bold">
+                      {submittingEvent ? 'Uploading...' : editingEventId ? 'Sync Updates' : 'Confirm Launch'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
           </div>
         </div>
       ) : (
