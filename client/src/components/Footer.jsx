@@ -1,8 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 
 const Footer = ({ setIsAdminMode, settings }) => {
   const navigate = useNavigate();
+  const { language, t } = useLanguage();
 
   return (
     <footer className="bg-surface-container-lowest w-full border-t border-outline-variant/15 relative z-10">
@@ -23,23 +25,23 @@ const Footer = ({ setIsAdminMode, settings }) => {
           {/* Links navigation columns */}
           <nav className="flex flex-wrap gap-x-8 gap-y-4">
             <span className="text-on-surface-variant hover:text-primary transition-colors duration-300 font-label-sm text-label-sm uppercase tracking-widest cursor-pointer select-none">
-              Club Mission
+              {language === 'vi' ? 'Sứ mệnh' : 'Club Mission'}
             </span>
             <span className="text-on-surface-variant hover:text-primary transition-colors duration-300 font-label-sm text-label-sm uppercase tracking-widest cursor-pointer select-none">
-              Press
+              {language === 'vi' ? 'Báo chí' : 'Press'}
             </span>
             <span className="text-on-surface-variant hover:text-primary transition-colors duration-300 font-label-sm text-label-sm uppercase tracking-widest cursor-pointer select-none">
-              Sustainability
+              {language === 'vi' ? 'Bền vững' : 'Sustainability'}
             </span>
             <span className="text-on-surface-variant hover:text-primary transition-colors duration-300 font-label-sm text-label-sm uppercase tracking-widest cursor-pointer select-none">
-              Terms of Service
+              {language === 'vi' ? 'Điều khoản' : 'Terms of Service'}
             </span>
           </nav>
         </div>
 
         <div className="text-tertiary-fixed-dim font-body-md text-[14px] pt-8 border-t border-outline-variant/10 flex flex-col md:flex-row justify-between gap-4">
-          <span>© 2026 {settings?.siteName || 'EVENT PRO'}. Elevating experiences through excellence.</span>
-          <span className="text-[12px] opacity-60">Handcrafted utilizing luxury dark presets.</span>
+          <span>© 2026 {settings?.siteName || 'EVENT PRO'}. {language === 'vi' ? 'Nâng tầm trải nghiệm đẳng cấp.' : 'Elevating experiences through excellence.'}</span>
+          <span className="text-[12px] opacity-60">{language === 'vi' ? 'Thiết kế bởi Stitch Editorial.' : 'Handcrafted utilizing luxury dark presets.'}</span>
         </div>
       </div>
     </footer>

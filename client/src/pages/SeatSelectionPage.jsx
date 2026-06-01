@@ -1,13 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 
 const SeatSelectionPage = ({ event, setBookingDetails }) => {
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
   const [occupiedSeats, setOccupiedSeats] = useState([]);
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [scale, setScale] = useState(1);
   const containerRef = React.useRef(null);
+
+  // Robust field localizer
+  const l = useCallback((field) => {
+    if (!field) return '';
+    if (typeof field === 'string') return field;
+    return field[language] || field.en || '';
+  }, [language]);
 
   const vipPrice = event?.pricingTiers?.vip?.price || 450;
   const goldPrice = event?.pricingTiers?.gold?.price || 250;
@@ -56,13 +65,13 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
     for (let col = 1; col <= 2; col++) {
       const x = 238 + (col - 1) * spacing;
       for (let i = 1; i <= 20; i++) {
-        list.push({ id: `L-Gold-Col${col}-${i}`, label: `L-Gold C${col} R${i}`, num: i, type: 'Gold', price: goldPrice, color: '#ffb800', x, y: 180 + (i - 1) * spacing });
+        list.push({ id: `L-Gold-Col${col}-${i}`, label: `${language === 'vi' ? 'Trái - Vàng' : 'L-Gold'} C${col} R${i}`, num: i, type: 'Gold', price: goldPrice, color: '#ffb800', x, y: 180 + (i - 1) * spacing });
       }
     }
     for (let col = 1; col <= 2; col++) {
       const x = 294 + (col - 1) * spacing;
       for (let i = 1; i <= 20; i++) {
-        list.push({ id: `L-VIP-Col${col}-${i}`, label: `L-VIP C${col} R${i}`, num: i, type: 'VIP', price: vipPrice, color: '#ff2a8d', x, y: 180 + (i - 1) * spacing });
+        list.push({ id: `L-VIP-Col${col}-${i}`, label: `${language === 'vi' ? 'Trái - VIP' : 'L-VIP'} C${col} R${i}`, num: i, type: 'VIP', price: vipPrice, color: '#ff2a8d', x, y: 180 + (i - 1) * spacing });
       }
     }
 
@@ -70,13 +79,13 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
     for (let col = 1; col <= 2; col++) {
       const x = 473 + (col - 1) * spacing;
       for (let i = 1; i <= 20; i++) {
-        list.push({ id: `R-VIP-Col${col}-${i}`, label: `R-VIP C${col} R${i}`, num: i, type: 'VIP', price: vipPrice, color: '#ff2a8d', x, y: 180 + (i - 1) * spacing });
+        list.push({ id: `R-VIP-Col${col}-${i}`, label: `${language === 'vi' ? 'Phải - VIP' : 'R-VIP'} C${col} R${i}`, num: i, type: 'VIP', price: vipPrice, color: '#ff2a8d', x, y: 180 + (i - 1) * spacing });
       }
     }
     for (let col = 1; col <= 2; col++) {
       const x = 529 + (col - 1) * spacing;
       for (let i = 1; i <= 20; i++) {
-        list.push({ id: `R-Gold-Col${col}-${i}`, label: `R-Gold C${col} R${i}`, num: i, type: 'Gold', price: goldPrice, color: '#ffb800', x, y: 180 + (i - 1) * spacing });
+        list.push({ id: `R-Gold-Col${col}-${i}`, label: `${language === 'vi' ? 'Phải - Vàng' : 'R-Gold'} C${col} R${i}`, num: i, type: 'Gold', price: goldPrice, color: '#ffb800', x, y: 180 + (i - 1) * spacing });
       }
     }
 
@@ -84,20 +93,20 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
     for (let col = 1; col <= 3; col++) {
       const x = 126 + (col - 1) * spacing;
       for (let i = 1; i <= 25; i++) {
-        list.push({ id: `L-Silver-Col${col}-${i}`, label: `L-Silver C${col} R${i}`, num: i, type: 'Silver', price: silverPrice, color: '#00f0ff', x, y: 150 + (i - 1) * spacing });
+        list.push({ id: `L-Silver-Col${col}-${i}`, label: `${language === 'vi' ? 'Trái - Bạc' : 'L-Silver'} C${col} R${i}`, num: i, type: 'Silver', price: silverPrice, color: '#00f0ff', x, y: 150 + (i - 1) * spacing });
       }
     }
     for (let col = 1; col <= 3; col++) {
       const x = 613 + (col - 1) * spacing;
       for (let i = 1; i <= 25; i++) {
-        list.push({ id: `R-Silver-Col${col}-${i}`, label: `R-Silver C${col} R${i}`, num: i, type: 'Silver', price: silverPrice, color: '#00f0ff', x, y: 150 + (i - 1) * spacing });
+        list.push({ id: `R-Silver-Col${col}-${i}`, label: `${language === 'vi' ? 'Phải - Bạc' : 'R-Silver'} C${col} R${i}`, num: i, type: 'Silver', price: silverPrice, color: '#00f0ff', x, y: 150 + (i - 1) * spacing });
       }
     }
     for (let r = 1; r <= 3; r++) {
       const y = 766 + (r - 1) * spacing;
       for (let i = 0; i < 15; i++) {
         const x = Math.round(210 + i * (375 / 14));
-        list.push({ id: `B-Silver-Row${r}-${i + 1}`, label: `B-Silver R${r} S${i + 1}`, num: i + 1, type: 'Silver', price: silverPrice, color: '#00f0ff', x, y });
+        list.push({ id: `B-Silver-Row${r}-${i + 1}`, label: `${language === 'vi' ? 'Dưới - Bạc' : 'B-Silver'} R${r} S${i + 1}`, num: i + 1, type: 'Silver', price: silverPrice, color: '#00f0ff', x, y });
       }
     }
 
@@ -105,20 +114,20 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
     for (let col = 1; col <= 2; col++) {
       const x = 42 + (col - 1) * spacing;
       for (let i = 1; i <= 27; i++) {
-        list.push({ id: `L-Std-Col${col}-${i}`, label: `L-Std C${col} R${i}`, num: i, type: 'Standard', price: standardPrice, color: '#d946ef', x, y: 150 + (i - 1) * spacing });
+        list.push({ id: `L-Std-Col${col}-${i}`, label: `${language === 'vi' ? 'Trái - PT' : 'L-Std'} C${col} R${i}`, num: i, type: 'Standard', price: standardPrice, color: '#d946ef', x, y: 150 + (i - 1) * spacing });
       }
     }
     for (let col = 1; col <= 2; col++) {
       const x = 725 + (col - 1) * spacing;
       for (let i = 1; i <= 27; i++) {
-        list.push({ id: `R-Std-Col${col}-${i}`, label: `R-Std C${col} R${i}`, num: i, type: 'Standard', price: standardPrice, color: '#d946ef', x, y: 150 + (i - 1) * spacing });
+        list.push({ id: `R-Std-Col${col}-${i}`, label: `${language === 'vi' ? 'Phải - PT' : 'R-Std'} C${col} R${i}`, num: i, type: 'Standard', price: standardPrice, color: '#d946ef', x, y: 150 + (i - 1) * spacing });
       }
     }
     for (let r = 1; r <= 2; r++) {
       const y = 850 + (r - 1) * spacing;
       for (let i = 0; i < 23; i++) {
         const x = Math.round(98 + i * (599 / 22));
-        list.push({ id: `B-Std-Row${r}-${i + 1}`, label: `B-Std R${r} S${i + 1}`, num: i + 1, type: 'Standard', price: standardPrice, color: '#d946ef', x, y });
+        list.push({ id: `B-Std-Row${r}-${i + 1}`, label: `${language === 'vi' ? 'Dưới - PT' : 'B-Std'} R${r} S${i + 1}`, num: i + 1, type: 'Standard', price: standardPrice, color: '#d946ef', x, y });
       }
     }
     return list;
@@ -153,10 +162,12 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 select-none">
         <div>
           <button onClick={() => { navigate('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex items-center gap-2 font-label-sm text-[13px] text-on-surface-variant hover:text-primary transition-colors uppercase tracking-widest mb-4">
-            <span className="material-symbols-outlined text-[18px]">keyboard_backspace</span> Return to Showcase
+            <span className="material-symbols-outlined text-[18px]">keyboard_backspace</span> {t('returnShowcase')}
           </button>
-          <h1 className="font-headline-lg-mobile text-on-surface uppercase leading-none font-bold tracking-tight">RUNWAY SEATING</h1>
-          <p className="font-body-md text-on-surface-variant text-[14px] mt-1">Exact coordinates mapped to the spotlighting.</p>
+          <h1 className="font-headline-lg-mobile text-on-surface uppercase leading-none font-bold tracking-tight">{t('runwaySeating')}</h1>
+          <p className="font-body-md text-on-surface-variant text-[14px] mt-1">
+            {language === 'vi' ? 'Toạ độ chỗ ngồi chính xác được ánh xạ theo ánh đèn sân khấu.' : 'Exact coordinates mapped to the spotlighting.'}
+          </p>
         </div>
         <div className="flex flex-wrap gap-4 text-[11px] font-label-sm uppercase tracking-wider bg-surface-container/20 border border-outline-variant/15 px-6 py-3 rounded-lg shadow-xl">
           <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#ff2a8d]"></span><span>VIP (${vipPrice})</span></div>
@@ -175,12 +186,12 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
             <div style={{ width: '820px', height: `${980 * scale}px`, position: 'relative', overflow: 'hidden' }} className="flex justify-center items-start transition-all duration-300">
               <div style={{ width: '820px', height: '980px', transform: `scale(${scale})`, transformOrigin: 'top center', position: 'absolute', left: 0, top: 0 }} className="relative">
                 <div className="absolute top-[20px] left-[50%] -translate-x-[50%] w-[480px] h-[80px] bg-[#29252c] border border-outline-variant/20 rounded shadow-xl flex items-center justify-center z-20">
-                  <span className="font-display-xl text-[16px] text-primary tracking-[0.6em] font-extrabold uppercase">STAGE</span>
+                  <span className="font-display-xl text-[16px] text-primary tracking-[0.6em] font-extrabold uppercase">{language === 'vi' ? 'SÂN KHẤU' : 'STAGE'}</span>
                 </div>
                 <div className="absolute top-[114px] left-[50%] -translate-x-[50%] w-[104px] h-[610px] bg-[#1d1a1f] border border-outline-variant/15 rounded flex flex-col justify-between items-center py-10 z-10">
                   <div className="absolute inset-y-0 left-0 w-[1px] bg-gradient-to-b from-primary/10 via-primary/50 to-primary/10 shadow-[0_0_15px_#ff7ebb]"></div>
                   <span className="material-symbols-outlined text-primary text-[20px] animate-pulse">model_training</span>
-                  <span className="font-display-xl text-[10px] text-primary tracking-[0.4em] uppercase rotate-90 my-20 whitespace-nowrap opacity-80">SPOTLIGHT</span>
+                  <span className="font-display-xl text-[10px] text-primary tracking-[0.4em] uppercase rotate-90 my-20 whitespace-nowrap opacity-80">{language === 'vi' ? 'SÀN DIỄN' : 'SPOTLIGHT'}</span>
                   <span className="material-symbols-outlined text-primary text-[20px] animate-pulse">model_training</span>
                 </div>
                 {seats.map(seat => {
@@ -200,22 +211,25 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
 
         <div className="xl:col-span-4 flex flex-col gap-6">
           <div className="glass-panel p-8 rounded-2xl flex flex-col shadow-xl border border-outline-variant/10">      
-            <h3 className="font-title-md text-[20px] text-on-surface border-b border-outline-variant/15 pb-4 mb-6 uppercase tracking-tight italic">RESERVATIONS</h3>
+            <h3 className="font-title-md text-[20px] text-on-surface border-b border-outline-variant/15 pb-4 mb-6 uppercase tracking-tight italic">{t('reservations')}</h3>
             {selectedSeats.length === 0 ? (
-              <div className="flex flex-col justify-center items-center py-16 text-center opacity-50"><span className="material-symbols-outlined text-4xl mb-4 text-outline-variant">event_seat</span><p className="font-body-md text-[14px] text-on-surface-variant">Select seat nodes on the map to begin your reservation portfolio.</p></div>
+              <div className="flex flex-col justify-center items-center py-16 text-center opacity-50"><span className="material-symbols-outlined text-4xl mb-4 text-outline-variant">event_seat</span><p className="font-body-md text-[14px] text-on-surface-variant">
+                {language === 'vi' ? 'Chọn vị trí trên sơ đồ để bắt đầu đặt chỗ.' : 'Select seat nodes on the map to begin your reservation portfolio.'}
+              </p></div>
             ) : (
               <div className="flex flex-col gap-6">
                 <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
                   {selectedSeats.map(seat => (
                     <div key={seat.id} className="flex justify-between items-center bg-surface-container/40 border border-outline-variant/15 p-4 rounded-xl group hover:border-primary/40 transition-all">
                       <div className="flex items-center gap-4">
-                        {/* Dynamic matching color indicator */}
                         <div className="w-10 h-10 rounded-lg flex items-center justify-center text-[12px] font-black text-black shadow-lg" style={{ backgroundColor: seat.color }}>
                           {seat.num}
                         </div>
                         <div>
-                          <p className="font-bold text-on-surface text-[14px] leading-tight uppercase tracking-tight">{seat.id.split('-').slice(0,2).join(' ')}</p>      
-                          <span className="text-[10px] font-label-sm uppercase tracking-[0.1em] opacity-60">Row {seat.id.split('-').pop()}</span>
+                          <p className="font-bold text-on-surface text-[14px] leading-tight uppercase tracking-tight">{seat.label}</p>      
+                          <span className="text-[10px] font-label-sm uppercase tracking-[0.1em] opacity-60">
+                            {l(event.pricingTiers?.[seat.type.toLowerCase()]?.label) || seat.type}
+                          </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
@@ -228,10 +242,10 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                   ))}
                 </div>
                 <div className="pt-6 border-t border-outline-variant/20 flex justify-between items-end select-none">
-                  <span className="font-label-sm uppercase tracking-[0.2em] text-on-surface-variant text-[11px]">Consolidated Total</span>
+                  <span className="font-label-sm uppercase tracking-[0.2em] text-on-surface-variant text-[11px]">{t('consolidatedTotal')}</span>
                   <span className="font-display-xl text-[30px] text-primary font-bold leading-none">${selectedSeats.reduce((sum, s) => sum + s.price, 0)}</span>
                 </div>
-                <button onClick={handleProceed} className="w-full mt-2 bg-primary text-on-primary py-6 rounded-xl font-label-sm text-[15px] uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-[0_15px_35px_rgba(221,186,238,0.25)] hover:scale-102 duration-300 font-bold">Confirm & Checkout</button>
+                <button onClick={handleProceed} className="w-full mt-2 bg-primary text-on-primary py-6 rounded-xl font-label-sm text-[15px] uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-[0_15px_35px_rgba(221,186,238,0.25)] hover:scale-102 duration-300 font-bold">{t('confirmCheckout')}</button>
               </div>
             )}
           </div>

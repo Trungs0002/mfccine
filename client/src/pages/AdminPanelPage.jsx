@@ -1,11 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 
 const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
   const navigate = useNavigate();
+  const { language, t } = useLanguage();
   const [activeAdminTab, setActiveTab] = useState('events'); // 'events' or 'bookings'
   const [showEventForm, setShowEventForm] = useState(false); // Controls visibility of the Create/Edit form
   
+  const l = useCallback((field) => {
+    if (!field) return '';
+    if (typeof field === 'string') return field;
+    return field[language] || field.en || '';
+  }, [language]);
+
   const [analytics, setAnalytics] = useState({
     totalRevenue: 0,
     ticketsSold: 0,
@@ -19,22 +27,28 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
   const [contactEmail, setContactEmail] = useState(settings?.contactEmail || '');
   const [updatingSettings, setUpdatingSettings] = useState(false);
 
-  // Event Management states
+  // Bilingual Event Management states
   const [editingEventId, setEditingEventId] = useState(null);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [titleEn, setTitleEn] = useState('');
+  const [titleVi, setTitleVi] = useState('');
+  const [descEn, setDescEn] = useState('');
+  const [descVi, setDescVi] = useState('');
   const [date, setDate] = useState('');
-  const [location, setLocation] = useState('');
-  const [venueName, setVenueName] = useState('');
+  const [locEn, setLocEn] = useState('');
+  const [locVi, setLocVi] = useState('');
+  const [venueEn, setVenueEn] = useState('');
+  const [venueVi, setVenueVi] = useState('');
   const [image, setImage] = useState(null);
   const [imageName, setImageName] = useState('');
   
-  // Custom Pricing states (4 tiers)
-  const [vipPrice, setVipPrice] = useState(450);
-  const [goldPrice, setGoldPrice] = useState(250);
-  const [silverPrice, setSilverPrice] = useState(150);
-  const [standardPrice, setStandardPrice] = useState(100);
-  
+  // Custom Bilingual Tier states
+  const [tiers, setTiers] = useState({
+    standard: { labelEn: 'STANDARD ENTRY', labelVi: 'HẠNG PHỔ THÔNG', descEn: '', descVi: '', price: 100 },
+    silver: { labelEn: 'SILVER ATTIRE', labelVi: 'HẠNG BẠC CAO CẤP', descEn: '', descVi: '', price: 150 },
+    gold: { labelEn: 'GOLD EXPOSURE', labelVi: 'HẠNG VÀNG ĐẲNG CẤP', descEn: '', descVi: '', price: 250 },
+    vip: { labelEn: 'VIP FRONT ROW', labelVi: 'HẠNG VIP TRỰC DIỆN', descEn: '', descVi: '', price: 450 }
+  });
+
   const [submittingEvent, setSubmittingEvent] = useState(false);
 
   // Booking Management states
@@ -100,36 +114,52 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
 
   const handleEditClick = (evt) => {
     setEditingEventId(evt._id);
-    setTitle(evt.title);
-    setDescription(evt.description);
+    setTitleEn(evt.title?.en || '');
+    setTitleVi(evt.title?.vi || '');
+    setDescEn(evt.description?.en || '');
+    setDescVi(evt.description?.vi || '');
     const d = new Date(evt.date);
     setDate(d.toISOString().slice(0, 16));
-    setLocation(evt.location);
-    setVenueName(evt.venueName);
-    setVipPrice(evt.pricingTiers?.vip?.price || 450);
-    setGoldPrice(evt.pricingTiers?.gold?.price || 250);
-    setSilverPrice(evt.pricingTiers?.silver?.price || 150);
-    setStandardPrice(evt.pricingTiers?.standard?.price || 100);
+    setLocEn(evt.location?.en || '');
+    setLocVi(evt.location?.vi || '');
+    setVenueEn(evt.venueName?.en || '');
+    setVenueVi(evt.venueName?.vi || '');
+    
+    const mappedTiers = { ...tiers };
+    ['standard', 'silver', 'gold', 'vip'].forEach(key => {
+      const tData = evt.pricingTiers?.[key] || {};
+      mappedTiers[key] = {
+        labelEn: tData.label?.en || '',
+        labelVi: tData.label?.vi || '',
+        descEn: tData.description?.en || '',
+        descVi: tData.description?.vi || '',
+        price: tData.price || 0
+      };
+    });
+    setTiers(mappedTiers);
+
     setImage(null);
     setImageName('');
-    setShowEventForm(true); // Show form
-    window.scrollTo({ top: 800, behavior: 'smooth' }); // Scroll to form area
+    setShowEventForm(true);
+    window.scrollTo({ top: 800, behavior: 'smooth' });
   };
 
   const resetForm = () => {
     setEditingEventId(null);
-    setTitle('');
-    setDescription('');
+    setTitleEn(''); setTitleVi('');
+    setDescEn(''); setDescVi('');
     setDate('');
-    setLocation('');
-    setVenueName('');
-    setVipPrice(450);
-    setGoldPrice(250);
-    setSilverPrice(150);
-    setStandardPrice(100);
+    setLocEn(''); setLocVi('');
+    setVenueEn(''); setVenueVi('');
+    setTiers({
+      standard: { labelEn: 'STANDARD ENTRY', labelVi: 'HẠNG PHỔ THÔNG', descEn: '', descVi: '', price: 100 },
+      silver: { labelEn: 'SILVER ATTIRE', labelVi: 'HẠNG BẠC CAO CẤP', descEn: '', descVi: '', price: 150 },
+      gold: { labelEn: 'GOLD EXPOSURE', labelVi: 'HẠNG VÀNG ĐẲNG CẤP', descEn: '', descVi: '', price: 250 },
+      vip: { labelEn: 'VIP FRONT ROW', labelVi: 'HẠNG VIP TRỰC DIỆN', descEn: '', descVi: '', price: 450 }
+    });
     setImage(null);
     setImageName('');
-    setShowEventForm(false); // Hide form
+    setShowEventForm(false);
   };
 
   const handleAddNewEvent = () => {
@@ -138,25 +168,41 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
     window.scrollTo({ top: 800, behavior: 'smooth' });
   };
 
+  const updateTierField = (tierKey, field, val) => {
+    setTiers({
+      ...tiers,
+      [tierKey]: { ...tiers[tierKey], [field]: val }
+    });
+  };
+
   const handleSubmitEvent = async (e) => {
     e.preventDefault();
     setSubmittingEvent(true);
+
+    const formattedTiers = {};
+    ['standard', 'silver', 'gold', 'vip'].forEach(key => {
+      const t = tiers[key];
+      formattedTiers[key] = {
+        label: { en: t.labelEn, vi: t.labelVi },
+        description: { en: t.descEn, vi: t.descVi },
+        price: Number(t.price),
+        capacity: key === 'standard' ? 250 : key === 'silver' ? 150 : key === 'gold' ? 100 : 50
+      };
+    });
+
     const eventData = {
-      title,
-      description,
+      title: { en: titleEn, vi: titleVi },
+      description: { en: descEn, vi: descVi },
       date,
-      location,
-      venueName,
+      location: { en: locEn, vi: locVi },
+      venueName: { en: venueEn, vi: venueVi },
       image, 
-      pricingTiers: {
-        standard: { price: Number(standardPrice), capacity: 250 },
-        silver: { price: Number(silverPrice), capacity: 150 },
-        gold: { price: Number(goldPrice), capacity: 100 },
-        vip: { price: Number(vipPrice), capacity: 50 }
-      }
+      pricingTiers: formattedTiers
     };
+
     const url = editingEventId ? `http://localhost:5000/api/events/${editingEventId}` : 'http://localhost:5000/api/events';
     const method = editingEventId ? 'PUT' : 'POST';
+    
     try {
       const res = await fetch(url, {
         method,
@@ -167,7 +213,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
       if (res.ok) {
         if (editingEventId) setEvents(events.map(ev => ev._id === editingEventId ? data : ev));
         else setEvents([...events, data]);
-        alert('Event updated.');
+        alert('Success.');
         resetForm();
       }
     } finally {
@@ -176,11 +222,15 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
   };
 
   const handleDeleteEvent = async (id) => {
-    if (!window.confirm('Archive this event?')) return;
-    const res = await fetch(`http://localhost:5000/api/events/${id}`, { method: 'DELETE' });
-    if (res.ok) {
-      setEvents(events.filter(ev => ev._id !== id));
-      alert('Archived.');
+    if (!window.confirm('Archive?')) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/events/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setEvents(events.filter(ev => ev._id !== id));
+        alert('Archived.');
+      }
+    } catch (err) {
+      alert('Delete failed.');
     }
   };
 
@@ -233,20 +283,20 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
       <div className="flex flex-col gap-8 border-b border-outline-variant/15 pb-8 select-none">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div>
-            <h1 className="font-headline-lg-mobile md:font-headline-lg text-on-surface mb-2 tracking-tight">ADMIN COMMAND CENTER</h1>
-            <p className="font-body-md text-on-surface-variant text-[14px]">Synchronized management of global events and ticket inventory.</p>
+            <h1 className="font-headline-lg-mobile md:font-headline-lg text-on-surface mb-2 tracking-tight uppercase">{t('adminCommandCenter')}</h1>
+            <p className="font-body-md text-on-surface-variant text-[14px]">{t('adminSubtitle')}</p>
           </div>
           <button onClick={() => navigate('/')} className="border border-outline-variant/40 bg-surface-container-low/20 px-8 py-4 rounded font-label-sm text-label-sm uppercase tracking-widest hover:bg-white hover:text-black transition-colors">
-            View Client Portal
+            {t('switchClient')}
           </button>
         </div>
 
         <div className="flex gap-4">
           <button onClick={() => setActiveTab('events')} className={`px-6 py-3 rounded-lg font-label-sm text-[12px] uppercase tracking-widest transition-all ${activeAdminTab === 'events' ? 'bg-primary text-on-primary shadow-lg' : 'bg-surface-container-high text-on-surface-variant hover:text-white'}`}>
-            Manage Events
+            {t('manageEvents')}
           </button>
           <button onClick={() => setActiveTab('bookings')} className={`px-6 py-3 rounded-lg font-label-sm text-[12px] uppercase tracking-widest transition-all ${activeAdminTab === 'bookings' ? 'bg-primary text-on-primary shadow-lg' : 'bg-surface-container-high text-on-surface-variant hover:text-white'}`}>
-            Manage Tickets
+            {t('manageTickets')}
           </button>
         </div>
       </div>
@@ -254,23 +304,23 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
       {/* ANALYTICS */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6 select-none">
         <div className="glass-panel p-6 rounded-xl border border-outline-variant/20 flex flex-col gap-1">
-          <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">Revenue</span>
+          <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">{t('revenue')}</span>
           <span className="font-display-xl text-[24px] text-primary font-bold">${analytics.totalRevenue.toLocaleString()}</span>
         </div>
         <div className="glass-panel p-6 rounded-xl border border-outline-variant/20 flex flex-col gap-1">
-          <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">Tickets Sold</span>
+          <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">{t('ticketsSold')}</span>
           <span className="font-display-xl text-[24px] text-on-surface font-bold">{analytics.ticketsSold}</span>
         </div>
         <div className="glass-panel p-6 rounded-xl border border-outline-variant/20 flex flex-col gap-1">
-          <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">Active Shows</span>
+          <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">{t('activeShows')}</span>
           <span className="font-display-xl text-[24px] text-on-surface font-bold">{analytics.activeEvents}</span>
         </div>
         <div className="glass-panel p-6 rounded-xl border border-outline-variant/20 flex flex-col gap-1">
-          <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">Check-ins</span>
+          <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">{t('checkins')}</span>
           <span className="font-display-xl text-[24px] text-secondary font-bold">{analytics.checkedInCount}</span>
         </div>
         <div className="glass-panel p-6 rounded-xl border border-outline-variant/20 flex flex-col gap-1">
-          <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">Logs</span>
+          <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">{t('logs')}</span>
           <span className="font-display-xl text-[24px] text-on-surface font-bold">{analytics.totalBookingsCount}</span>
         </div>
       </div>
@@ -281,18 +331,22 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
           {/* LEFT: Branding & Scanner */}
           <div className="lg:col-span-5 flex flex-col gap-8">
             <div className="glass-panel p-8 rounded-xl border border-secondary/20 bg-secondary/5">
-              <h3 className="font-label-sm text-[11px] text-secondary uppercase tracking-widest mb-4">WEBSITE BRANDING</h3>
+              <h3 className="font-label-sm text-[11px] text-secondary uppercase tracking-widest mb-4">{t('websiteBranding')}</h3>
               <form onSubmit={handleUpdateSettings} className="space-y-4">
-                <input type="text" value={siteName} onChange={(e) => setSiteName(e.target.value)} placeholder="Site Name" className="w-full bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[13px] text-on-surface focus:border-primary outline-none" required />
-                <button type="submit" disabled={updatingSettings} className="w-full bg-secondary text-on-secondary py-4 rounded font-label-sm text-[11px] uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-md">Apply Brand Changes</button>
+                <input type="text" value={siteName} onChange={(e) => setSiteName(e.target.value)} placeholder={t('siteName')} className="w-full bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[13px] text-on-surface focus:border-primary outline-none transition-colors" required />
+                <button type="submit" disabled={updatingSettings} className="w-full bg-secondary text-on-secondary py-4 rounded font-label-sm text-[11px] uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-md">
+                  {updatingSettings ? 'Sync...' : t('applyChanges')}
+                </button>
               </form>
             </div>
 
             <div className="glass-panel p-8 rounded-xl border border-primary/20 bg-primary/5">
-              <h3 className="font-label-sm text-[11px] text-primary uppercase tracking-widest mb-4">LIVE SCANNER SIMULATOR</h3>
+              <h3 className="font-label-sm text-[11px] text-primary uppercase tracking-widest mb-4">{t('liveScanner')}</h3>
               <form onSubmit={handleCheckIn} className="flex gap-2">
-                <input type="text" value={scanBookingId} onChange={(e) => setScanBookingId(e.target.value)} placeholder="Enter Ticket ID" className="flex-1 bg-surface-container/60 border border-outline-variant/30 rounded-lg px-4 py-3 text-[13px] font-mono text-on-surface focus:border-primary outline-none" required />
-                <button type="submit" disabled={scanning} className="bg-primary text-on-primary px-6 py-3 rounded-lg font-label-sm text-[11px] uppercase tracking-wider hover:bg-white hover:text-black transition-all shadow-md">Scan</button>
+                <input type="text" value={scanBookingId} onChange={(e) => setScanBookingId(e.target.value)} placeholder={t('enterTicketId')} className="flex-1 bg-surface-container/60 border border-outline-variant/30 rounded-lg px-4 py-3 text-[13px] font-mono text-on-surface focus:border-primary outline-none" required />
+                <button type="submit" disabled={scanning} className="bg-primary text-on-primary px-6 py-3 rounded-lg font-label-sm text-[11px] uppercase tracking-wider hover:bg-white hover:text-black transition-all shadow-md">
+                  {t('scan')}
+                </button>
               </form>
               {scanResult && <p className={`mt-3 text-[12px] font-bold ${scanResult.success ? 'text-secondary' : 'text-error'}`}>{scanResult.message}</p>}
             </div>
@@ -301,20 +355,20 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
           {/* RIGHT: Active List & Form below */}
           <div className="lg:col-span-7 flex flex-col gap-10">
             <div className="flex flex-col gap-6">
-              <h3 className="font-title-md text-[20px] text-on-surface border-b border-outline-variant/15 pb-4">ACTIVE REPERTOIRE</h3>
+              <h3 className="font-title-md text-[20px] text-on-surface border-b border-outline-variant/15 pb-4 uppercase italic">{t('activeRepertoire')}</h3>
               <div className="grid grid-cols-1 gap-4">
                 {events.map((evt) => (
                   <div key={evt._id} className="glass-panel p-6 rounded-xl border border-outline-variant/15 flex flex-col sm:flex-row justify-between items-center gap-6 group hover:border-primary/30 transition-all">
                     <div className="flex items-center gap-6 w-full">
-                      <img src={evt.image} alt={evt.title} className="w-20 h-20 rounded-lg object-cover mix-blend-luminosity group-hover:mix-blend-normal transition-all border border-outline-variant/10" />
+                      <img src={evt.image} alt="Show" className="w-20 h-20 rounded-lg object-cover mix-blend-luminosity group-hover:mix-blend-normal transition-all border border-outline-variant/10" />
                       <div className="flex-1">
-                        <h4 className="font-title-md text-[18px] text-on-surface leading-tight mb-1">{evt.title}</h4>
-                        <p className="font-body-md text-[13px] text-on-surface-variant italic">{evt.location}</p>
+                        <h4 className="font-title-md text-[18px] text-on-surface leading-tight mb-1">{l(evt.title)}</h4>
+                        <p className="font-body-md text-[13px] text-on-surface-variant italic">{l(evt.location)}</p>
                       </div>
                     </div>
                     <div className="flex gap-2 w-full sm:w-auto shrink-0 select-none">
                       <button onClick={() => handleEditClick(evt)} className="px-4 py-3 bg-surface-container-high rounded text-on-surface hover:bg-white hover:text-black transition-all font-label-sm text-[10px] uppercase tracking-widest border border-outline-variant/20 flex items-center justify-center gap-2">
-                        <span className="material-symbols-outlined text-[16px]">edit</span> Edit
+                        <span className="material-symbols-outlined text-[16px]">edit</span> {t('actions')}
                       </button>
                       <button onClick={() => handleDeleteEvent(evt._id)} className="px-4 py-3 bg-error/10 border border-error/30 text-error hover:bg-error hover:text-white rounded transition-all"><span className="material-symbols-outlined text-[16px]">delete</span></button>
                     </div>
@@ -328,84 +382,79 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
                   className="w-full py-8 border-2 border-dashed border-outline-variant/20 rounded-xl text-on-surface-variant hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-2 group"
                 >
                   <span className="material-symbols-outlined text-3xl group-hover:scale-110 transition-transform">add_circle</span>
-                  <span className="font-label-sm text-[12px] uppercase tracking-[0.2em]">Add New Brand Event</span>
+                  <span className="font-label-sm text-[12px] uppercase tracking-[0.2em]">{t('addNewShowcase')}</span>
                 </button>
               )}
             </div>
 
-            {/* THE DYNAMIC EVENT FORM (Hides by default, appears below list) */}
+            {/* THE DYNAMIC EVENT FORM */}
             {showEventForm && (
-              <div id="event-form-section" className="glass-panel p-8 rounded-xl border border-outline-variant/25 animate-fade-in">
-                <div className="flex justify-between items-center border-b border-outline-variant/15 pb-4 mb-8">
+              <div id="event-form-section" className="glass-panel p-8 rounded-xl border border-outline-variant/25 animate-fade-in space-y-10">
+                <div className="flex justify-between items-center border-b border-outline-variant/15 pb-4">
                   <h3 className="font-title-md text-[20px] text-on-surface uppercase italic">
-                    {editingEventId ? 'Modify Event Blueprint' : 'Launch New Showcase'}
+                    {editingEventId ? t('editEvent') : t('newEvent')}
                   </h3>
                   <button onClick={resetForm} className="text-on-surface-variant hover:text-white"><span className="material-symbols-outlined">close</span></button>
                 </div>
                 
-                <form onSubmit={handleSubmitEvent} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">Event Title</label>
-                      <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. THE FALL SYMPHONY" className="bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[14px] text-on-surface focus:border-primary outline-none" required />
+                <form onSubmit={handleSubmitEvent} className="space-y-8">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="space-y-1.5"><label className="text-[10px] uppercase text-on-surface-variant tracking-widest">{t('titleEn')}</label><input type="text" value={titleEn} onChange={e => setTitleEn(e.target.value)} className="w-full bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[13px] text-on-surface focus:border-primary outline-none" required /></div>
+                      <div className="space-y-1.5"><label className="text-[10px] uppercase text-on-surface-variant tracking-widest">{t('descEn')}</label><textarea value={descEn} onChange={e => setDescEn(e.target.value)} className="w-full bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[13px] text-on-surface h-24 focus:border-primary outline-none" required /></div>
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">Metropolitan City</label>
-                      <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Tokyo" className="bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[14px] text-on-surface focus:border-primary outline-none" required />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-1.5">
-                    <label className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">Showcase Narrative</label>
-                    <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the aesthetic direction..." className="bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[14px] text-on-surface h-24 focus:border-primary outline-none" required />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">Event Timestamp</label>
-                      <input type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} className="bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[14px] text-on-surface focus:border-primary outline-none" required />
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">Venue Landmark</label>
-                      <input type="text" value={venueName} onChange={(e) => setVenueName(e.target.value)} placeholder="e.g. Shibuya Sky" className="bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[14px] text-on-surface focus:border-primary outline-none" required />
+                    <div className="space-y-4">
+                      <div className="space-y-1.5"><label className="text-[10px] uppercase text-primary tracking-widest">{t('titleVi')}</label><input type="text" value={titleVi} onChange={e => setTitleVi(e.target.value)} className="w-full bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[13px] text-on-surface focus:border-primary outline-none" required /></div>
+                      <div className="space-y-1.5"><label className="text-[10px] uppercase text-primary tracking-widest">{t('descVi')}</label><textarea value={descVi} onChange={e => setDescVi(e.target.value)} className="w-full bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[13px] text-on-surface h-24 focus:border-primary outline-none" required /></div>
                     </div>
                   </div>
 
-                  <div className="p-5 bg-surface-container-highest/20 rounded-xl border border-outline-variant/15 space-y-4">
-                    <h4 className="font-label-sm text-[11px] text-primary uppercase tracking-widest font-bold italic">Dynamic Ticket Pricing (USD)</h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[9px] text-on-surface-variant uppercase">Standard</span>
-                        <input type="number" value={standardPrice} onChange={(e) => setStandardPrice(e.target.value)} className="bg-background border border-outline-variant/30 rounded p-2.5 text-[13px] text-on-surface outline-none focus:border-primary" />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[9px] text-on-surface-variant uppercase">Silver</span>
-                        <input type="number" value={silverPrice} onChange={(e) => setSilverPrice(e.target.value)} className="bg-background border border-outline-variant/30 rounded p-2.5 text-[13px] text-on-surface outline-none focus:border-primary" />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[9px] text-secondary uppercase font-bold">Gold</span>
-                        <input type="number" value={goldPrice} onChange={(e) => setGoldPrice(e.target.value)} className="bg-background border border-outline-variant/30 rounded p-2.5 text-[13px] text-on-surface outline-none focus:border-primary" />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[9px] text-primary uppercase font-bold">VIP</span>
-                        <input type="number" value={vipPrice} onChange={(e) => setVipPrice(e.target.value)} className="bg-background border border-outline-variant/30 rounded p-2.5 text-[13px] text-on-surface outline-none focus:border-primary" />
-                      </div>
+                  <div className="grid grid-cols-3 gap-6">
+                    <div className="space-y-1.5"><label className="text-[10px] uppercase text-on-surface-variant">{t('dateLabel')}</label><input type="datetime-local" value={date} onChange={e => setDate(e.target.value)} className="w-full bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[13px] text-on-surface focus:border-primary outline-none" required /></div>
+                    <div className="space-y-1.5"><label className="text-[10px] uppercase text-on-surface-variant">{t('cityEn')}</label><input type="text" value={locEn} onChange={e => setLocEn(e.target.value)} className="w-full bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[13px] text-on-surface focus:border-primary outline-none" required /></div>
+                    <div className="space-y-1.5"><label className="text-[10px] uppercase text-primary">{t('cityVi')}</label><input type="text" value={locVi} onChange={e => setLocVi(e.target.value)} className="w-full bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[13px] text-on-surface focus:border-primary outline-none" required /></div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-1.5"><label className="text-[10px] uppercase text-on-surface-variant">{t('venueEn')}</label><input type="text" value={venueEn} onChange={e => setVenueEn(e.target.value)} className="w-full bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[13px] text-on-surface focus:border-primary outline-none" required /></div>
+                    <div className="space-y-1.5"><label className="text-[10px] uppercase text-primary">{t('venueVi')}</label><input type="text" value={venueVi} onChange={e => setVenueVi(e.target.value)} className="w-full bg-surface-container/40 border border-outline-variant/20 rounded-lg p-3 text-[13px] text-on-surface focus:border-primary outline-none" required /></div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <h4 className="font-label-sm text-[11px] text-primary uppercase tracking-[0.2em] font-bold border-b border-outline-variant/15 pb-2">{t('ticketPricing')}</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {['standard', 'silver', 'gold', 'vip'].map(tKey => (
+                        <div key={tKey} className="glass-panel p-5 rounded-xl border border-outline-variant/15 space-y-4">
+                          <p className="font-bold text-[12px] uppercase text-primary">{tKey} Tier</p>
+                          <div className="grid grid-cols-2 gap-3">
+                            <input type="text" value={tiers[tKey].labelEn} onChange={e => updateTierField(tKey, 'labelEn', e.target.value)} placeholder="Label (EN)" className="bg-background border border-outline-variant/30 rounded p-2 text-[12px] text-on-surface focus:border-primary outline-none" required />
+                            <input type="text" value={tiers[tKey].labelVi} onChange={e => updateTierField(tKey, 'labelVi', e.target.value)} placeholder="Tên (VI)" className="bg-background border border-outline-variant/30 rounded p-2 text-[12px] text-on-surface focus:border-primary outline-none" required />
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <textarea value={tiers[tKey].descEn} onChange={e => updateTierField(tKey, 'descEn', e.target.value)} placeholder="Desc (EN)" className="bg-background border border-outline-variant/30 rounded p-2 text-[11px] h-16 text-on-surface focus:border-primary outline-none" required />
+                            <textarea value={tiers[tKey].descVi} onChange={e => updateTierField(tKey, 'descVi', e.target.value)} placeholder="Mô tả (VI)" className="bg-background border border-outline-variant/30 rounded p-2 text-[11px] h-16 text-on-surface focus:border-primary outline-none" required />
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-[10px] uppercase opacity-60">Price ($)</span>
+                            <input type="number" value={tiers[tKey].price} onChange={e => updateTierField(tKey, 'price', e.target.value)} className="bg-background border border-outline-variant/30 rounded p-2 text-[12px] w-24 text-on-surface focus:border-primary outline-none" required />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
+                  <div className="space-y-4">
                     <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" id="cloudinaryInput" />
                     <button type="button" onClick={() => document.getElementById('cloudinaryInput').click()} className="w-full py-4 border border-outline-variant/30 bg-surface-container/30 rounded-lg text-[11px] font-label-sm uppercase tracking-wider text-on-surface hover:bg-surface-container-highest/40 transition-all flex items-center justify-center gap-3">
                       <span className="material-symbols-outlined text-[18px]">image</span>
-                      {imageName ? `Attached: ${imageName.slice(0,25)}...` : editingEventId ? 'Replace Event Visual' : 'Upload Event Thumbnail'}
+                      {imageName ? `Attached: ${imageName.slice(0,25)}...` : editingEventId ? 'Replace Brand Visual' : 'Upload Event Thumbnail'}
                     </button>
-                  </div>
-
-                  <div className="flex gap-4 pt-4">
-                    <button type="button" onClick={resetForm} className="flex-1 py-5 border border-outline-variant/30 text-on-surface-variant rounded-xl font-label-sm text-[13px] uppercase tracking-widest hover:text-white transition-all">Cancel</button>
-                    <button type="submit" disabled={submittingEvent} className="flex-[2] bg-primary text-on-primary py-5 rounded-xl font-label-sm text-[13px] uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-lg font-bold">
-                      {submittingEvent ? 'Uploading...' : editingEventId ? 'Sync Updates' : 'Confirm Launch'}
-                    </button>
+                    <div className="flex gap-4">
+                      <button type="button" onClick={resetForm} className="flex-1 py-5 border border-outline-variant/30 text-on-surface-variant rounded-xl font-label-sm text-[13px] uppercase hover:text-white transition-all">{t('cancel')}</button>
+                      <button type="submit" disabled={submittingEvent} className="flex-[2] bg-primary text-on-primary py-5 rounded-xl font-label-sm text-[13px] uppercase hover:bg-white hover:text-black transition-all shadow-lg font-bold">
+                        {submittingEvent ? 'Syncing...' : (editingEventId ? t('confirmUpdates') : t('saveShowcase'))}
+                      </button>
+                    </div>
                   </div>
                 </form>
               </div>
@@ -415,9 +464,9 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
       ) : (
         <div className="animate-fade-in glass-panel p-8 rounded-xl border border-outline-variant/15">
           <div className="flex justify-between items-center border-b border-outline-variant/15 pb-4 mb-8">
-            <h3 className="font-title-md text-[20px] text-on-surface uppercase italic">Master Ledger (All Tickets)</h3>
+            <h3 className="font-title-md text-[20px] text-on-surface uppercase italic">{t('masterLedger')}</h3>
             <button onClick={fetchAllBookings} className="text-primary font-label-sm text-[11px] uppercase tracking-widest hover:underline flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px]">refresh</span> Reload Ledger
+              <span className="material-symbols-outlined text-[16px]">refresh</span> {t('reloadLedger')}
             </button>
           </div>
 
@@ -426,11 +475,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
               <table className="w-full text-left text-[13px]">
                 <thead>
                   <tr className="text-on-surface-variant font-label-sm text-[10px] uppercase tracking-widest border-b border-outline-variant/10">
-                    <th className="pb-4">Ticket Ref</th>
-                    <th className="pb-4">Attendee / Event</th>
-                    <th className="pb-4">Details</th>
-                    <th className="pb-4">Status</th>
-                    <th className="pb-4 text-right">Actions</th>
+                    <th className="pb-4">{t('refId')}</th>
+                    <th className="pb-4">{t('attendee')} / {t('showcase')}</th>
+                    <th className="pb-4">{t('details')}</th>
+                    <th className="pb-4">{t('status')}</th>
+                    <th className="pb-4 text-right">{t('actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant/10">
@@ -440,14 +489,14 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
                       <td className="py-4">
                         {editingBookingId === booking._id ? (
                           <div className="flex flex-col gap-2 max-w-[200px]">
-                            <input value={editBookingName} onChange={e => setEditBookingName(e.target.value)} className="bg-surface-container border border-outline-variant/30 rounded p-1.5 text-[12px]" />
-                            <input value={editBookingEmail} onChange={e => setEditBookingEmail(e.target.value)} className="bg-surface-container border border-outline-variant/30 rounded p-1.5 text-[12px]" />
+                            <input value={editBookingName} onChange={e => setEditBookingName(e.target.value)} className="bg-surface-container border border-outline-variant/30 rounded p-1.5 text-[12px] text-on-surface" />
+                            <input value={editBookingEmail} onChange={e => setEditBookingEmail(e.target.value)} className="bg-surface-container border border-outline-variant/30 rounded p-1.5 text-[12px] text-on-surface" />
                           </div>
                         ) : (
                           <>
                             <p className="font-bold">{booking.fullName}</p>
                             <p className="text-[11px] opacity-60">{booking.email}</p>
-                            <p className="text-[10px] text-secondary font-bold mt-1 uppercase tracking-tight">{booking.eventId?.title}</p>
+                            <p className="text-[10px] text-secondary font-bold mt-1 uppercase tracking-tight">{l(booking.eventId?.title)}</p>
                           </>
                         )}
                       </td>
@@ -459,17 +508,16 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
                       <td className="py-4">
                         <div className="flex flex-col gap-1">
                           <span className={`px-2 py-0.5 rounded-full text-[9px] uppercase font-bold border w-fit ${booking.isCheckedIn ? 'bg-secondary/10 text-secondary border-secondary/20' : 'bg-primary/10 text-primary border-primary/20'}`}>
-                            {booking.isCheckedIn ? 'Checked-In' : 'Valid'}
+                            {booking.isCheckedIn ? t('passUsed') : 'Valid'}
                           </span>
-                          <span className="text-[10px] opacity-40 font-mono italic">{booking.paymentStatus}</span>
                         </div>
                       </td>
                       <td className="py-4 text-right">
                         <div className="flex justify-end gap-2">
                           {editingBookingId === booking._id ? (
                             <>
-                              <button onClick={saveBookingEdit} className="text-secondary font-bold hover:underline uppercase text-[10px]">Save</button>
-                              <button onClick={() => setEditingBookingId(null)} className="text-on-surface-variant hover:underline uppercase text-[10px]">Cancel</button>
+                              <button onClick={saveBookingEdit} className="text-secondary font-bold hover:underline uppercase text-[10px]">{t('save')}</button>
+                              <button onClick={() => setEditingBookingId(null)} className="text-on-surface-variant hover:underline uppercase text-[10px]">{t('cancel')}</button>
                             </>
                           ) : (
                             <>

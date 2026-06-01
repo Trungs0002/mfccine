@@ -1,0 +1,241 @@
+import React, { createContext, useState, useContext } from 'react';
+
+const translations = {
+  en: {
+    // Navbar
+    events: "Events",
+    myTickets: "My Tickets",
+    signIn: "Sign In",
+    join: "Join",
+    logOut: "Log Out",
+    switchAdmin: "Switch to Admin",
+    switchClient: "Switch to Client",
+    bookNow: "Book Now",
+    
+    // Landing Page
+    exclusiveHosting: "EXCLUSIVE HOSTING",
+    bookPassesNow: "Book Passes Now",
+    eventLogistics: "Event Logistics",
+    featuredShowcase: "THE FEATURED SHOWCASE",
+    eventDateLocation: "Event Date & Location",
+    accessLevels: "ACCESS LEVELS",
+    nightFlow: "The Night Flow",
+    readyToWitness: "Are you ready to witness the experience?",
+    securePass: "Secure Your Access Pass",
+    
+    // Seating
+    runwaySeating: "RUNWAY SEATING",
+    returnShowcase: "Return to Showcase",
+    reservations: "RESERVATIONS",
+    confirmCheckout: "Confirm & Checkout",
+    consolidatedTotal: "Consolidated Total",
+    
+    // Dashboard
+    welcome: "Welcome",
+    vaultTitle: "SITE PORTAL",
+    totalPasses: "Total Passes",
+    upcoming: "Upcoming",
+    memberSince: "Member Since",
+    purchaseHistory: "Purchase History",
+    profile: "Profile",
+    terminateSession: "Terminate Session",
+    checkingPasses: "Checking active passes...",
+    noActiveTickets: "No Active Tickets",
+    noHistory: "No transactions completed on this email account.",
+    browseEvents: "Browse Events",
+    activePass: "Active Pass",
+    passUsed: "Pass Used",
+    seatsCount: "Seats",
+    classLabel: "Class",
+    quickQr: "Quick QR",
+    viewStub: "View Stub",
+    closeScan: "Close Scan View",
+    orderHistoryTitle: "ORDER TRANSACTION HISTORY",
+    refId: "Ref ID",
+    showcase: "Showcase",
+    payment: "Payment",
+    status: "Status",
+    amount: "Amount",
+    confirmed: "Confirmed",
+    userCredentials: "USER CREDENTIALS",
+    legalFullName: "Legal Full Name",
+    authenticatedEmail: "Authenticated Email",
+    accountPrivilege: "Account Privilege",
+    exitDashboard: "Exit Dashboard",
+    dashboardSubtitle: "Managing your reserved access and stubs in the Vault.",
+    
+    // Admin
+    adminCommandCenter: "ADMIN COMMAND CENTER",
+    adminSubtitle: "Synchronized management of bilingual events.",
+    manageEvents: "Manage Events",
+    manageTickets: "Manage Tickets",
+    revenue: "Revenue",
+    ticketsSold: "Tickets Sold",
+    activeShows: "Active Shows",
+    checkins: "Check-ins",
+    logs: "Logs",
+    websiteBranding: "WEBSITE BRANDING",
+    siteName: "Site Name",
+    applyChanges: "Apply Changes",
+    liveScanner: "LIVE SCANNER SIMULATOR",
+    enterTicketId: "Enter Ticket ID",
+    scan: "Scan",
+    activeRepertoire: "ACTIVE REPERTOIRE",
+    addNewShowcase: "Add New Showcase",
+    editEvent: "Edit Event",
+    newEvent: "New Event",
+    titleEn: "Title (EN)",
+    titleVi: "Title (VI)",
+    descEn: "Description (EN)",
+    descVi: "Description (VI)",
+    cityEn: "City (EN)",
+    cityVi: "City (VI)",
+    venueEn: "Venue (EN)",
+    venueVi: "Venue (VI)",
+    dateLabel: "Date & Time",
+    ticketPricing: "Ticket Pricing (USD)",
+    saveShowcase: "Save Showcase",
+    confirmUpdates: "Confirm Updates",
+    masterLedger: "Master Ledger",
+    reloadLedger: "Reload Ledger",
+    attendee: "Attendee",
+    details: "Details",
+    actions: "Actions",
+    cancel: "Cancel",
+    save: "Save",
+    
+    // Auth
+    joinCommunity: "Join the Community",
+    accessPortal: "Access Your Portal"
+  },
+  vi: {
+    // Navbar
+    events: "Sự kiện",
+    myTickets: "Vé của tôi",
+    signIn: "Đăng nhập",
+    join: "Tham gia",
+    logOut: "Đăng xuất",
+    switchAdmin: "Quản trị",
+    switchClient: "Khách hàng",
+    bookNow: "Đặt vé ngay",
+    
+    // Landing Page
+    exclusiveHosting: "SỰ KIỆN ĐỘC QUYỀN",
+    bookPassesNow: "Đặt chỗ ngay",
+    eventLogistics: "Thông tin sự kiện",
+    featuredShowcase: "SỰ KIỆN NỔI BẬT",
+    eventDateLocation: "Thời gian & Địa điểm",
+    accessLevels: "HẠNG VÉ",
+    nightFlow: "Lịch trình đêm hội",
+    readyToWitness: "Bạn đã sẵn sàng trải nghiệm chưa?",
+    securePass: "Sở hữu tấm vé của bạn",
+    
+    // Seating
+    runwaySeating: "SƠ ĐỒ CHỖ NGỒI",
+    returnShowcase: "Quay lại trang chủ",
+    reservations: "CHỖ ĐÃ CHỌN",
+    confirmCheckout: "Xác nhận & Thanh toán",
+    consolidatedTotal: "Tổng cộng",
+    
+    // Dashboard
+    welcome: "Chào mừng",
+    vaultTitle: "CỔNG THÔNG TIN",
+    totalPasses: "Tổng số vé",
+    upcoming: "Sắp tới",
+    memberSince: "Thành viên từ",
+    purchaseHistory: "Lịch sử mua hàng",
+    profile: "Hồ sơ",
+    terminateSession: "Đăng xuất",
+    checkingPasses: "Đang kiểm tra vé...",
+    noActiveTickets: "Bạn chưa có vé nào",
+    noHistory: "Chưa có giao dịch nào được thực hiện bằng email này.",
+    browseEvents: "Xem các sự kiện",
+    activePass: "Khả dụng",
+    passUsed: "Đã sử dụng",
+    seatsCount: "Số lượng",
+    classLabel: "Hạng vé",
+    quickQr: "Mã QR Nhanh",
+    viewStub: "Xem cuống vé",
+    closeScan: "Đóng trình quét",
+    orderHistoryTitle: "LỊCH SỬ GIAO DỊCH",
+    refId: "Mã đơn",
+    showcase: "Sự kiện",
+    payment: "Thanh toán",
+    status: "Trạng thái",
+    amount: "Tổng tiền",
+    confirmed: "Thành công",
+    userCredentials: "THÔNG TIN TÀI KHOẢN",
+    legalFullName: "Họ và Tên",
+    authenticatedEmail: "Email đăng ký",
+    accountPrivilege: "Cấp bậc tài khoản",
+    exitDashboard: "Thoát Dashboard",
+    dashboardSubtitle: "Quản lý vé và quyền truy cập của bạn tại đây.",
+    
+    // Admin
+    adminCommandCenter: "TRUNG TÂM QUẢN TRỊ",
+    adminSubtitle: "Quản lý sự kiện và hệ thống vé đa ngôn ngữ.",
+    manageEvents: "Quản lý Sự kiện",
+    manageTickets: "Quản lý Vé",
+    revenue: "Doanh thu",
+    ticketsSold: "Vé đã bán",
+    activeShows: "Đang diễn ra",
+    checkins: "Lượt Check-in",
+    logs: "Lịch sử",
+    websiteBranding: "THƯƠNG HIỆU WEBSITE",
+    siteName: "Tên Website",
+    applyChanges: "Cập nhật thay đổi",
+    liveScanner: "TRÌNH QUÉT MÃ QR",
+    enterTicketId: "Nhập mã vé",
+    scan: "Quét vé",
+    activeRepertoire: "DANH SÁCH SỰ KIỆN",
+    addNewShowcase: "Thêm Sự kiện Mới",
+    editEvent: "Sửa Sự kiện",
+    newEvent: "Sự kiện Mới",
+    titleEn: "Tên (Tiếng Anh)",
+    titleVi: "Tên (Tiếng Việt)",
+    descEn: "Mô tả (Tiếng Anh)",
+    descVi: "Mô tả (Tiếng Việt)",
+    cityEn: "Thành phố (Tiếng Anh)",
+    cityVi: "Thành phố (Tiếng Việt)",
+    venueEn: "Địa điểm (Tiếng Anh)",
+    venueVi: "Địa điểm (Tiếng Việt)",
+    dateLabel: "Thời gian diễn ra",
+    ticketPricing: "Cấu hình Giá vé (USD)",
+    saveShowcase: "Lưu Sự kiện",
+    confirmUpdates: "Xác nhận Cập nhật",
+    masterLedger: "SỔ CÁI TỔNG",
+    reloadLedger: "Làm mới dữ liệu",
+    attendee: "Khách hàng",
+    details: "Chi tiết",
+    actions: "Thao tác",
+    cancel: "Hủy",
+    save: "Lưu",
+    
+    // Auth
+    joinCommunity: "Tham gia cộng đồng",
+    accessPortal: "Truy cập tài khoản"
+  }
+};
+
+const LanguageContext = createContext();
+
+export const LanguageProvider = ({ children }) => {
+  const [language, setLanguage] = useState(localStorage.getItem('lang') || null);
+
+  const toggleLanguage = (lang) => {
+    setLanguage(lang);
+    localStorage.setItem('lang', lang);
+  };
+
+  const t = (key) => {
+    return translations[language || 'en'][key] || key;
+  };
+
+  return (
+    <LanguageContext.Provider value={{ language, setLanguage: toggleLanguage, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+};
+
+export const useLanguage = () => useContext(LanguageContext);
