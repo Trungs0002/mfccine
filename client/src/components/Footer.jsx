@@ -1,12 +1,12 @@
 import React from 'react';
 
-const Footer = ({ setView, setIsAdminMode }) => {
+const Footer = ({ setView, setIsAdminMode, settings }) => {
   return (
     <footer className="bg-surface-container-lowest w-full border-t border-outline-variant/15 relative z-10">
       <div className="flex flex-col gap-12 px-margin-mobile md:px-margin-desktop py-16 max-w-container-max mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
           {/* Headline brand label */}
-          <div 
+          <div
             onClick={() => {
               setIsAdminMode(false);
               setView('landing');
@@ -14,7 +14,7 @@ const Footer = ({ setView, setIsAdminMode }) => {
             }}
             className="font-display-xl text-display-xl text-on-surface italic tracking-tight cursor-pointer hover:opacity-85 select-none transition-opacity"
           >
-            MFC FTU
+            {settings?.siteName || 'MFC FTU'}
           </div>
 
           {/* Links navigation columns */}
@@ -35,8 +35,8 @@ const Footer = ({ setView, setIsAdminMode }) => {
         </div>
 
         <div className="text-tertiary-fixed-dim font-body-md text-[14px] pt-8 border-t border-outline-variant/10 flex flex-col md:flex-row justify-between gap-4">
-          <span>© 2026 MFC FTU. Elevating fashion through editorial excellence.</span>
-          <span className="text-[12px] opacity-60">Handcrafted utilizing Stitch luxury dark presets.</span>
+          <span>© 2026 {settings?.siteName || 'MFC FTU'}. Elevating experiences through excellence.</span>
+          <span className="text-[12px] opacity-60">Handcrafted utilizing luxury dark presets.</span>
         </div>
       </div>
     </footer>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-const LandingPage = ({ events, setView, setEvent }) => {
+const LandingPage = ({ events, setView, setEvent, settings }) => {
   const galaEvent = events[0] || {
     title: 'THE HAUTE ETHER GALA',
     description: 'An evening of transcendent high fashion, sensory exploration, and digital art installations in the heart of the Grand Palais.',
@@ -50,15 +50,15 @@ const LandingPage = ({ events, setView, setEvent }) => {
 
   return (
     <div className="w-full flex-grow flex flex-col relative z-10">
-      
+
       {/* 1. CINEMATIC HERO HEADER */}
       <section className="relative min-h-[90vh] flex flex-col justify-center items-center px-margin-mobile md:px-margin-desktop text-center overflow-hidden pt-16">
         {/* Background Image Layer */}
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/70 to-background z-10"></div>
-          <img 
-            src={galaEvent.image} 
-            alt="Editorial Hero Banner" 
+          <img
+            src={galaEvent.image}
+            alt="Editorial Hero Banner"
             className="w-full h-full object-cover mix-blend-luminosity opacity-45 scale-102 blur-[1px]"
           />
         </div>
@@ -66,10 +66,10 @@ const LandingPage = ({ events, setView, setEvent }) => {
         {/* Hero Title & Countdown Details */}
         <div className="relative z-20 max-w-[850px] flex flex-col items-center select-none">
           <p className="font-label-sm text-[12px] text-primary uppercase tracking-[0.3em] mb-4">
-            MFC FTU EXCLUSIVE SHOWCASE
+            {settings?.siteName || 'MFC FTU'} EXCLUSIVE SHOWCASE
           </p>
           <h1 className="font-display-xl text-[46px] md:text-[88px] text-on-surface font-extrabold leading-[1.1] mb-8 tracking-tight">
-            THE HAUTE<br/>ETHER GALA
+            THE HAUTE<br />ETHER GALA
           </h1>
 
           {/* Luxury Floating Clock */}
@@ -87,13 +87,13 @@ const LandingPage = ({ events, setView, setEvent }) => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <button 
+            <button
               onClick={handleBookNow}
               className="bg-primary text-on-primary px-14 py-6 rounded font-label-sm text-[14px] uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-[0_10px_35px_rgba(221,186,238,0.3)] hover:scale-102 duration-300"
             >
               Book Passes Now
             </button>
-            <button 
+            <button
               onClick={() => {
                 const el = document.getElementById('details-section');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -109,7 +109,7 @@ const LandingPage = ({ events, setView, setEvent }) => {
       {/* 2. SHOW DETAILS & METADATA SECTION */}
       <section id="details-section" className="py-20 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto w-full relative z-20 border-t border-outline-variant/10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-20">
-          
+
           {/* Show presentation column */}
           <div className="lg:col-span-7 flex flex-col justify-center">
             <span className="font-label-sm text-[12px] text-primary uppercase tracking-[0.25em] mb-3 block">
@@ -141,7 +141,7 @@ const LandingPage = ({ events, setView, setEvent }) => {
           {/* Privileges card column */}
           <div className="lg:col-span-5 space-y-4 select-none">
             <h3 className="font-label-sm text-[11px] text-on-surface-variant uppercase tracking-widest mb-4">ACCESS LEVELS</h3>
-            
+
             <div className="glass-panel p-5 rounded-lg border-l-4 border-l-primary flex items-start gap-4">
               <span className="material-symbols-outlined text-primary text-2xl">stars</span>
               <div>
@@ -206,12 +206,12 @@ const LandingPage = ({ events, setView, setEvent }) => {
 
       {/* 3. FINAL ACTION BUTTON ANCHOR */}
       <section className="py-16 text-center select-none relative z-20 bg-surface-container/20 border-t border-b border-outline-variant/10">
-        <h3 className="font-title-md text-[26px] text-on-surface italic mb-4">Are you ready to witness Haute Couture?</h3>
-        <button 
+        <h3 className="font-title-md text-[26px] text-on-surface italic mb-4">Are you ready to witness the experience?</h3>
+        <button
           onClick={handleBookNow}
-          className="bg-primary text-on-primary px-12 py-5 rounded font-label-sm text-label-sm uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-[0_8px_32px_rgba(221,186,238,0.25)]"
+          className="bg-primary text-on-primary px-16 py-7 rounded font-label-sm text-[15px] uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-[0_8px_32px_rgba(221,186,238,0.25)]"
         >
-          Secure Your Runway Pass
+          Secure Your Access Pass
         </button>
       </section>
 

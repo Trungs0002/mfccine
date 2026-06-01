@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const UserDashboardPage = ({ userEmail, setView, setCompletedBookingId }) => {
+const UserDashboardPage = ({ userEmail, setView, setCompletedBookingId, settings }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('tickets');
@@ -28,7 +28,9 @@ const UserDashboardPage = ({ userEmail, setView, setCompletedBookingId }) => {
       
       {/* 1. SIDE NAVIGATION (Desktop aside, Mobile top bar) */}
       <aside className="w-full md:w-64 bg-surface-container/30 backdrop-blur-xl border-b md:border-b-0 md:border-r border-outline-variant/15 p-6 flex flex-col select-none">
-        <div className="font-display-xl text-[24px] text-on-surface mb-8 italic tracking-tight hidden md:block">MFC PORTAL</div>
+        <div className="font-display-xl text-[24px] text-on-surface mb-8 italic tracking-tight hidden md:block">
+          {settings?.siteName?.split(' ')[0] || 'SITE'} PORTAL
+        </div>
         <div className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-x-visible pb-4 md:pb-0 font-label-sm text-[12px] uppercase tracking-widest">
           <button 
             onClick={() => setActiveTab('tickets')}
@@ -73,7 +75,7 @@ const UserDashboardPage = ({ userEmail, setView, setCompletedBookingId }) => {
       <main className="flex-1 p-margin-mobile md:p-margin-desktop max-w-container-max">
         <header className="mb-12">
           <h1 className="font-headline-lg-mobile md:font-headline-lg text-on-surface mb-2">Welcome Back, {name}</h1>
-          <p className="font-body-lg text-on-surface-variant text-[16px]">Here are your upcoming fashion experiences and stubs.</p>
+          <p className="font-body-lg text-on-surface-variant text-[16px]">Here are your upcoming experiences and stubs.</p>
         </header>
 
         {/* Tab 1: My Tickets (CRA look) */}

@@ -1,41 +1,39 @@
 import React from 'react';
 
-const Navbar = ({ currentView, setView, isAdminMode, setIsAdminMode, userEmail, setEvent }) => {
+const Navbar = ({ currentView, setView, isAdminMode, setIsAdminMode, userEmail, setEvent, settings }) => {
   return (
     <header className="fixed top-0 w-full z-50 bg-surface/65 backdrop-blur-xl border-b border-outline-variant/15 transition-all duration-300">
       <div className="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
         {/* Brand Logo */}
-        <div 
+        <div
           onClick={() => {
             setIsAdminMode(false);
             setView('landing');
           }}
           className="font-title-md text-title-md italic text-on-surface cursor-pointer select-none hover:opacity-80 transition-opacity"
         >
-          MFC FTU
+          {settings?.siteName || 'MFC FTU'}
         </div>
 
         {/* Central Nav Links (User Mode vs Admin Mode) */}
         <nav className="hidden md:flex items-center gap-8">
           {!isAdminMode ? (
             <>
-              <button 
+              <button
                 onClick={() => setView('landing')}
-                className={`font-label-sm text-label-sm uppercase tracking-widest px-3 py-2 rounded transition-all duration-300 ${
-                  currentView === 'landing' || currentView === 'details' || currentView === 'seating' || currentView === 'checkout'
+                className={`font-label-sm text-label-sm uppercase tracking-widest px-3 py-2 rounded transition-all duration-300 ${currentView === 'landing' || currentView === 'details' || currentView === 'seating' || currentView === 'checkout'
                     ? 'text-primary font-bold border-b-2 border-primary scale-100'
                     : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/20'
-                }`}
+                  }`}
               >
                 Events
               </button>
-              <button 
+              <button
                 onClick={() => setView('dashboard')}
-                className={`font-label-sm text-label-sm uppercase tracking-widest px-3 py-2 rounded transition-all duration-300 ${
-                  currentView === 'dashboard' || currentView === 'ticket'
+                className={`font-label-sm text-label-sm uppercase tracking-widest px-3 py-2 rounded transition-all duration-300 ${currentView === 'dashboard' || currentView === 'ticket'
                     ? 'text-primary font-bold border-b-2 border-primary scale-100'
                     : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/20'
-                }`}
+                  }`}
               >
                 My Tickets
               </button>
@@ -50,7 +48,7 @@ const Navbar = ({ currentView, setView, isAdminMode, setIsAdminMode, userEmail, 
         {/* Portal Switcher & Action Call */}
         <div className="flex items-center gap-4">
           {/* Quick Dashboard/Admin Portal Toggle */}
-          <button 
+          <button
             onClick={() => {
               const newAdmin = !isAdminMode;
               setIsAdminMode(newAdmin);
@@ -65,7 +63,7 @@ const Navbar = ({ currentView, setView, isAdminMode, setIsAdminMode, userEmail, 
           </button>
 
           {!isAdminMode ? (
-            <button 
+            <button
               onClick={() => {
                 setView('landing');
                 // Scroll smoothly to active events slider
@@ -79,7 +77,7 @@ const Navbar = ({ currentView, setView, isAdminMode, setIsAdminMode, userEmail, 
               Book Now
             </button>
           ) : (
-            <button 
+            <button
               onClick={() => {
                 setIsAdminMode(false);
                 setView('landing');
