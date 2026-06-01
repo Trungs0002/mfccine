@@ -124,7 +124,7 @@ function AppContent() {
           
           <Route path="/event/:id" element={<EventDetailsPage event={selectedEvent} setEvent={handleSelectEvent} />} />
           <Route path="/seating" element={selectedEvent ? <SeatSelectionPage event={selectedEvent} setBookingDetails={setBookingDetails} /> : <Navigate to="/" />} />
-          <Route path="/checkout" element={selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} setUserEmail={() => {}} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />} />
+          <Route path="/checkout" element={selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} user={user} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />} />
           <Route path="/ticket" element={<DigitalTicketPage completedBookingId={completedBookingId} settings={settings} />} />
           
           {/* Protected Routes */}

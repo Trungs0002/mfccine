@@ -1,14 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const CheckoutPage = ({ event, bookingDetails, setUserEmail, setCompletedBookingId }) => {
+const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) => {
   const navigate = useNavigate();
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
+  
+  // Pre-fill with authenticated user data if available
+  const [fullName, setFullName] = useState(user?.fullName || '');
+  const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('MoMo');
   const [isStudent, setIsStudent] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Sync with user changes (e.g. login while on page)
+  useEffect(() => {
+    if (user) {
+      if (!fullName) setFullName(user.fullName);
+      if (!email) setEmail(user.email);
+    }
+  }, [user]);
 
   const subtotal = bookingDetails.subtotal;
   const seatsCount = bookingDetails.selectedSeats.length;
@@ -36,7 +46,6 @@ const CheckoutPage = ({ event, bookingDetails, setUserEmail, setCompletedBooking
       const data = await res.json();
       
       if (res.ok) {
-        setUserEmail(email);
         setCompletedBookingId(data.bookingId);
         navigate('/ticket');
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -82,7 +91,7 @@ const CheckoutPage = ({ event, bookingDetails, setUserEmail, setCompletedBooking
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="e.g. Alexander Johnson"
-                    className="bg-surface-container/40 border border-outline-variant/30 rounded-lg px-4 py-3 text-[14px] text-on-surface placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary transition-colors"
+                    className="bg-surface-container/40 border border-outline-variant/30 rounded-lg px-4 py-3.5 text-[14px] text-on-surface placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary transition-colors"
                     required
                   />
                 </div>
@@ -93,7 +102,7 @@ const CheckoutPage = ({ event, bookingDetails, setUserEmail, setCompletedBooking
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="alex.j@editorial.com"
-                    className="bg-surface-container/40 border border-outline-variant/30 rounded-lg px-4 py-3 text-[14px] text-on-surface placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary transition-colors"
+                    className="bg-surface-container/40 border border-outline-variant/30 rounded-lg px-4 py-3.5 text-[14px] text-on-surface placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary transition-colors"
                     required
                   />
                 </div>
@@ -106,7 +115,7 @@ const CheckoutPage = ({ event, bookingDetails, setUserEmail, setCompletedBooking
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+84 000 000 000"
-                  className="bg-surface-container/40 border border-outline-variant/30 rounded-lg px-4 py-3 text-[14px] text-on-surface placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary transition-colors w-full"
+                  className="bg-surface-container/40 border border-outline-variant/30 rounded-lg px-4 py-3.5 text-[14px] text-on-surface placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary transition-colors w-full"
                   required
                 />
               </div>
