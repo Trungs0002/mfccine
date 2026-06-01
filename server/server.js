@@ -2,12 +2,15 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const cloudinary = require('cloudinary').v2;
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const connectDB = require('./connect');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const JWT_SECRET = process.env.JWT_SECRET || 'mfcluxe_secret_key_2026';
 
 // Enable CORS and Express JSON parsing with 10mb limit for base64 uploads
 app.use(cors());
@@ -21,6 +24,27 @@ cloudinary.config({
 });
 
 // Database Models
+
+// 1. User Model
+const UserSchema = new mongoose.Schema({
+  fullName: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const User = mongoose.model('User', UserSchema);
+
+// 2. Settings Model
+const SettingsSchema = new mongoose.Schema({
+  siteName: { type: String, default: 'EVENT TICKETING PRO' },
+  contactEmail: { type: String, default: 'support@eventpro.com' }
+});
+
+const Settings = mongoose.model('Settings', SettingsSchema);
+
+// 3. Event Model
 const EventSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
@@ -46,6 +70,7 @@ const EventSchema = new mongoose.Schema({
 
 const Event = mongoose.model('Event', EventSchema);
 
+// 4. Booking Model
 const BookingSchema = new mongoose.Schema({
   eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true },
   fullName: { type: String, required: true },
@@ -54,8 +79,8 @@ const BookingSchema = new mongoose.Schema({
   studentId: { type: String },
   selectedSeats: [
     {
-      seatId: { type: String, required: true }, // e.g. "L-VIP-1-2"
-      type: { type: String, required: true }, // "VIP", "Gold", "Silver"
+      seatId: { type: String, required: true },
+      type: { type: String, required: true },
       price: { type: Number, required: true }
     }
   ],
@@ -71,6 +96,29 @@ const Booking = mongoose.model('Booking', BookingSchema);
 
 // Initial Database Seeding Helper
 const seedDatabase = async () => {
+  // Seed Settings
+  const settingsCount = await Settings.countDocuments();
+  if (settingsCount === 0) {
+    console.log('Initializing default site settings...');
+    await Settings.create({
+      siteName: 'MFC FTU TICKETING',
+      contactEmail: 'contact@mfc-ftu.com'
+    });
+  }
+
+  // Seed Admin User
+  const adminExists = await User.findOne({ role: 'admin' });
+  if (!adminExists) {
+    console.log('Seeding default admin account...');
+    const hashedAdminPassword = await bcrypt.hash('admin123', 10);
+    await User.create({
+      fullName: 'System Administrator',
+      email: 'admin@mfcluxe.com',
+      password: hashedAdminPassword,
+      role: 'admin'
+    });
+  }
+
   const count = await Event.countDocuments();
   if (count === 0) {
     console.log('Seeding initial luxury fashion shows...');
@@ -99,59 +147,93 @@ const seedDatabase = async () => {
         active: true
       },
       {
-        title: 'NOIR COLLECTION SHOWCASE',
-        description: 'Emphasizing luxurious textures, avant-garde silhouettes, and a nearly monochromatic dark palette punctuated by iridescent violet reflections.',
-        date: new Date('2026-11-12T19:00:00Z'),
+        title: 'NEO-JACARTA LINE',
+        description: 'Deep structured shadows and asymmetrical shapes tailored from dark velvet and silver hardware aesthetics.',
+        date: new Date('2026-11-12T19:30:00Z'),
         location: 'Milan, Italy',
-        venueName: 'Studio B Warehouse',
+        venueName: 'Metropolitan Spazio',
         image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuApty4F9Xfw23ECdQJ5ZTVMJVLqZkumLZSnPchteKqYAt7kbaw7ncNDFEiTRQCtG1cUSUAz39N6fHh50Iyp3oEUj3Dy3TB1oFcNg1J6tdNP5vG13lq_C73YLcAT62Hqm75Q8F-9Quai63CQVfiaA8Agz8inhwp0Kns_BBhx6BnKd9lUMJBpcfRIITdZoWncSm3ySDmbpq3EcCLnjUC8iSAJhkothu0xcmsWWUojosnMrC9wE02SjPWa4kp4rn9NWzo-PZlCpPQvdAg',
         rehearsalImages: [
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuBvI03WUoPKeNWczJqPulbV4jYx69PyV_6HlXgW63eIHQ2qiNUl7Twag7eS7TZJSpeKH9XaUk2COV5vdxM1Q2vUBvEvdlKCQNQBH-cVy0zRVUzrB2-l5wZgRd87t2g1lP-KQ0r6c7Lk8ecvi4tVI4EWoroomOh0ABy6vVt-dgLEhLu4oejJ-E57rTPxhdpuW2vMviFO3pzxMSpMYTqIG36Q3-s9cS5gB_zkN5thX6XIDxm75lxYUZtU8wV8uORuii-gpQMFNrZorrE'
+          'https://lh3.googleusercontent.com/aida-public/AB6AXuBCqR6c4B2iK5k_42hQ-wD2H5l0w4rJj2q4d7j0sT4f3d2a7c8b9a0o1p2q3r4s5t6u7v8w9x0y1z2a3b4c5d6e7f8g9h0i1j2'
         ],
         schedule: [
-          { time: '18:30', title: 'Exclusive VIP Receptions', description: 'Curated networking with front-row members and private collection previews.' },
-          { time: '19:30', title: 'Couture Unveiling', description: 'Runway showcase of structures and futuristic fabrics.' },
-          { time: '21:00', title: 'Panel Q&A & Designer Toast', description: 'Hear from the creative leads behind this dark-themed capsule.' }
+          { time: '18:30', title: 'Asymmetrical Opening', description: 'Cocktails and velvet looks portfolio presentation.' },
+          { time: '19:30', title: 'Hardware Reveal', description: 'Neo-Jacarta dark silver catwalk show.' }
         ],
         pricingTiers: {
-          silver: { price: 120, capacity: 180 },
-          gold: { price: 220, capacity: 120 },
-          vip: { price: 400, capacity: 60 }
-        },
-        active: true
-      },
-      {
-        title: 'ECO-COUTURE SHOWCASE',
-        description: 'Elevating sustainability through absolute luxury. Showcasing organic silks, zero-waste patterns, and botanical digital projection mapping.',
-        date: new Date('2026-12-05T19:30:00Z'),
-        location: 'London, United Kingdom',
-        venueName: 'Espace Vert Canopy',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBvI03WUoPKeNWczJqPulbV4jYx69PyV_6HlXgW63eIHQ2qiNUl7Twag7eS7TZJSpeKH9XaUk2COV5vdxM1Q2vUBvEvdlKCQNQBH-cVy0zRVUzrB2-l5wZgRd87t2g1lP-KQ0r6c7Lk8ecvi4tVI4EWoroomOh0ABy6vVt-dgLEhLu4oejJ-E57rTPxhdpuW2vMviFO3pzxMSpMYTqIG36Q3-s9cS5gB_zkN5thX6XIDxm75lxYUZtU8wV8uORuii-gpQMFNrZorrE',
-        rehearsalImages: [
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuA2zp9mt2s9NMz6BrgnUb3YY0d3kiA9TzIVf4oyRBB2ymI0h5zeo2N5P4xW-knR51jcjeIMPZZNSEIFT0ot4qZWsIRN55IV9IPz5N8DZo6Q4ioSJq3VN4pjnrTmo8vJARrCRXMEucFOSHN71XsjuZLnPcKkezdb0-FJKrhDclMOSVQjYWKyzCTHOV_kWp-bD48iKKRPJj2OyA1Ld7hcgEQBfwVz_EIxKyo2_sAI0bqf6_QT1at8d0AynzxEFd7Ft5kzjRW-Ta1wdFI'
-        ],
-        schedule: [
-          { time: '19:00', title: 'Sustainable Cocktail Mixer', description: 'Zero-mile catering and organic pairing.' },
-          { time: '20:00', title: 'The Eco Runway Reveal', description: 'Presentation of 24 fully biodegradable haute couture dresses.' },
-          { time: '21:15', title: 'Couture Award & Discussion', description: 'Honoring pioneers in sustainable modern fashion designs.' }
-        ],
-        pricingTiers: {
-          silver: { price: 100, capacity: 200 },
-          gold: { price: 180, capacity: 100 },
-          vip: { price: 350, capacity: 40 }
+          silver: { price: 120, capacity: 150 },
+          gold: { price: 220, capacity: 100 },
+          vip: { price: 400, capacity: 50 }
         },
         active: true
       }
     ];
-
     await Event.insertMany(initialEvents);
-    console.log('Seed events added to database successfully!');
+    console.log('Events seeded.');
   }
 };
 
 // REST API Endpoints
 
-// 1. GET all events
+// 0. AUTH Endpoints
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { fullName, email, password } = req.body;
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ error: 'Email already registered.' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({ fullName, email, password: hashedPassword });
+    
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ token, user: { id: user._id, fullName: user.fullName, email: user.email, role: user.role } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ error: 'Invalid credentials.' });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ error: 'Invalid credentials.' });
+
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ token, user: { id: user._id, fullName: user.fullName, email: user.email, role: user.role } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 1. SETTINGS Endpoints
+app.get('/api/settings', async (req, res) => {
+  try {
+    let settings = await Settings.findOne();
+    if (!settings) settings = await Settings.create({ siteName: 'EVENT PRO' });
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/settings', async (req, res) => {
+  try {
+    const { siteName, contactEmail } = req.body;
+    let settings = await Settings.findOne();
+    if (!settings) settings = new Settings();
+    settings.siteName = siteName || settings.siteName;
+    settings.contactEmail = contactEmail || settings.contactEmail;
+    await settings.save();
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 2. EVENTS Endpoints
 app.get('/api/events', async (req, res) => {
   try {
     const events = await Event.find({ active: true }).sort({ date: 1 });
@@ -161,177 +243,93 @@ app.get('/api/events', async (req, res) => {
   }
 });
 
-// 2. GET single event detail
-app.get('/api/events/:id', async (req, res) => {
-  try {
-    const event = await Event.findById(req.params.id);
-    if (!event) return res.status(404).json({ message: 'Event not found' });
-    res.json(event);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 3. GET occupied seat IDs for an event
-app.get('/api/bookings/event/:eventId/occupied-seats', async (req, res) => {
-  try {
-    const bookings = await Booking.find({ eventId: req.params.eventId });
-    const seatIds = bookings.flatMap(b => b.selectedSeats.map(s => s.seatId));
-    res.json(seatIds);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 4. POST submit booking
-app.post('/api/bookings', async (req, res) => {
-  try {
-    const { eventId, fullName, email, phone, studentId, selectedSeats, subtotal, paymentMethod } = req.body;
-    
-    // Verify booking items exist
-    if (!selectedSeats || selectedSeats.length === 0) {
-      return res.status(400).json({ message: 'Please select at least one seat.' });
-    }
-
-    // Verify seats aren't already booked
-    const bookings = await Booking.find({ eventId });
-    const takenSeats = bookings.flatMap(b => b.selectedSeats.map(s => s.seatId));
-    const doubleBooked = selectedSeats.some(s => takenSeats.includes(s.seatId));
-    
-    if (doubleBooked) {
-      return res.status(400).json({ message: 'One or more selected seats have already been reserved. Please select another seat.' });
-    }
-
-    const newBooking = new Booking({
-      eventId,
-      fullName,
-      email,
-      phone,
-      studentId,
-      selectedSeats,
-      subtotal,
-      paymentMethod,
-      paymentStatus: 'Completed' // Mock payment auto-completes
-    });
-
-    await newBooking.save();
-    res.status(201).json(newBooking);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 5. GET single booking by ID
-app.get('/api/bookings/:id', async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id).populate('eventId');
-    if (!booking) return res.status(404).json({ message: 'Booking not found' });
-    res.json(booking);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 6. GET bookings by customer email (History for Dashboard)
-app.get('/api/bookings/email/:email', async (req, res) => {
-  try {
-    const bookings = await Booking.find({ email: req.params.email.toLowerCase() }).populate('eventId').sort({ bookingDate: -1 });
-    res.json(bookings);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 7. GET Admin Analytics
-app.get('/api/admin/analytics', async (req, res) => {
-  try {
-    const bookings = await Booking.find();
-    const eventsCount = await Event.countDocuments({ active: true });
-    
-    const totalRevenue = bookings.reduce((sum, b) => sum + b.subtotal, 0);
-    const ticketsSold = bookings.reduce((sum, b) => sum + b.selectedSeats.length, 0);
-    const checkedInCount = bookings.filter(b => b.isCheckedIn).length;
-    
-    res.json({
-      totalRevenue,
-      ticketsSold,
-      activeEvents: eventsCount,
-      checkedInCount,
-      totalBookingsCount: bookings.length
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 8. PUT check-in a ticket QR
-app.put('/api/bookings/:id/check-in', async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id);
-    if (!booking) return res.status(404).json({ message: 'Ticket not found.' });
-    
-    booking.isCheckedIn = true;
-    booking.checkInDate = new Date();
-    await booking.save();
-    
-    res.json({ message: 'Check-in completed successfully!', booking });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 9. POST admin create new event (with Cloudinary Base64 Image upload)
 app.post('/api/events', async (req, res) => {
   try {
-    const { title, description, date, location, venueName, pricingTiers, imageBase64, schedule } = req.body;
-    
-    let imageUrl = 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=800&q=80'; // default placeholder
-
-    // If base64 image is uploaded, send it to Cloudinary
-    if (imageBase64) {
-      console.log('Uploading event header cover to Cloudinary folder (mfc-luxe/events)...');
-      const uploadResponse = await cloudinary.uploader.upload(imageBase64, {
-        folder: 'mfc-luxe/events',
-        resource_type: 'image'
-      });
-      imageUrl = uploadResponse.secure_url;
-      console.log('Uploaded successfully. Secure CDN Link:', imageUrl);
+    const { title, description, date, location, venueName, image, pricingTiers } = req.body;
+    let imageUrl = image;
+    if (image && image.startsWith('data:image')) {
+      const uploadRes = await cloudinary.uploader.upload(image, { folder: 'mfc_events' });
+      imageUrl = uploadRes.secure_url;
     }
-
-    const newEvent = new Event({
-      title,
-      description,
-      date,
-      location,
-      venueName,
-      pricingTiers: pricingTiers || {
-        silver: { price: 100, capacity: 200 },
-        gold: { price: 180, capacity: 150 },
-        vip: { price: 350, capacity: 80 }
-      },
-      image: imageUrl,
-      rehearsalImages: [],
-      schedule: schedule || [
-        { time: '19:00', title: 'Opening Reception', description: 'Cocktail pairings and networking.' },
-        { time: '20:00', title: 'Main Showcase', description: 'Runway presentation of the designer collection.' }
-      ],
-      active: true
-    });
-
-    await newEvent.save();
+    const newEvent = await Event.create({ title, description, date, location, venueName, image: imageUrl, pricingTiers });
     res.status(201).json(newEvent);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Connect to Database and start server
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://trungnho0512_db_user:JalOWyM2rbSe0zYa@mfc.k2iaper.mongodb.net/?appName=mfc';
-connectDB(MONGODB_URI).then(() => {
-  // Seed Database with items if necessary
-  seedDatabase().catch(err => console.error('Database seeding failed:', err.message));
+// 3. BOOKINGS Endpoints
+app.post('/api/bookings', async (req, res) => {
+  try {
+    const booking = await Booking.create(req.body);
+    res.status(201).json({ message: 'Booking confirmed', bookingId: booking._id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-  app.listen(PORT, () => {
-    console.log(`MFC Luxe Backend Server listening on http://localhost:${PORT}`);
-  });
+app.get('/api/bookings/email/:email', async (req, res) => {
+  try {
+    const bookings = await Booking.find({ email: req.params.email }).populate('eventId').sort({ bookingDate: -1 });
+    res.json(bookings);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/bookings/:id', async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id).populate('eventId');
+    res.json(booking);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/bookings/event/:eventId/occupied-seats', async (req, res) => {
+  try {
+    const bookings = await Booking.find({ eventId: req.params.eventId });
+    let occupied = [];
+    bookings.forEach(b => {
+      b.selectedSeats.forEach(s => occupied.push(s.seatId));
+    });
+    res.json(occupied);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/bookings/check-in/:id', async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ error: 'Ticket not found' });
+    if (booking.isCheckedIn) return res.status(400).json({ error: 'Ticket already checked in' });
+    
+    booking.isCheckedIn = true;
+    booking.checkInDate = new Date();
+    await booking.save();
+    res.json({ message: 'Checked in successfully', booking });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 4. ANALYTICS Endpoints
+app.get('/api/analytics', async (req, res) => {
+  try {
+    const bookings = await Booking.find();
+    const totalRevenue = bookings.reduce((sum, b) => sum + b.subtotal, 0);
+    const ticketsSold = bookings.reduce((sum, b) => sum + b.selectedSeats.length, 0);
+    const activeEvents = await Event.countDocuments({ active: true });
+    const checkedInCount = bookings.filter(b => b.isCheckedIn).length;
+    res.json({ totalRevenue, ticketsSold, activeEvents, checkedInCount, totalBookingsCount: bookings.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Connect to MongoDB & Start Server
+connectDB(process.env.MONGODB_URI || 'mongodb+srv://admin:admin123@cluster0.mongodb.net/mfc?retryWrites=true&w=majority').then(() => {
+  seedDatabase().catch(err => console.error('Seeding failed:', err));
+  app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
 });

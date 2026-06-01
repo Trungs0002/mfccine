@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
@@ -11,6 +11,8 @@ import DigitalTicketPage from './pages/DigitalTicketPage';
 import UserDashboardPage from './pages/UserDashboardPage';
 import AdminPanelPage from './pages/AdminPanelPage';
 import EventDetailsPage from './pages/EventDetailsPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 
 // Standard high-fidelity fallback events
 const FALLBACK_EVENTS = [
@@ -39,10 +41,10 @@ function AppContent() {
   const location = useLocation();
   
   // Global States
+  const [user, setUser] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [bookingDetails, setBookingDetails] = useState({ selectedSeats: [], subtotal: 0 });
   const [completedBookingId, setCompletedBookingId] = useState(null);
-  const [userEmail, setUserEmail] = useState('alex.johnson@ftu.edu');
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [events, setEvents] = useState(FALLBACK_EVENTS);
   const [settings, setSettings] = useState({ siteName: 'EVENT PRO' });
@@ -53,19 +55,23 @@ function AppContent() {
     setIsAdminMode(location.pathname.startsWith('/admin'));
   }, [location.pathname]);
 
-  // Fetch events and settings from Express API
+  // Initial Auth & Data Load
   useEffect(() => {
+    // 0. Restore User Session
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) setUser(JSON.parse(savedUser));
+
     // 1. Fetch Events
     fetch('http://localhost:5000/api/events')
       .then(res => res.ok ? res.json() : Promise.reject())
       .then(data => {
         if (data && data.length > 0) {
           setEvents(data);
-          if (!selectedEvent) setSelectedEvent(data[0]);
+          setSelectedEvent(data[0]);
         }
       })
       .catch(() => {
-        if (!selectedEvent) setSelectedEvent(FALLBACK_EVENTS[0]);
+        setSelectedEvent(FALLBACK_EVENTS[0]);
       });
 
     // 2. Fetch Settings
@@ -84,6 +90,12 @@ function AppContent() {
     setSelectedEvent(evt);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+  };
+
   if (loading && events === FALLBACK_EVENTS) {
     return (
       <div className="flex-grow flex flex-col justify-center items-center py-40 gap-4 pt-[180px]">
@@ -98,7 +110,8 @@ function AppContent() {
       <Navbar 
         isAdminMode={isAdminMode} 
         setIsAdminMode={setIsAdminMode} 
-        userEmail={userEmail}
+        user={user}
+        onLogout={handleLogout}
         setEvent={handleSelectEvent}
         settings={settings}
       />
@@ -106,17 +119,23 @@ function AppContent() {
       <main className="flex-grow flex flex-col relative z-10 w-full">
         <Routes>
           <Route path="/" element={<LandingPage events={events} setEvent={handleSelectEvent} settings={settings} />} />
+          <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage setUser={setUser} />} />
+          <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <RegisterPage setUser={setUser} />} />
+          
           <Route path="/event/:id" element={<EventDetailsPage event={selectedEvent} setEvent={handleSelectEvent} />} />
           <Route path="/seating" element={selectedEvent ? <SeatSelectionPage event={selectedEvent} setBookingDetails={setBookingDetails} /> : <Navigate to="/" />} />
-          <Route path="/checkout" element={selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} setUserEmail={setUserEmail} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />} />
+          <Route path="/checkout" element={selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} setUserEmail={() => {}} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />} />
           <Route path="/ticket" element={<DigitalTicketPage completedBookingId={completedBookingId} settings={settings} />} />
-          <Route path="/dashboard" element={<UserDashboardPage userEmail={userEmail} setCompletedBookingId={setCompletedBookingId} settings={settings} />} />
-          <Route path="/admin" element={<AdminPanelPage events={events} setEvents={setEvents} settings={settings} setSettings={setSettings} />} />
+          
+          {/* Protected Routes */}
+          <Route path="/dashboard" element={user ? <UserDashboardPage userEmail={user.email} setCompletedBookingId={setCompletedBookingId} settings={settings} /> : <Navigate to="/login" />} />
+          <Route path="/admin" element={user?.role === 'admin' ? <AdminPanelPage events={events} setEvents={setEvents} settings={settings} setSettings={setSettings} /> : <Navigate to="/login" />} />
+          
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
 
-      <Footer settings={settings} />
+      <Footer settings={settings} setIsAdminMode={setIsAdminMode} />
     </>
   );
 }
@@ -125,12 +144,10 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen flex flex-col bg-background text-on-surface relative overflow-x-hidden">
-        {/* Cinematic atmospheric overlays */}
         <div className="absolute top-0 inset-x-0 h-screen pointer-events-none select-none z-0">
           <div className="absolute top-[-20%] left-[-15%] w-[60vw] h-[60vw] rounded-full bg-[radial-gradient(circle,rgba(72,45,88,0.3)_0%,transparent_70%)] blur-[90px] bg-atmosphere"></div>
           <div className="absolute top-[30%] right-[-15%] w-[50vw] h-[50vw] rounded-full bg-[radial-gradient(circle,rgba(82,61,109,0.25)_0%,transparent_70%)] blur-[80px] bg-atmosphere"></div>
         </div>
-        
         <AppContent />
       </div>
     </Router>

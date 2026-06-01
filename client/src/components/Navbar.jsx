@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-const Navbar = ({ isAdminMode, setIsAdminMode, userEmail, setEvent, settings }) => {
+const Navbar = ({ isAdminMode, user, onLogout, settings }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -12,16 +12,13 @@ const Navbar = ({ isAdminMode, setIsAdminMode, userEmail, setEvent, settings }) 
       <div className="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
         {/* Brand Logo */}
         <div 
-          onClick={() => {
-            setIsAdminMode(false);
-            navigate('/');
-          }}
+          onClick={() => navigate('/')}
           className="font-title-md text-title-md italic text-on-surface cursor-pointer select-none hover:opacity-80 transition-opacity"
         >
           {settings?.siteName || 'EVENT PRO'}
         </div>
 
-        {/* Central Nav Links (User Mode vs Admin Mode) */}
+        {/* Central Nav Links */}
         <nav className="hidden md:flex items-center gap-8">
           {!isAdminMode ? (
             <>
@@ -29,22 +26,24 @@ const Navbar = ({ isAdminMode, setIsAdminMode, userEmail, setEvent, settings }) 
                 onClick={() => navigate('/')}
                 className={`font-label-sm text-label-sm uppercase tracking-widest px-3 py-2 rounded transition-all duration-300 ${
                   isViewActive('/')
-                    ? 'text-primary font-bold border-b-2 border-primary scale-100'
+                    ? 'text-primary font-bold border-b-2 border-primary'
                     : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/20'
                 }`}
               >
                 Events
               </button>
-              <button 
-                onClick={() => navigate('/dashboard')}
-                className={`font-label-sm text-label-sm uppercase tracking-widest px-3 py-2 rounded transition-all duration-300 ${
-                  isViewActive('/dashboard') || isViewActive('/ticket')
-                    ? 'text-primary font-bold border-b-2 border-primary scale-100'
-                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/20'
-                }`}
-              >
-                My Tickets
-              </button>
+              {user && (
+                <button 
+                  onClick={() => navigate('/dashboard')}
+                  className={`font-label-sm text-label-sm uppercase tracking-widest px-3 py-2 rounded transition-all duration-300 ${
+                    isViewActive('/dashboard') || isViewActive('/ticket')
+                      ? 'text-primary font-bold border-b-2 border-primary'
+                      : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/20'
+                  }`}
+                >
+                  My Tickets
+                </button>
+              )}
             </>
           ) : (
             <span className="font-label-sm text-label-sm text-secondary uppercase tracking-widest px-3 py-2 border border-secondary/30 bg-secondary/5 rounded-lg select-none">
@@ -53,51 +52,49 @@ const Navbar = ({ isAdminMode, setIsAdminMode, userEmail, setEvent, settings }) 
           )}
         </nav>
 
-        {/* Portal Switcher & Action Call */}
+        {/* Auth & Portal Section */}
         <div className="flex items-center gap-4">
-          {/* Quick Dashboard/Admin Portal Toggle */}
-          <button 
-            onClick={() => {
-              const newAdmin = !isAdminMode;
-              setIsAdminMode(newAdmin);
-              navigate(newAdmin ? '/admin' : '/');
-            }}
-            className="flex items-center gap-2 border border-outline-variant/40 bg-surface-container-low/40 px-6 py-3 rounded-lg text-[12px] font-label-sm uppercase tracking-widest hover:border-primary/50 transition-colors"
-          >
-            <span className="material-symbols-outlined text-[16px] text-primary">
-              {isAdminMode ? 'account_circle' : 'admin_panel_settings'}
-            </span>
-            {isAdminMode ? 'Switch to Client' : 'Switch to Admin'}
-          </button>
+          {user ? (
+            <div className="flex items-center gap-4">
+              {user.role === 'admin' && (
+                <button 
+                  onClick={() => navigate(isAdminMode ? '/' : '/admin')}
+                  className="flex items-center gap-2 border border-outline-variant/40 bg-surface-container-low/40 px-5 py-3 rounded-lg text-[12px] font-label-sm uppercase tracking-widest hover:border-primary/50 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[16px] text-primary">
+                    {isAdminMode ? 'account_circle' : 'admin_panel_settings'}
+                  </span>
+                  {isAdminMode ? 'Client View' : 'Admin Panel'}
+                </button>
+              )}
+              
+              <div className="hidden sm:flex flex-col items-end leading-none select-none">
+                <span className="text-[11px] font-bold text-on-surface">{user.fullName}</span>
+                <span className="text-[9px] text-on-surface-variant uppercase tracking-tighter">{user.role}</span>
+              </div>
 
-          {!isAdminMode ? (
-            <button 
-              onClick={() => {
-                if (location.pathname !== '/') {
-                  navigate('/');
-                  setTimeout(() => {
-                    const el = document.getElementById('events-section');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                  }, 100);
-                } else {
-                  const el = document.getElementById('events-section');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}
-              className="hidden sm:block bg-tertiary text-on-tertiary px-10 py-4 rounded font-label-sm text-[13px] uppercase tracking-widest hover:bg-tertiary-fixed hover:text-on-tertiary-fixed transition-colors select-none shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
-            >
-              Book Now
-            </button>
+              <button 
+                onClick={onLogout}
+                className="bg-surface-container-highest text-on-surface border border-outline-variant/30 px-6 py-3 rounded font-label-sm text-[12px] uppercase tracking-widest hover:bg-white hover:text-background transition-colors"
+              >
+                Log Out
+              </button>
+            </div>
           ) : (
-            <button 
-              onClick={() => {
-                setIsAdminMode(false);
-                navigate('/');
-              }}
-              className="hidden sm:block bg-surface-container-highest text-on-surface border border-outline-variant/30 px-10 py-4 rounded font-label-sm text-[13px] uppercase tracking-widest hover:bg-white hover:text-background transition-colors"
-            >
-              Log Out
-            </button>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => navigate('/login')}
+                className="text-on-surface-variant hover:text-primary px-4 py-2 text-[12px] font-label-sm uppercase tracking-widest transition-colors"
+              >
+                Sign In
+              </button>
+              <button 
+                onClick={() => navigate('/register')}
+                className="bg-primary text-on-primary px-8 py-3 rounded font-label-sm text-[12px] uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-lg"
+              >
+                Join
+              </button>
+            </div>
           )}
         </div>
       </div>
