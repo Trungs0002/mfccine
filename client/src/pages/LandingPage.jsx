@@ -4,26 +4,14 @@ import { useNavigate } from 'react-router-dom';
 const LandingPage = ({ events, setEvent, settings }) => {
   const navigate = useNavigate();
   
-  // Always use the primary active event (the first one in the sync'd list)
-  const activeEvent = events[0] || {
-    title: 'THE HAUTE ETHER GALA',
-    description: 'An evening of transcendent high fashion, sensory exploration, and digital art installations in the heart of the Grand Palais.',
-    date: '2026-10-24T20:00:00Z',
-    location: 'Paris, France',
-    venueName: 'The Grand Palais Expose',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA2zp9mt2s9NMz6BrgnUb3YY0d3kiA9TzIVf4oyRBB2ymI0h5zeo2N5P4xW-knR51jcjeIMPZZNSEIFT0ot4qZWsIRN55IV9IPz5N8DZo6Q4ioSJq3VN4pjnrTmo8vJARrCRXMEucFOSHN71XsjuZLnPcKkezdb0-FJKrhDclMOSVQjYWKyzCTHOV_kWp-bD48iKKRPJj2OyA1Ld7hcgEQBfwVz_EIxKyo2_sAI0bqf6_QT1at8d0AynzxEFd7Ft5kzjRW-Ta1wdFI',
-    schedule: [
-      { time: '19:00', title: 'Atmospheric Red Carpet & Arrival', description: 'Begin the journey with sensory cocktail pairings and editorial photography.' },
-      { time: '20:00', title: 'The Haute Ether Runway Presentation', description: 'Unveiling zero-waste couture silhouettes against live digital scenography.' },
-      { time: '21:30', title: 'Afterparty & Installation Gallery Tour', description: 'Mingle with designers and experience interactive projection-mapping installations.' }
-    ]
-  };
+  // Use the primary active event from DB. 
+  const activeEvent = events && events.length > 0 ? events[0] : null;
 
   // Real-time Countdown Timer
   const calculateTimeLeft = useCallback(() => {
+    if (!activeEvent) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
     const difference = +new Date(activeEvent.date) - +new Date();
     let timeLeft = {};
-
     if (difference > 0) {
       timeLeft = {
         days: Math.floor(difference / (1000 * 60 * 60 * 24)),
@@ -35,30 +23,47 @@ const LandingPage = ({ events, setEvent, settings }) => {
       timeLeft = { days: 0, hours: 0, minutes: 0, seconds: 0 };
     }
     return timeLeft;
-  }, [activeEvent.date]);
+  }, [activeEvent]);
 
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
   useEffect(() => {
+    if (!activeEvent) return;
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft());
     }, 1000);
     return () => clearInterval(timer);
-  }, [calculateTimeLeft]);
+  }, [activeEvent, calculateTimeLeft]);
+
+  // Sync the global app state with this active event
+  useEffect(() => {
+    if (activeEvent) {
+      setEvent(activeEvent);
+    }
+  }, [activeEvent, setEvent]);
 
   const handleBookNow = () => {
-    // Strictly set the global event context to this active one
-    setEvent(activeEvent);
+    if (!activeEvent) return;
     navigate('/seating');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  if (!activeEvent) {
+    return (
+      <div className="flex-grow flex flex-col justify-center items-center py-40 gap-4 pt-[180px]">
+        <span className="material-symbols-outlined text-5xl text-primary animate-spin">sync</span>
+        <p className="font-label-sm text-on-surface-variant uppercase tracking-[0.2em]">Retrieving Active Showcase...</p>
+      </div>
+    );
+  }
+
+  const formatPrice = (p) => Number(p || 0).toLocaleString();
+
   return (
-    <div className="w-full flex-grow flex flex-col relative z-10">
+    <div className="w-full flex-grow flex flex-col relative z-10 animate-fade-in">
       
       {/* 1. CINEMATIC HERO HEADER */}
       <section className="relative min-h-[90vh] flex flex-col justify-center items-center px-margin-mobile md:px-margin-desktop text-center overflow-hidden pt-16">
-        {/* Background Image Layer */}
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/70 to-background z-10"></div>
           <img 
@@ -68,7 +73,6 @@ const LandingPage = ({ events, setEvent, settings }) => {
           />
         </div>
 
-        {/* Hero Title & Countdown Details */}
         <div className="relative z-20 max-w-[850px] flex flex-col items-center select-none">
           <p className="font-label-sm text-[12px] text-primary uppercase tracking-[0.3em] mb-4">
             {settings?.siteName || 'EVENT PRO'} EXCLUSIVE HOSTING
@@ -77,7 +81,6 @@ const LandingPage = ({ events, setEvent, settings }) => {
             {activeEvent.title}
           </h1>
 
-          {/* Luxury Floating Clock */}
           <div className="flex gap-4 md:gap-8 justify-center mb-12 w-full max-w-[450px]">
             {Object.keys(timeLeft).map((interval, i) => (
               <div key={i} className="flex-1 bg-surface-container/30 backdrop-blur-md border border-outline-variant/15 py-3 rounded-lg flex flex-col items-center justify-center shadow-2xl">
@@ -115,7 +118,6 @@ const LandingPage = ({ events, setEvent, settings }) => {
       <section id="details-section" className="py-20 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto w-full relative z-20 border-t border-outline-variant/10">
         <div id="events-section" className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-20">
           
-          {/* Show presentation column */}
           <div className="lg:col-span-7 flex flex-col justify-center">
             <span className="font-label-sm text-[12px] text-primary uppercase tracking-[0.25em] mb-3 block">
               {activeEvent.location} • {activeEvent.venueName}
@@ -143,40 +145,54 @@ const LandingPage = ({ events, setEvent, settings }) => {
             </div>
           </div>
 
-          {/* Privileges card column */}
           <div className="lg:col-span-5 space-y-4 select-none">
             <h3 className="font-label-sm text-[11px] text-on-surface-variant uppercase tracking-widest mb-4">ACCESS LEVELS</h3>
             
-            <div className="glass-panel p-5 rounded-lg border-l-4 border-l-primary flex items-start gap-4">
-              <span className="material-symbols-outlined text-primary text-2xl">stars</span>
-              <div>
+            {/* VIP TIER */}
+            <div className="glass-panel p-5 rounded-lg border-l-4 flex items-start gap-4 transition-all hover:translate-x-1" style={{ borderLeftColor: '#ff2a8d' }}>
+              <span className="material-symbols-outlined text-2xl" style={{ color: '#ff2a8d' }}>stars</span>
+              <div className="flex-1">
                 <div className="flex justify-between items-center mb-1">
                   <h4 className="font-body-md font-semibold text-on-surface">VIP FRONT ROW</h4>
-                  <span className="font-title-md text-[16px] text-primary">${activeEvent.pricingTiers?.vip?.price || 450}</span>
+                  <span className="font-title-md text-[18px] font-bold" style={{ color: '#ff2a8d' }}>${formatPrice(activeEvent.pricingTiers?.vip?.price)}</span>
                 </div>
                 <p className="font-body-md text-[12px] text-on-surface-variant">Front row seating, private lounge access, and exclusive gift bags.</p>
               </div>
             </div>
 
-            <div className="glass-panel p-5 rounded-lg border-l-4 border-l-secondary flex items-start gap-4">
-              <span className="material-symbols-outlined text-secondary text-2xl">workspace_premium</span>
-              <div>
+            {/* GOLD TIER */}
+            <div className="glass-panel p-5 rounded-lg border-l-4 flex items-start gap-4 transition-all hover:translate-x-1" style={{ borderLeftColor: '#ffb800' }}>
+              <span className="material-symbols-outlined text-2xl" style={{ color: '#ffb800' }}>workspace_premium</span>
+              <div className="flex-1">
                 <div className="flex justify-between items-center mb-1">
                   <h4 className="font-body-md font-semibold text-on-surface">GOLD EXPOSURE</h4>
-                  <span className="font-title-md text-[16px] text-secondary">${activeEvent.pricingTiers?.gold?.price || 250}</span>
+                  <span className="font-title-md text-[18px] font-bold" style={{ color: '#ffb800' }}>${formatPrice(activeEvent.pricingTiers?.gold?.price)}</span>
                 </div>
                 <p className="font-body-md text-[12px] text-on-surface-variant">Premium elevation view and complimentary event portfolios.</p>
               </div>
             </div>
 
-            <div className="glass-panel p-5 rounded-lg border-l-4 border-l-outline flex items-start gap-4">
-              <span className="material-symbols-outlined text-outline text-2xl">local_activity</span>
-              <div>
+            {/* SILVER TIER */}
+            <div className="glass-panel p-5 rounded-lg border-l-4 flex items-start gap-4 transition-all hover:translate-x-1" style={{ borderLeftColor: '#00f0ff' }}>
+              <span className="material-symbols-outlined text-2xl" style={{ color: '#00f0ff' }}>local_activity</span>
+              <div className="flex-1">
                 <div className="flex justify-between items-center mb-1">
                   <h4 className="font-body-md font-semibold text-on-surface">SILVER ATTIRE</h4>
-                  <span className="font-title-md text-[16px] text-on-surface">${activeEvent.pricingTiers?.silver?.price || 150}</span>
+                  <span className="font-title-md text-[18px] font-bold" style={{ color: '#00f0ff' }}>${formatPrice(activeEvent.pricingTiers?.silver?.price)}</span>
                 </div>
-                <p className="font-body-md text-[12px] text-on-surface-variant">General attendance in rear viewing rows and digital portal access.</p>
+                <p className="font-body-md text-[12px] text-on-surface-variant">General attendance in mid-rows and digital portal access.</p>
+              </div>
+            </div>
+
+            {/* STANDARD TIER */}
+            <div className="glass-panel p-5 rounded-lg border-l-4 flex items-start gap-4 transition-all hover:translate-x-1" style={{ borderLeftColor: '#d946ef' }}>
+              <span className="material-symbols-outlined text-2xl" style={{ color: '#d946ef' }}>confirmation_number</span>
+              <div className="flex-1">
+                <div className="flex justify-between items-center mb-1">
+                  <h4 className="font-body-md font-semibold text-on-surface">STANDARD ENTRY</h4>
+                  <span className="font-title-md text-[18px] font-bold" style={{ color: '#d946ef' }}>${formatPrice(activeEvent.pricingTiers?.standard?.price)}</span>
+                </div>
+                <p className="font-body-md text-[12px] text-on-surface-variant">General gallery admission with standard visibility from outer rows.</p>
               </div>
             </div>
           </div>
@@ -220,7 +236,6 @@ const LandingPage = ({ events, setEvent, settings }) => {
         </button>
       </section>
 
-      {/* Subtle glowing elements */}
       <div className="fixed inset-0 z-0 pointer-events-none select-none">
         <div className="absolute top-[30%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-[radial-gradient(circle,rgba(72,45,88,0.12)_0%,transparent_70%)] blur-[80px]"></div>
         <div className="absolute bottom-[20%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-[radial-gradient(circle,rgba(82,61,109,0.1)_0%,transparent_70%)] blur-[80px]"></div>
