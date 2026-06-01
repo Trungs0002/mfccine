@@ -89,7 +89,7 @@ const LandingPage = ({ events, setView, setEvent }) => {
           <div className="flex flex-col sm:flex-row gap-4">
             <button 
               onClick={handleBookNow}
-              className="bg-primary text-on-primary px-10 py-4.5 rounded font-label-sm text-label-sm uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-[0_10px_35px_rgba(221,186,238,0.3)] hover:scale-102 duration-300"
+              className="bg-primary text-on-primary px-14 py-6 rounded font-label-sm text-[14px] uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-[0_10px_35px_rgba(221,186,238,0.3)] hover:scale-102 duration-300"
             >
               Book Passes Now
             </button>
@@ -98,7 +98,7 @@ const LandingPage = ({ events, setView, setEvent }) => {
                 const el = document.getElementById('details-section');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="border border-outline-variant/40 bg-surface-container-low/20 backdrop-blur-md px-10 py-4.5 rounded font-label-sm text-label-sm uppercase tracking-widest hover:bg-surface-container-highest/40 hover:border-white transition-all"
+              className="border border-outline-variant/40 bg-surface-container-low/20 backdrop-blur-md px-14 py-6 rounded font-label-sm text-[14px] uppercase tracking-widest hover:bg-surface-container-highest/40 hover:border-white transition-all"
             >
               Learn Runway Schedule
             </button>

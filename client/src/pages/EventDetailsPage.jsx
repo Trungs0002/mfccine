@@ -62,7 +62,7 @@ const EventDetailsPage = ({ event, setView, setEvent }) => {
               setView('seating');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="bg-primary text-on-primary w-full py-4 rounded font-label-sm text-label-sm uppercase tracking-widest hover:bg-white hover:text-black transition-colors select-none shadow-[0_10px_30px_rgba(221,186,238,0.2)]"
+            className="bg-primary text-on-primary w-full py-6 rounded font-label-sm text-[15px] uppercase tracking-widest hover:bg-white hover:text-black transition-colors select-none shadow-[0_10px_30px_rgba(221,186,238,0.2)]"
           >
             Select Your Seats
           </button>

@@ -477,7 +477,7 @@ const SeatSelectionPage = ({ event, setView, setBookingDetails }) => {
 
                 <button 
                   onClick={handleProceed}
-                  className="w-full mt-6 bg-primary text-on-primary py-4.5 rounded font-label-sm text-label-sm uppercase tracking-widest hover:bg-white hover:text-black transition-colors select-none shadow-[0_10px_30px_rgba(221,186,238,0.25)] hover:scale-102 duration-300"
+                  className="w-full mt-6 bg-primary text-on-primary py-6 rounded font-label-sm text-[15px] uppercase tracking-widest hover:bg-white hover:text-black transition-colors select-none shadow-[0_10px_30px_rgba(221,186,238,0.25)] hover:scale-102 duration-300"
                 >
                   Proceed to Checkout
                 </button>
@@ -506,3 +506,4 @@ const SeatSelectionPage = ({ event, setView, setBookingDetails }) => {
 };
 
 export default SeatSelectionPage;
+;

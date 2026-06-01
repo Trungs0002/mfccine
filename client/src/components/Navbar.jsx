@@ -56,7 +56,7 @@ const Navbar = ({ currentView, setView, isAdminMode, setIsAdminMode, userEmail, 
               setIsAdminMode(newAdmin);
               setView(newAdmin ? 'admin' : 'landing');
             }}
-            className="flex items-center gap-2 border border-outline-variant/40 bg-surface-container-low/40 px-4 py-2 rounded-lg text-[11px] font-label-sm uppercase tracking-widest hover:border-primary/50 transition-colors"
+            className="flex items-center gap-2 border border-outline-variant/40 bg-surface-container-low/40 px-6 py-3 rounded-lg text-[12px] font-label-sm uppercase tracking-widest hover:border-primary/50 transition-colors"
           >
             <span className="material-symbols-outlined text-[16px] text-primary">
               {isAdminMode ? 'account_circle' : 'admin_panel_settings'}
@@ -74,7 +74,7 @@ const Navbar = ({ currentView, setView, isAdminMode, setIsAdminMode, userEmail, 
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }, 100);
               }}
-              className="hidden sm:block bg-tertiary text-on-tertiary px-6 py-2.5 rounded font-label-sm text-label-sm uppercase tracking-widest hover:bg-tertiary-fixed hover:text-on-tertiary-fixed transition-colors select-none shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
+              className="hidden sm:block bg-tertiary text-on-tertiary px-10 py-4 rounded font-label-sm text-[13px] uppercase tracking-widest hover:bg-tertiary-fixed hover:text-on-tertiary-fixed transition-colors select-none shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
             >
               Book Now
             </button>
@@ -84,7 +84,7 @@ const Navbar = ({ currentView, setView, isAdminMode, setIsAdminMode, userEmail, 
                 setIsAdminMode(false);
                 setView('landing');
               }}
-              className="hidden sm:block bg-surface-container-highest text-on-surface border border-outline-variant/30 px-6 py-2.5 rounded font-label-sm text-label-sm uppercase tracking-widest hover:bg-white hover:text-background transition-colors"
+              className="hidden sm:block bg-surface-container-highest text-on-surface border border-outline-variant/30 px-10 py-4 rounded font-label-sm text-[13px] uppercase tracking-widest hover:bg-white hover:text-background transition-colors"
             >
               Log Out
             </button>

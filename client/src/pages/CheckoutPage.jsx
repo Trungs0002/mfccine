@@ -170,7 +170,7 @@ const CheckoutPage = ({ event, bookingDetails, setView, setUserEmail, setComplet
                   key={method}
                   type="button"
                   onClick={() => setPaymentMethod(method)}
-                  className={`p-4 rounded-lg border text-center font-label-sm text-[12px] uppercase tracking-wider transition-all duration-300 ${
+                  className={`p-5 rounded-lg border text-center font-label-sm text-[13px] uppercase tracking-wider transition-all duration-300 ${
                     paymentMethod === method
                       ? 'border-primary bg-primary-container/20 text-primary shadow-[0_0_12px_rgba(221,186,238,0.15)] font-bold'
                       : 'border-outline-variant/20 bg-surface-container/20 text-on-surface-variant hover:border-white hover:text-on-surface'
@@ -186,7 +186,7 @@ const CheckoutPage = ({ event, bookingDetails, setView, setUserEmail, setComplet
           <button 
             type="submit"
             disabled={loading}
-            className="w-full mt-8 bg-primary text-on-primary py-4 rounded font-label-sm text-label-sm uppercase tracking-widest hover:bg-white hover:text-black transition-colors flex justify-center items-center gap-3 shadow-[0_10px_30px_rgba(221,186,238,0.2)]"
+            className="w-full mt-8 bg-primary text-on-primary py-6 rounded font-label-sm text-[15px] uppercase tracking-widest hover:bg-white hover:text-black transition-colors flex justify-center items-center gap-3 shadow-[0_10px_30px_rgba(221,186,238,0.2)]"
           >
             {loading ? (
               <>

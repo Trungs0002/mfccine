@@ -29,10 +29,10 @@ const UserDashboardPage = ({ userEmail, setView, setCompletedBookingId }) => {
       {/* 1. SIDE NAVIGATION (Desktop aside, Mobile top bar) */}
       <aside className="w-full md:w-64 bg-surface-container/30 backdrop-blur-xl border-b md:border-b-0 md:border-r border-outline-variant/15 p-6 flex flex-col select-none">
         <div className="font-display-xl text-[24px] text-on-surface mb-8 italic tracking-tight hidden md:block">MFC PORTAL</div>
-        <div className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-x-visible pb-4 md:pb-0 font-label-sm text-[11px] uppercase tracking-widest">
+        <div className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-x-visible pb-4 md:pb-0 font-label-sm text-[12px] uppercase tracking-widest">
           <button 
             onClick={() => setActiveTab('tickets')}
-            className={`flex-1 md:flex-initial text-left px-4 py-3 rounded-lg border transition-all ${
+            className={`flex-1 md:flex-initial text-left px-4 py-4 rounded-lg border transition-all ${
               activeTab === 'tickets' 
                 ? 'border-primary bg-primary-container/20 text-primary font-bold shadow-[0_0_8px_rgba(221,186,238,0.1)]' 
                 : 'border-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/20'
@@ -42,7 +42,7 @@ const UserDashboardPage = ({ userEmail, setView, setCompletedBookingId }) => {
           </button>
           <button 
             onClick={() => setActiveTab('history')}
-            className={`flex-1 md:flex-initial text-left px-4 py-3 rounded-lg border transition-all ${
+            className={`flex-1 md:flex-initial text-left px-4 py-4 rounded-lg border transition-all ${
               activeTab === 'history' 
                 ? 'border-primary bg-primary-container/20 text-primary font-bold shadow-[0_0_8px_rgba(221,186,238,0.1)]' 
                 : 'border-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/20'
@@ -52,7 +52,7 @@ const UserDashboardPage = ({ userEmail, setView, setCompletedBookingId }) => {
           </button>
           <button 
             onClick={() => alert('Profile credentials fully managed.')}
-            className="flex-1 md:flex-initial text-left px-4 py-3 rounded-lg border border-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/20"
+            className="flex-1 md:flex-initial text-left px-4 py-4 rounded-lg border border-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/20"
           >
             Profile
           </button>
@@ -63,7 +63,7 @@ const UserDashboardPage = ({ userEmail, setView, setCompletedBookingId }) => {
             setView('landing');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
-          className="mt-auto hidden md:block w-full py-3.5 border border-outline-variant/30 text-on-surface-variant hover:text-white font-label-sm text-[11px] uppercase tracking-widest hover:bg-surface-container-highest/20 transition-all rounded"
+          className="mt-auto hidden md:block w-full py-4.5 border border-outline-variant/30 text-on-surface-variant hover:text-white font-label-sm text-[12px] uppercase tracking-widest hover:bg-surface-container-highest/20 transition-all rounded"
         >
           Exit Dashboard
         </button>
@@ -169,7 +169,7 @@ const UserDashboardPage = ({ userEmail, setView, setCompletedBookingId }) => {
                               setView('ticket');
                               window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
-                            className="bg-primary text-on-primary px-6 py-2.5 rounded font-label-sm text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-colors"
+                            className="bg-primary text-on-primary px-10 py-4 rounded font-label-sm text-[13px] uppercase tracking-widest hover:bg-white hover:text-black transition-colors"
                           >
                             View Stub
                           </button>

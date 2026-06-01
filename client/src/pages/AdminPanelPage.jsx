@@ -162,7 +162,7 @@ const AdminPanelPage = ({ events, setEvents, setView }) => {
             setView('landing');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
-          className="border border-outline-variant/40 bg-surface-container-low/20 px-6 py-3 rounded font-label-sm text-label-sm uppercase tracking-widest hover:bg-white hover:text-black transition-colors"
+          className="border border-outline-variant/40 bg-surface-container-low/20 px-8 py-4 rounded font-label-sm text-label-sm uppercase tracking-widest hover:bg-white hover:text-black transition-colors"
         >
           View Client Portal
         </button>
@@ -229,7 +229,7 @@ const AdminPanelPage = ({ events, setEvents, setView }) => {
               <button 
                 type="submit"
                 disabled={scanning}
-                className="bg-primary text-on-primary px-4 py-3 rounded-lg font-label-sm text-[11px] uppercase tracking-wider hover:bg-white hover:text-black transition-colors"
+                className="bg-primary text-on-primary px-6 py-4 rounded-lg font-label-sm text-[11px] uppercase tracking-wider hover:bg-white hover:text-black transition-colors"
               >
                 Scan
               </button>
@@ -398,7 +398,7 @@ const AdminPanelPage = ({ events, setEvents, setView }) => {
               <button 
                 type="submit"
                 disabled={creatingEvent}
-                className="w-full bg-primary text-on-primary py-3 rounded font-label-sm text-[11px] uppercase tracking-widest hover:bg-white hover:text-black transition-colors shadow-lg"
+                className="w-full bg-primary text-on-primary py-5 rounded font-label-sm text-[13px] uppercase tracking-widest hover:bg-white hover:text-black transition-colors shadow-lg"
               >
                 {creatingEvent ? 'Uploading Image to Cloudinary...' : 'Launch E-Runway Showcase'}
               </button>
@@ -438,7 +438,7 @@ const AdminPanelPage = ({ events, setEvents, setView }) => {
                 <div className="flex gap-2 w-full sm:w-auto justify-end select-none">
                   <button 
                     onClick={() => alert(`Reviewing seat capacities for event ID: ${evt._id}`)}
-                    className="px-4 py-2 border border-outline-variant/40 rounded text-on-surface hover:bg-surface-variant hover:border-white transition-colors font-label-sm text-[10px] uppercase tracking-wider flex items-center gap-1.5"
+                    className="px-6 py-3 border border-outline-variant/40 rounded text-on-surface hover:bg-surface-variant hover:border-white transition-colors font-label-sm text-[10px] uppercase tracking-wider flex items-center gap-1.5"
                   >
                     <span className="material-symbols-outlined text-[14px]">edit</span>
                     Seats
@@ -452,7 +452,7 @@ const AdminPanelPage = ({ events, setEvents, setView }) => {
                           alert(`Show has ${data.length} reserved seat(s) synced in the MongoDB Atlas catalog! Monitor check-ins active.`);
                         });
                     }}
-                    className="px-4 py-2 bg-surface-container-highest rounded text-on-surface hover:bg-white hover:text-black transition-colors font-label-sm text-[10px] uppercase tracking-wider flex items-center gap-1.5"
+                    className="px-6 py-3 bg-surface-container-highest rounded text-on-surface hover:bg-white hover:text-black transition-colors font-label-sm text-[10px] uppercase tracking-wider flex items-center gap-1.5"
                   >
                     <span className="material-symbols-outlined text-[14px]">monitoring</span>
                     Monitor

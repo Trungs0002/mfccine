@@ -171,7 +171,7 @@ const DigitalTicketPage = ({ completedBookingId, setView }) => {
             onClick={() => {
               alert('Successfully added to Apple Wallet / Google Pay.');
             }}
-            className="w-full flex items-center justify-center gap-2 bg-tertiary text-on-tertiary px-6 py-4 rounded font-label-sm text-label-sm uppercase tracking-widest hover:bg-tertiary-fixed transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)]"
+            className="w-full flex items-center justify-center gap-2 bg-tertiary text-on-tertiary px-8 py-5 rounded font-label-sm text-[13px] uppercase tracking-widest hover:bg-tertiary-fixed transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)]"
           >
             <span className="material-symbols-outlined fill-icon text-[20px]">account_balance_wallet</span>
             Save to Wallet
@@ -180,14 +180,14 @@ const DigitalTicketPage = ({ completedBookingId, setView }) => {
           <div className="flex gap-4">
             <button 
               onClick={() => window.print()}
-              className="flex-1 flex items-center justify-center gap-2 border border-outline-variant/40 bg-transparent text-on-surface px-6 py-3.5 rounded font-label-sm text-[11px] uppercase tracking-widest hover:bg-surface-container-highest/20 hover:border-white transition-all"
+              className="flex-1 flex items-center justify-center gap-2 border border-outline-variant/40 bg-transparent text-on-surface px-8 py-5 rounded font-label-sm text-[12px] uppercase tracking-widest hover:bg-surface-container-highest/20 hover:border-white transition-all"
             >
               <span className="material-symbols-outlined text-[18px]">download</span>
               PDF
             </button>
             <button 
               onClick={() => alert(`Copied Ticket Link: http://localhost:3000/ticket/${booking._id}`)}
-              className="flex-1 flex items-center justify-center gap-2 border border-outline-variant/40 bg-transparent text-on-surface px-6 py-3.5 rounded font-label-sm text-[11px] uppercase tracking-widest hover:bg-surface-container-highest/20 hover:border-white transition-all"
+              className="flex-1 flex items-center justify-center gap-2 border border-outline-variant/40 bg-transparent text-on-surface px-8 py-5 rounded font-label-sm text-[12px] uppercase tracking-widest hover:bg-surface-container-highest/20 hover:border-white transition-all"
             >
               <span className="material-symbols-outlined text-[18px]">ios_share</span>
               Share
@@ -199,7 +199,7 @@ const DigitalTicketPage = ({ completedBookingId, setView }) => {
               setView('dashboard');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="w-full flex items-center justify-center gap-2 bg-surface-container-highest text-on-surface border border-outline-variant/30 py-4 rounded font-label-sm text-label-sm uppercase tracking-widest hover:bg-white hover:text-background transition-all"
+            className="w-full flex items-center justify-center gap-2 bg-surface-container-highest text-on-surface border border-outline-variant/30 py-5 rounded font-label-sm text-[13px] uppercase tracking-widest hover:bg-white hover:text-background transition-all"
           >
             <span className="material-symbols-outlined text-[20px]">account_circle</span>
             View My Dashboard
