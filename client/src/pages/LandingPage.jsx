@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 
 const LandingPage = ({ events, setEvent, settings }) => {
   const navigate = useNavigate();
-  const galaEvent = events[0] || {
+  
+  // Always use the primary active event (the first one in the sync'd list)
+  const activeEvent = events[0] || {
     title: 'THE HAUTE ETHER GALA',
     description: 'An evening of transcendent high fashion, sensory exploration, and digital art installations in the heart of the Grand Palais.',
     date: '2026-10-24T20:00:00Z',
@@ -19,7 +21,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
 
   // Real-time Countdown Timer
   const calculateTimeLeft = useCallback(() => {
-    const difference = +new Date(galaEvent.date) - +new Date();
+    const difference = +new Date(activeEvent.date) - +new Date();
     let timeLeft = {};
 
     if (difference > 0) {
@@ -33,7 +35,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
       timeLeft = { days: 0, hours: 0, minutes: 0, seconds: 0 };
     }
     return timeLeft;
-  }, [galaEvent.date]);
+  }, [activeEvent.date]);
 
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
@@ -45,7 +47,8 @@ const LandingPage = ({ events, setEvent, settings }) => {
   }, [calculateTimeLeft]);
 
   const handleBookNow = () => {
-    setEvent(galaEvent);
+    // Strictly set the global event context to this active one
+    setEvent(activeEvent);
     navigate('/seating');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -59,7 +62,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/70 to-background z-10"></div>
           <img 
-            src={galaEvent.image} 
+            src={activeEvent.image} 
             alt="Editorial Hero Banner" 
             className="w-full h-full object-cover mix-blend-luminosity opacity-45 scale-102 blur-[1px]"
           />
@@ -68,10 +71,10 @@ const LandingPage = ({ events, setEvent, settings }) => {
         {/* Hero Title & Countdown Details */}
         <div className="relative z-20 max-w-[850px] flex flex-col items-center select-none">
           <p className="font-label-sm text-[12px] text-primary uppercase tracking-[0.3em] mb-4">
-            {settings?.siteName || 'EVENT PRO'} EXCLUSIVE SHOWCASE
+            {settings?.siteName || 'EVENT PRO'} EXCLUSIVE HOSTING
           </p>
-          <h1 className="font-display-xl text-[46px] md:text-[88px] text-on-surface font-extrabold leading-[1.1] mb-8 tracking-tight">
-            THE HAUTE<br/>ETHER GALA
+          <h1 className="font-display-xl text-[46px] md:text-[88px] text-on-surface font-extrabold leading-[1.1] mb-8 tracking-tight uppercase">
+            {activeEvent.title}
           </h1>
 
           {/* Luxury Floating Clock */}
@@ -102,26 +105,26 @@ const LandingPage = ({ events, setEvent, settings }) => {
               }}
               className="border border-outline-variant/40 bg-surface-container-low/20 backdrop-blur-md px-14 py-6 rounded font-label-sm text-[14px] uppercase tracking-widest hover:bg-surface-container-highest/40 hover:border-white transition-all"
             >
-              Learn Runway Schedule
+              Event Logistics
             </button>
           </div>
         </div>
       </section>
 
-      {/* 2. SHOW DETAILS SECTION */}
+      {/* 2. SHOW DETAILS & METADATA SECTION */}
       <section id="details-section" className="py-20 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto w-full relative z-20 border-t border-outline-variant/10">
         <div id="events-section" className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-20">
           
           {/* Show presentation column */}
           <div className="lg:col-span-7 flex flex-col justify-center">
             <span className="font-label-sm text-[12px] text-primary uppercase tracking-[0.25em] mb-3 block">
-              {galaEvent.location} • {galaEvent.venueName}
+              {activeEvent.location} • {activeEvent.venueName}
             </span>
             <h2 className="font-headline-lg-mobile md:font-headline-lg text-on-surface font-extrabold leading-tight mb-6 uppercase">
-              THE PRESTIGIOUS SHOWCASE
+              THE FEATURED SHOWCASE
             </h2>
             <p className="font-body-lg text-body-lg text-on-surface-variant leading-relaxed mb-8">
-              {galaEvent.description}
+              {activeEvent.description}
             </p>
 
             <div className="bg-surface-container/30 border border-outline-variant/15 p-6 rounded-lg select-none">
@@ -130,7 +133,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
                 <span className="material-symbols-outlined text-4xl font-light text-primary">calendar_today</span>
                 <div>
                   <p className="font-title-md text-[18px] leading-tight">
-                    {new Date(galaEvent.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    {new Date(activeEvent.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                   </p>
                   <p className="font-label-sm text-[12px] text-on-surface-variant uppercase tracking-widest mt-1">
                     Doors Open at 7:00 PM • Main event starts at 8:00 PM
@@ -140,7 +143,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
             </div>
           </div>
 
-          {/* Privileges column */}
+          {/* Privileges card column */}
           <div className="lg:col-span-5 space-y-4 select-none">
             <h3 className="font-label-sm text-[11px] text-on-surface-variant uppercase tracking-widest mb-4">ACCESS LEVELS</h3>
             
@@ -149,7 +152,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <h4 className="font-body-md font-semibold text-on-surface">VIP FRONT ROW</h4>
-                  <span className="font-title-md text-[16px] text-primary">${galaEvent.pricingTiers?.vip?.price || 450}</span>
+                  <span className="font-title-md text-[16px] text-primary">${activeEvent.pricingTiers?.vip?.price || 450}</span>
                 </div>
                 <p className="font-body-md text-[12px] text-on-surface-variant">Front row seating, private lounge access, and exclusive gift bags.</p>
               </div>
@@ -160,7 +163,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <h4 className="font-body-md font-semibold text-on-surface">GOLD EXPOSURE</h4>
-                  <span className="font-title-md text-[16px] text-secondary">${galaEvent.pricingTiers?.gold?.price || 250}</span>
+                  <span className="font-title-md text-[16px] text-secondary">${activeEvent.pricingTiers?.gold?.price || 250}</span>
                 </div>
                 <p className="font-body-md text-[12px] text-on-surface-variant">Premium elevation view and complimentary event portfolios.</p>
               </div>
@@ -171,7 +174,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <h4 className="font-body-md font-semibold text-on-surface">SILVER ATTIRE</h4>
-                  <span className="font-title-md text-[16px] text-on-surface">${galaEvent.pricingTiers?.silver?.price || 150}</span>
+                  <span className="font-title-md text-[16px] text-on-surface">${activeEvent.pricingTiers?.silver?.price || 150}</span>
                 </div>
                 <p className="font-body-md text-[12px] text-on-surface-variant">General attendance in rear viewing rows and digital portal access.</p>
               </div>
@@ -179,20 +182,20 @@ const LandingPage = ({ events, setEvent, settings }) => {
           </div>
         </div>
 
-        {/* Timeline */}
+        {/* Evening Timeline */}
         <div className="border-t border-outline-variant/10 pt-16 flex flex-col md:flex-row gap-12">
           <div className="md:w-1/3">
             <p className="font-label-sm text-[12px] text-primary uppercase tracking-wider mb-2">The Night flow</p>
             <h3 className="font-title-md text-[24px] uppercase text-on-surface leading-tight font-extrabold">CHRONICLES OF EVENT</h3>
           </div>
           <div className="md:w-2/3 space-y-8 select-none">
-            {galaEvent.schedule && galaEvent.schedule.map((item, idx) => (
+            {activeEvent.schedule && activeEvent.schedule.map((item, idx) => (
               <div key={idx} className="flex gap-6 items-start relative group">
                 <div className="flex flex-col items-center">
                   <span className="w-10 h-10 rounded-full border border-primary/30 bg-primary/5 flex items-center justify-center font-display-xl text-[12px] text-primary group-hover:bg-primary group-hover:text-on-primary transition-all">
                     {item.time}
                   </span>
-                  {idx < galaEvent.schedule.length - 1 && (
+                  {idx < activeEvent.schedule.length - 1 && (
                     <div className="w-[1px] h-12 bg-outline-variant/20 mt-2"></div>
                   )}
                 </div>

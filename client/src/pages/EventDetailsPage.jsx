@@ -7,7 +7,6 @@ const EventDetailsPage = ({ event, setEvent }) => {
 
   return (
     <div className="w-full flex-grow flex flex-col pt-[100px] pb-section-gap px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto relative z-10">
-      {/* 1. BACK LINK */}
       <div className="mb-8 select-none">
         <button 
           onClick={() => {
@@ -17,13 +16,11 @@ const EventDetailsPage = ({ event, setEvent }) => {
           className="flex items-center gap-2 font-label-sm text-[13px] text-on-surface-variant hover:text-primary transition-colors uppercase tracking-widest"
         >
           <span className="material-symbols-outlined text-[18px]">keyboard_backspace</span>
-          Back to Events
+          Back to Showcase
         </button>
       </div>
 
-      {/* 2. MAIN HEADER BLOCK */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-16">
-        {/* Left Side: Editorial Banner */}
         <div className="lg:col-span-7 glass-panel rounded-xl overflow-hidden shadow-2xl relative select-none">
           <img 
             src={event.image} 
@@ -32,7 +29,6 @@ const EventDetailsPage = ({ event, setEvent }) => {
           />
         </div>
 
-        {/* Right Side: Showcase Metadata */}
         <div className="lg:col-span-5 flex flex-col justify-center h-full">
           <span className="font-label-sm text-[12px] text-primary uppercase tracking-[0.2em] mb-3 block">
             {event.location} • {event.venueName}
@@ -72,9 +68,7 @@ const EventDetailsPage = ({ event, setEvent }) => {
         </div>
       </section>
 
-      {/* 3. SCHEDULE & SEAT TIERS DUAL COLUMN */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-20">
-        {/* Left Side: Timeline */}
         <div className="lg:col-span-6 flex flex-col gap-6">
           <h2 className="font-title-md text-title-md text-on-surface border-b border-outline-variant/20 pb-4">
             THE EVENING SCHEDULE
@@ -103,7 +97,6 @@ const EventDetailsPage = ({ event, setEvent }) => {
           </div>
         </div>
 
-        {/* Right Side: Access Levels */}
         <div className="lg:col-span-6 flex flex-col gap-6">
           <h2 className="font-title-md text-title-md text-on-surface border-b border-outline-variant/20 pb-4">
             TIER PRIVILEGES
@@ -142,6 +135,18 @@ const EventDetailsPage = ({ event, setEvent }) => {
                   <span className="font-title-md text-[18px] text-on-surface">${event.pricingTiers?.silver?.price || 150}</span>
                 </div>
                 <p className="font-body-md text-[13px] text-on-surface-variant">Standard access to rear viewing rows.</p>
+              </div>
+            </div>
+
+            {/* Standard Tier */}
+            <div className="glass-panel p-6 rounded-lg border-l-4 border-l-outline-variant flex items-start gap-4">
+              <span className="material-symbols-outlined text-on-surface-variant text-3xl font-light">confirmation_number</span>
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <h4 className="font-body-lg text-body-lg font-semibold text-on-surface">STANDARD ENTRY</h4>
+                  <span className="font-title-md text-[18px] text-on-surface-variant">${event.pricingTiers?.standard?.price || 100}</span>
+                </div>
+                <p className="font-body-md text-[13px] text-on-surface-variant">General gallery admission with standard visibility.</p>
               </div>
             </div>
           </div>

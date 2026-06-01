@@ -66,11 +66,13 @@ const EventSchema = new mongoose.Schema({
     }
   ],
   pricingTiers: {
+    standard: { price: { type: Number, default: 100 }, capacity: { type: Number, default: 250 } },
     silver: { price: { type: Number, default: 150 }, capacity: { type: Number, default: 200 } },
     gold: { price: { type: Number, default: 250 }, capacity: { type: Number, default: 150 } },
     vip: { price: { type: Number, default: 450 }, capacity: { type: Number, default: 100 } }
   },
-  active: { type: Boolean, default: true }
+  active: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now }
 });
 
 const Event = mongoose.model('Event', EventSchema);
@@ -145,30 +147,10 @@ const seedDatabase = async () => {
           { time: '21:30', title: 'Afterparty & Installation Gallery Tour', description: 'Mingle with designers and experience interactive projection-mapping installations.' }
         ],
         pricingTiers: {
+          standard: { price: 100, capacity: 250 },
           silver: { price: 150, capacity: 150 },
           gold: { price: 250, capacity: 100 },
           vip: { price: 450, capacity: 50 }
-        },
-        active: true
-      },
-      {
-        title: 'NEO-JACARTA LINE',
-        description: 'Deep structured shadows and asymmetrical shapes tailored from dark velvet and silver hardware aesthetics.',
-        date: new Date('2026-11-12T19:30:00Z'),
-        location: 'Milan, Italy',
-        venueName: 'Metropolitan Spazio',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuApty4F9Xfw23ECdQJ5ZTVMJVLqZkumLZSnPchteKqYAt7kbaw7ncNDFEiTRQCtG1cUSUAz39N6fHh50Iyp3oEUj3Dy3TB1oFcNg1J6tdNP5vG13lq_C73YLcAT62Hqm75Q8F-9Quai63CQVfiaA8Agz8inhwp0Kns_BBhx6BnKd9lUMJBpcfRIITdZoWncSm3ySDmbpq3EcCLnjUC8iSAJhkothu0xcmsWWUojosnMrC9wE02SjPWa4kp4rn9NWzo-PZlCpPQvdAg',
-        rehearsalImages: [
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuBCqR6c4B2iK5k_42hQ-wD2H5l0w4rJj2q4d7j0sT4f3d2a7c8b9a0o1p2q3r4s5t6u7v8w9x0y1z2a3b4c5d6e7f8g9h0i1j2'
-        ],
-        schedule: [
-          { time: '18:30', title: 'Asymmetrical Opening', description: 'Cocktails and velvet looks portfolio presentation.' },
-          { time: '19:30', title: 'Hardware Reveal', description: 'Neo-Jacarta dark silver catwalk show.' }
-        ],
-        pricingTiers: {
-          silver: { price: 120, capacity: 150 },
-          gold: { price: 220, capacity: 100 },
-          vip: { price: 400, capacity: 50 }
         },
         active: true
       }
@@ -241,7 +223,7 @@ app.put('/api/settings', async (req, res) => {
 // 2. EVENTS Endpoints
 app.get('/api/events', async (req, res) => {
   try {
-    const events = await Event.find({ active: true }).sort({ date: 1 });
+    const events = await Event.find({ active: true }).sort({ createdAt: -1 });
     res.json(events);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -263,7 +245,57 @@ app.post('/api/events', async (req, res) => {
   }
 });
 
+app.put('/api/events/:id', async (req, res) => {
+  try {
+    const { title, description, date, location, venueName, image, pricingTiers } = req.body;
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+
+    let imageUrl = image;
+    if (image && image.startsWith('data:image')) {
+      const uploadRes = await cloudinary.uploader.upload(image, { folder: 'mfc_events' });
+      imageUrl = uploadRes.secure_url;
+    }
+
+    event.title = title || event.title;
+    event.description = description || event.description;
+    event.date = date || event.date;
+    event.location = location || event.location;
+    event.venueName = venueName || event.venueName;
+    event.image = imageUrl || event.image;
+    event.pricingTiers = pricingTiers || event.pricingTiers;
+
+    await event.save();
+    res.json(event);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/events/:id', async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+
+    // Soft delete by setting active to false
+    event.active = false;
+    await event.save();
+    res.json({ message: 'Event disabled successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 3. BOOKINGS Endpoints
+app.get('/api/bookings', async (req, res) => {
+  try {
+    const bookings = await Booking.find().populate('eventId').sort({ bookingDate: -1 });
+    res.json(bookings);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/bookings', async (req, res) => {
   try {
     const booking = await Booking.create(req.body);
@@ -314,6 +346,33 @@ app.post('/api/bookings/check-in/:id', async (req, res) => {
     booking.checkInDate = new Date();
     await booking.save();
     res.json({ message: 'Checked in successfully', booking });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/bookings/:id', async (req, res) => {
+  try {
+    const { fullName, email, phone, paymentStatus } = req.body;
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ error: 'Booking not found' });
+
+    booking.fullName = fullName || booking.fullName;
+    booking.email = email || booking.email;
+    booking.phone = phone || booking.phone;
+    booking.paymentStatus = paymentStatus || booking.paymentStatus;
+
+    await booking.save();
+    res.json(booking);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/bookings/:id', async (req, res) => {
+  try {
+    await Booking.deleteOne({ _id: req.params.id });
+    res.json({ message: 'Booking deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
