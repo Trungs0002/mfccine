@@ -11,7 +11,7 @@ const translations = {
     switchAdmin: "Switch to Admin",
     switchClient: "Switch to Client",
     bookNow: "Book Now",
-    
+
     // Landing Page
     exclusiveHosting: "EXCLUSIVE HOSTING",
     bookPassesNow: "Book Passes Now",
@@ -20,16 +20,19 @@ const translations = {
     eventDateLocation: "Event Date & Location",
     accessLevels: "ACCESS LEVELS",
     nightFlow: "The Night Flow",
+    chroniclesOfEvent: "EVENT TIMELINE",
+    doorsOpenLabel: "Doors Open at 7:00 PM • Main event starts at 8:00 PM",
+    retrievingShowcase: "Retrieving Active Showcase...",
     readyToWitness: "Are you ready to witness the experience?",
     securePass: "Secure Your Access Pass",
-    
+
     // Seating
     runwaySeating: "RUNWAY SEATING",
     returnShowcase: "Return to Showcase",
     reservations: "RESERVATIONS",
     confirmCheckout: "Confirm & Checkout",
     consolidatedTotal: "Consolidated Total",
-    
+
     // Dashboard
     welcome: "Welcome",
     vaultTitle: "SITE PORTAL",
@@ -63,7 +66,10 @@ const translations = {
     accountPrivilege: "Account Privilege",
     exitDashboard: "Exit Dashboard",
     dashboardSubtitle: "Managing your reserved access and stubs in the Vault.",
-    
+    occupied: "Occupied",
+    stage: "STAGE",
+    runway: "SPOTLIGHT",
+
     // Admin
     adminCommandCenter: "ADMIN COMMAND CENTER",
     adminSubtitle: "Synchronized management of bilingual events.",
@@ -103,7 +109,7 @@ const translations = {
     actions: "Actions",
     cancel: "Cancel",
     save: "Save",
-    
+
     // Auth
     joinCommunity: "Join the Community",
     accessPortal: "Access Your Portal"
@@ -118,7 +124,7 @@ const translations = {
     switchAdmin: "Quản trị",
     switchClient: "Khách hàng",
     bookNow: "Đặt vé ngay",
-    
+
     // Landing Page
     exclusiveHosting: "SỰ KIỆN ĐỘC QUYỀN",
     bookPassesNow: "Đặt chỗ ngay",
@@ -127,16 +133,19 @@ const translations = {
     eventDateLocation: "Thời gian & Địa điểm",
     accessLevels: "HẠNG VÉ",
     nightFlow: "Lịch trình đêm hội",
+    chroniclesOfEvent: "TIMELINE SỰ KIỆN",
+    doorsOpenLabel: "Mở cửa đón khách lúc 19:00 • Bắt đầu chương trình lúc 20:00",
+    retrievingShowcase: "Đang tải thông tin sự kiện...",
     readyToWitness: "Bạn đã sẵn sàng trải nghiệm chưa?",
     securePass: "Sở hữu tấm vé của bạn",
-    
+
     // Seating
     runwaySeating: "SƠ ĐỒ CHỖ NGỒI",
     returnShowcase: "Quay lại trang chủ",
     reservations: "CHỖ ĐÃ CHỌN",
     confirmCheckout: "Xác nhận & Thanh toán",
     consolidatedTotal: "Tổng cộng",
-    
+
     // Dashboard
     welcome: "Chào mừng",
     vaultTitle: "CỔNG THÔNG TIN",
@@ -173,7 +182,7 @@ const translations = {
     occupied: "Đã đặt",
     stage: "SÂN KHẤU",
     runway: "SÀN DIỄN",
-    
+
     // Admin
     adminCommandCenter: "TRUNG TÂM QUẢN TRỊ",
     adminSubtitle: "Quản lý sự kiện và hệ thống vé đa ngôn ngữ.",
@@ -213,7 +222,7 @@ const translations = {
     actions: "Thao tác",
     cancel: "Hủy",
     save: "Lưu",
-    
+
     // Auth
     joinCommunity: "Tham gia cộng đồng",
     accessPortal: "Truy cập tài khoản"

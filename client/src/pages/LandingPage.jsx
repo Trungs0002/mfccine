@@ -57,7 +57,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
     return (
       <div className="flex-grow flex flex-col justify-center items-center py-40 gap-4 pt-[180px]">
         <span className="material-symbols-outlined text-5xl text-primary animate-spin">sync</span>
-        <p className="font-label-sm text-on-surface-variant uppercase tracking-[0.2em]">Retrieving Active Showcase...</p>
+        <p className="font-label-sm text-on-surface-variant uppercase tracking-[0.2em]">{t('retrievingShowcase')}</p>
       </div>
     );
   }
@@ -74,12 +74,13 @@ const LandingPage = ({ events, setEvent, settings }) => {
   return (
     <div className="w-full flex-grow flex flex-col relative z-10 animate-fade-in">
       
+      {/* 1. CINEMATIC HERO HEADER */}
       <section className="relative min-h-[90vh] flex flex-col justify-center items-center px-margin-mobile md:px-margin-desktop text-center overflow-hidden pt-16">
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/70 to-background z-10"></div>
           <img 
             src={activeEvent.image} 
-            alt="Editorial Hero Banner" 
+            alt="Hero" 
             className="w-full h-full object-cover mix-blend-luminosity opacity-45 scale-102 blur-[1px]"
           />
         </div>
@@ -125,6 +126,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
         </div>
       </section>
 
+      {/* 2. SHOW DETAILS SECTION */}
       <section id="details-section" className="py-20 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto w-full relative z-20 border-t border-outline-variant/10">
         <div id="events-section" className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-20">
           
@@ -148,7 +150,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
                     {new Date(activeEvent.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                   </p>
                   <p className="font-label-sm text-[12px] text-on-surface-variant uppercase tracking-widest mt-1">
-                    Doors Open at 7:00 PM • Main event starts at 8:00 PM
+                    {t('doorsOpenLabel')}
                   </p>
                 </div>
               </div>
@@ -167,7 +169,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
                   <span className="material-symbols-outlined text-2xl" style={{ color: tier.color }}>{tier.icon}</span>
                   <div className="flex-1">
                     <div className="flex justify-between items-center mb-1">
-                      <h4 className="font-body-md font-semibold text-on-surface">
+                      <h4 className="font-body-md font-semibold text-on-surface uppercase">
                         {l(tierData.label) || `${tier.key.toUpperCase()} TIER`}
                       </h4>
                       <span className="font-title-md text-[18px] font-bold" style={{ color: tier.color }}>
@@ -175,7 +177,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
                       </span>
                     </div>
                     <p className="font-body-md text-[12px] text-on-surface-variant leading-snug">
-                      {l(tierData.description) || 'Premium access pass for this event tier.'}
+                      {l(tierData.description) || (language === 'vi' ? 'Sở hữu ngay tấm vé tham dự sự kiện cao cấp này.' : 'Premium access pass for this event tier.')}
                     </p>
                   </div>
                 </div>
@@ -187,7 +189,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
         <div className="border-t border-outline-variant/10 pt-16 flex flex-col md:flex-row gap-12">
           <div className="md:w-1/3">
             <p className="font-label-sm text-[12px] text-primary uppercase tracking-wider mb-2">{t('nightFlow')}</p>
-            <h3 className="font-title-md text-[24px] uppercase text-on-surface leading-tight font-extrabold">CHRONICLES OF EVENT</h3>
+            <h3 className="font-title-md text-[24px] uppercase text-on-surface leading-tight font-extrabold">{t('chroniclesOfEvent')}</h3>
           </div>
           <div className="md:w-2/3 space-y-8 select-none">
             {activeEvent.schedule && activeEvent.schedule.map((item, idx) => (
