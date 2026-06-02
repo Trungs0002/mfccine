@@ -4,7 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 
 const Footer = ({ setIsAdminMode, settings }) => {
   const navigate = useNavigate();
-  const { language, t } = useLanguage();
+  const { language } = useLanguage();
 
   return (
     <footer className="bg-surface-container-lowest w-full border-t border-outline-variant/15 relative z-10">

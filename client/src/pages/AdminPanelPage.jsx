@@ -25,7 +25,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
   
   // Site Branding states
   const [siteName, setSiteName] = useState(settings?.siteName || '');
-  const [contactEmail, setContactEmail] = useState(settings?.contactEmail || '');
+  const [contactEmail] = useState(settings?.contactEmail || '');
   const [updatingSettings, setUpdatingSettings] = useState(false);
 
   // Bilingual Event Management states

@@ -50,7 +50,6 @@ function AppContent() {
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [events, setEvents] = useState(FALLBACK_EVENTS);
   const [settings, setSettings] = useState({ siteName: 'EVENT PRO' });
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setIsAdminMode(location.pathname.startsWith('/admin'));
@@ -74,9 +73,8 @@ function AppContent() {
       .then(res => res.json())
       .then(data => {
         if (data) setSettings(data);
-        setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {});
   }, []);
 
   const handleLogout = () => {
