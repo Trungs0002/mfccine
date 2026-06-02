@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { API_URL } from '../apiConfig';
 
 const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
   const [scanResult, setScanResult] = useState(null);
 
   const fetchAnalytics = () => {
-    fetch('http://localhost:5000/api/analytics')
+    fetch(`${API_URL}/api/analytics`)
       .then(res => res.json())
       .then(data => setAnalytics(data))
       .catch(err => console.error('Error fetching analytics:', err));
@@ -75,7 +76,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
 
   const fetchAllBookings = () => {
     setLoadingBookings(true);
-    fetch('http://localhost:5000/api/bookings')
+    fetch(`${API_URL}/api/bookings`)
       .then(res => res.json())
       .then(data => {
         setAllBookings(data);
@@ -92,7 +93,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
   const handleUpdateSettings = (e) => {
     e.preventDefault();
     setUpdatingSettings(true);
-    fetch('http://localhost:5000/api/settings', {
+    fetch(`${API_URL}/api/settings`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ siteName, contactEmail })
@@ -245,7 +246,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
       schedule: formattedSchedule
     };
 
-    const url = editingEventId ? `http://localhost:5000/api/events/${editingEventId}` : 'http://localhost:5000/api/events';
+    const url = editingEventId ? `${API_URL}/api/events/${editingEventId}` : `${API_URL}/api/events`;
     const method = editingEventId ? 'PUT' : 'POST';
     
     try {
@@ -269,7 +270,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
   const handleDeleteEvent = async (id) => {
     if (!window.confirm('Archive this event?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/events/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_URL}/api/events/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setEvents(events.filter(ev => ev._id !== id));
         alert('Archived.');
@@ -286,7 +287,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
   };
 
   const saveBookingEdit = async () => {
-    const res = await fetch(`http://localhost:5000/api/bookings/${editingBookingId}`, {
+    const res = await fetch(`${API_URL}/api/bookings/${editingBookingId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fullName: editBookingName, email: editBookingEmail })
@@ -300,7 +301,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
 
   const handleDeleteBooking = async (id) => {
     if (!window.confirm('Cancel and delete this ticket permanently?')) return;
-    const res = await fetch(`http://localhost:5000/api/bookings/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${API_URL}/api/bookings/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setAllBookings(allBookings.filter(b => b._id !== id));
       fetchAnalytics();
@@ -311,7 +312,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
   const handleCheckIn = async (e) => {
     e.preventDefault();
     setScanning(true);
-    const res = await fetch(`http://localhost:5000/api/bookings/check-in/${scanBookingId}`, { method: 'POST' });
+    const res = await fetch(`${API_URL}/api/bookings/check-in/${scanBookingId}`, { method: 'POST' });
     const data = await res.json();
     if (res.ok) {
       setScanResult({ success: true, message: 'Done!', details: data.booking });
@@ -480,7 +481,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
                         </div>
                         <button 
                           onClick={() => {
-                            fetch(`http://localhost:5000/api/bookings/event/${evt._id}/occupied-seats`)
+                            fetch(`${API_URL}/api/bookings/event/${evt._id}/occupied-seats`)
                               .then(res => res.json())
                               .then(data => alert(`${l(evt.title)}: ${data.length} seats reserved.`));
                           }}

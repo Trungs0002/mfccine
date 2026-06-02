@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LanguageModal from './components/LanguageModal';
 import { LanguageProvider } from './context/LanguageContext';
+import { API_URL } from './apiConfig';
 
 // Page components
 import LandingPage from './pages/LandingPage';
@@ -59,7 +60,7 @@ function AppContent() {
     const savedUser = localStorage.getItem('user');
     if (savedUser) setUser(JSON.parse(savedUser));
 
-    fetch('http://localhost:5000/api/events')
+    fetch(`${API_URL}/api/events`)
       .then(res => res.ok ? res.json() : Promise.reject())
       .then(data => {
         if (data && data.length > 0) {
@@ -69,7 +70,7 @@ function AppContent() {
       })
       .catch(() => setSelectedEvent(FALLBACK_EVENTS[0]));
 
-    fetch('http://localhost:5000/api/settings')
+    fetch(`${API_URL}/api/settings`)
       .then(res => res.json())
       .then(data => {
         if (data) setSettings(data);

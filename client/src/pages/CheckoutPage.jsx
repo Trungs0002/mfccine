@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { API_URL } from '../apiConfig';
 
 const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) => {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
       paymentMethod
     };
     try {
-      const res = await fetch('http://localhost:5000/api/bookings', {
+      const res = await fetch(`${API_URL}/api/bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bookingData)

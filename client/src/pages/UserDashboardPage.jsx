@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { API_URL } from '../apiConfig';
 
 const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
   useEffect(() => {
     if (!email) return;
     setLoading(true);
-    fetch(`http://localhost:5000/api/bookings/email/${email}`)
+    fetch(`${API_URL}/api/bookings/email/${email}`)
       .then(res => res.json())
       .then(data => {
         setBookings(data);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { API_URL } from '../apiConfig';
 
 const SeatSelectionPage = ({ event, setBookingDetails }) => {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
   useEffect(() => {
     if (!event) return;
     setLoading(true);
-    fetch(`http://localhost:5000/api/bookings/event/${event._id}/occupied-seats`)
+    fetch(`${API_URL}/api/bookings/event/${event._id}/occupied-seats`)
       .then(res => res.json())
       .then(data => {
         setOccupiedSeats(data);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { API_URL } from '../apiConfig';
 
 const DigitalTicketPage = ({ completedBookingId, settings }) => {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
   useEffect(() => {
     if (!completedBookingId) return;
     setLoading(true);
-    fetch(`http://localhost:5000/api/bookings/${completedBookingId}`)
+    fetch(`${API_URL}/api/bookings/${completedBookingId}`)
       .then(res => res.json())
       .then(data => {
         setBooking(data);
