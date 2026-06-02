@@ -11,7 +11,6 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
   const [scale, setScale] = useState(1);
   const containerRef = React.useRef(null);
 
-  // Robust field localizer
   const l = useCallback((field) => {
     if (!field) return '';
     if (typeof field === 'string') return field;
@@ -169,12 +168,29 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
             {language === 'vi' ? 'Toạ độ chỗ ngồi chính xác được ánh xạ theo ánh đèn sân khấu.' : 'Exact coordinates mapped to the spotlighting.'}
           </p>
         </div>
+        
+        {/* LOCALIZED LEGEND */}
         <div className="flex flex-wrap gap-4 text-[11px] font-label-sm uppercase tracking-wider bg-surface-container/20 border border-outline-variant/15 px-6 py-3 rounded-lg shadow-xl">
-          <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#ff2a8d]"></span><span>VIP (${vipPrice})</span></div>
-          <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#ffb800]"></span><span>Gold (${goldPrice})</span></div>
-          <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#00f0ff]"></span><span>Silver (${silverPrice})</span></div>
-          <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#d946ef]"></span><span>Standard (${standardPrice})</span></div>
-          <div className="flex items-center gap-2 border-l border-outline-variant/30 pl-4"><span className="w-3 h-3 rounded bg-[#322d37] opacity-60"></span><span>Occupied</span></div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-[#ff2a8d]"></span>
+            <span>{l(event.pricingTiers?.vip?.label) || 'VIP'} (${vipPrice})</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-[#ffb800]"></span>
+            <span>{l(event.pricingTiers?.gold?.label) || 'Gold'} (${goldPrice})</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-[#00f0ff]"></span>
+            <span>{l(event.pricingTiers?.silver?.label) || 'Silver'} (${silverPrice})</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-[#d946ef]"></span>
+            <span>{l(event.pricingTiers?.standard?.label) || 'Standard'} (${standardPrice})</span>
+          </div>
+          <div className="flex items-center gap-2 border-l border-outline-variant/30 pl-4">
+            <span className="w-3 h-3 rounded bg-[#322d37] opacity-60"></span>
+            <span>{t('occupied')}</span>
+          </div>
         </div>
       </div>
 
@@ -186,12 +202,12 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
             <div style={{ width: '820px', height: `${980 * scale}px`, position: 'relative', overflow: 'hidden' }} className="flex justify-center items-start transition-all duration-300">
               <div style={{ width: '820px', height: '980px', transform: `scale(${scale})`, transformOrigin: 'top center', position: 'absolute', left: 0, top: 0 }} className="relative">
                 <div className="absolute top-[20px] left-[50%] -translate-x-[50%] w-[480px] h-[80px] bg-[#29252c] border border-outline-variant/20 rounded shadow-xl flex items-center justify-center z-20">
-                  <span className="font-display-xl text-[16px] text-primary tracking-[0.6em] font-extrabold uppercase">{language === 'vi' ? 'SÂN KHẤU' : 'STAGE'}</span>
+                  <span className="font-display-xl text-[16px] text-primary tracking-[0.6em] font-extrabold uppercase">{t('stage')}</span>
                 </div>
                 <div className="absolute top-[114px] left-[50%] -translate-x-[50%] w-[104px] h-[610px] bg-[#1d1a1f] border border-outline-variant/15 rounded flex flex-col justify-between items-center py-10 z-10">
                   <div className="absolute inset-y-0 left-0 w-[1px] bg-gradient-to-b from-primary/10 via-primary/50 to-primary/10 shadow-[0_0_15px_#ff7ebb]"></div>
                   <span className="material-symbols-outlined text-primary text-[20px] animate-pulse">model_training</span>
-                  <span className="font-display-xl text-[10px] text-primary tracking-[0.4em] uppercase rotate-90 my-20 whitespace-nowrap opacity-80">{language === 'vi' ? 'SÀN DIỄN' : 'SPOTLIGHT'}</span>
+                  <span className="font-display-xl text-[10px] text-primary tracking-[0.4em] uppercase rotate-90 my-20 whitespace-nowrap opacity-80">{t('runway')}</span>
                   <span className="material-symbols-outlined text-primary text-[20px] animate-pulse">model_training</span>
                 </div>
                 {seats.map(seat => {

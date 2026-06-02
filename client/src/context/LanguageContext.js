@@ -170,6 +170,9 @@ const translations = {
     accountPrivilege: "Cấp bậc tài khoản",
     exitDashboard: "Thoát Dashboard",
     dashboardSubtitle: "Quản lý vé và quyền truy cập của bạn tại đây.",
+    occupied: "Đã đặt",
+    stage: "SÂN KHẤU",
+    runway: "SÀN DIỄN",
     
     // Admin
     adminCommandCenter: "TRUNG TÂM QUẢN TRỊ",
