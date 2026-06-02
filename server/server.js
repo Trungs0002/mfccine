@@ -136,6 +136,9 @@ const seedDatabase = async () => {
 
 // REST API Endpoints
 
+// Health Check
+app.get('/health', (req, res) => res.status(200).send('OK'));
+
 // 0. AUTH
 app.post('/api/auth/register', async (req, res) => {
   try {
