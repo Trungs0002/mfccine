@@ -139,6 +139,28 @@ const Navbar = ({ isAdminMode, user, onLogout, settings, selectedEvent }) => {
                 </button>
               )}
               <button
+                onClick={() => navigate('/dashboard')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '8px 16px',
+                  borderRadius: 999,
+                  border: '1px solid var(--line)',
+                  background: 'rgba(1,1,10,.4)',
+                  color: 'var(--purple)',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  letterSpacing: '.04em',
+                  whiteSpace: 'nowrap',
+                  transition: 'border-color .2s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--purple)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--line)'}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>person</span>
+                <span className="hidden sm:inline">{language === 'vi' ? 'Tài khoản' : 'Profile'}</span>
+              </button>
+              <button
                 onClick={onLogout}
                 style={{
                   padding: '8px 18px',
@@ -290,6 +312,13 @@ const Navbar = ({ isAdminMode, user, onLogout, settings, selectedEvent }) => {
             {/* Auth actions (Mobile) */}
             {user ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <button
+                  onClick={() => { setIsMobileMenuOpen(false); navigate('/dashboard'); }}
+                  className="btn-outline-pill" style={{ justifyContent: 'center', borderColor: 'var(--purple)', color: 'var(--purple)' }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>person</span>
+                  {language === 'vi' ? 'Tài khoản' : 'Profile'}
+                </button>
                 {user.role === 'admin' && (
                   <button
                     onClick={() => { setIsMobileMenuOpen(false); navigate(isAdminMode ? '/' : '/admin'); }}

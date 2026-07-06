@@ -55,30 +55,23 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
   ];
 
   return (
-    <div style={{ paddingTop: 84, minHeight: '100vh', display: 'flex' }} className="animate-fade-in">
+    <div className="animate-fade-in container" style={{ paddingTop: 120, paddingBottom: 64, minHeight: '100vh' }}>
+      <div className="dashboard-layout">
       {/* Sidebar */}
-      <aside style={{ width: 240, flexShrink: 0, background: 'rgba(7,8,24,.72)', backdropFilter: 'blur(16px)', borderRight: '1px solid rgba(168,150,246,.18)', padding: '32px 16px', display: 'flex', flexDirection: 'column', position: 'sticky', top: 84, height: 'calc(100vh - 84px)', overflowY: 'auto' }}>
-        <div style={{ marginBottom: 28, padding: '0 8px' }}>
+      <aside className="dashboard-sidebar">
+        <div className="dashboard-user-info" style={{ marginBottom: 28, padding: '0 8px' }}>
           <h2 className="serif" style={{ color: '#fff', fontSize: 18, margin: '0 0 4px' }}>{name}</h2>
           <p style={{ color: 'var(--muted)', fontSize: 12, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</p>
         </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+        <nav className="dashboard-sidebar-nav" style={{ display: 'flex', gap: 4, flex: 1 }}>
           {TABS.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                padding: '12px 16px', borderRadius: 12, border: 'none',
-                background: activeTab === tab.id ? 'rgba(70,69,215,.2)' : 'transparent',
-                borderLeft: activeTab === tab.id ? '3px solid var(--purple)' : '3px solid transparent',
-                color: activeTab === tab.id ? '#fff' : 'var(--muted)',
-                cursor: 'pointer', fontSize: 14, fontWeight: activeTab === tab.id ? 700 : 500,
-                textAlign: 'left', transition: 'all .15s',
-              }}
+              className={`dashboard-tab ${activeTab === tab.id ? 'active' : ''}`}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 20, color: activeTab === tab.id ? 'var(--purple)' : 'var(--muted)' }}>{tab.icon}</span>
+              <span className="material-symbols-outlined dashboard-tab-icon">{tab.icon}</span>
               {vi ? tab.labelVi : tab.labelEn}
             </button>
           ))}
@@ -86,7 +79,7 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
 
         <button
           onClick={handleLogout}
-          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 12, border: '1px solid rgba(255,107,107,.25)', background: 'none', color: '#ff6b6b', cursor: 'pointer', fontSize: 13, fontWeight: 600, transition: 'background .2s' }}
+          className="dashboard-logout-btn"
           onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,107,107,.1)'}
           onMouseLeave={e => e.currentTarget.style.background = 'none'}
         >
@@ -96,29 +89,27 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
       </aside>
 
       {/* Main */}
-      <main style={{ flex: 1, padding: '32px 36px', overflow: 'auto' }}>
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
-          {[
-            { icon: 'confirmation_number', labelVi: 'Tổng ghế đặt',  labelEn: 'Total Passes',   value: stats.totalPasses,   color: 'var(--purple)' },
-            { icon: 'event',               labelVi: 'Sắp diễn ra',   labelEn: 'Upcoming',       value: stats.upcomingShows, color: 'var(--mint)' },
-            { icon: 'calendar_month',      labelVi: 'Thành viên từ', labelEn: 'Member Since',   value: stats.memberSince,   color: '#ffb800' },
-          ].map(s => (
-            <div key={s.icon} className="mfc-card" style={{ padding: '20px 24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                <span className="material-symbols-outlined" style={{ color: s.color, fontSize: 22 }}>{s.icon}</span>
-                <span style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em' }}>
-                  {vi ? s.labelVi : s.labelEn}
-                </span>
-              </div>
-              <div className="serif" style={{ fontSize: 32, color: '#fff', fontWeight: 700 }}>{s.value}</div>
-            </div>
-          ))}
-        </div>
-
+      <main className="dashboard-main">
         {/* ── TAB: Tickets ── */}
         {activeTab === 'tickets' && (
           <div>
+            {/* Stats */}
+            <div className="dashboard-stats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16, marginBottom: 32 }}>
+              {[
+                { icon: 'confirmation_number', labelVi: 'Tổng ghế đặt',  labelEn: 'Total Passes',   value: stats.totalPasses,   color: 'var(--purple)' },
+              ].map(s => (
+                <div key={s.icon} className="mfc-card" style={{ padding: '20px 24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                    <span className="material-symbols-outlined" style={{ color: s.color, fontSize: 22 }}>{s.icon}</span>
+                    <span style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em' }}>
+                      {vi ? s.labelVi : s.labelEn}
+                    </span>
+                  </div>
+                  <div className="serif" style={{ fontSize: 32, color: '#fff', fontWeight: 700 }}>{s.value}</div>
+                </div>
+              ))}
+            </div>
+
             <h3 className="gradient-title" style={{ fontSize: 24, marginBottom: 20 }}>
               {vi ? 'Vé của tôi' : 'My Tickets'}
             </h3>
@@ -131,15 +122,15 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
                 </p>
               </div>
             ) : bookings.length === 0 ? (
-              <div className="mfc-card" style={{ padding: '48px 32px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+              <div className="mfc-card empty-tickets-card" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
                 <span className="material-symbols-outlined" style={{ fontSize: 56, color: 'rgba(168,150,246,.3)' }}>local_activity</span>
-                <h3 className="serif" style={{ color: '#fff', fontSize: 20 }}>{vi ? 'Chưa có vé nào' : 'No tickets yet'}</h3>
+                <h3 className="serif" style={{ color: '#fff', fontSize: 20, margin: 0 }}>{vi ? 'Chưa có vé nào' : 'No tickets yet'}</h3>
                 <button className="btn-pill btn-pill-sm" onClick={() => navigate('/')}>
                   {vi ? 'Mua vé ngay' : 'Browse Events'}
                 </button>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div className="dashboard-tickets-list" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {bookings.map(booking => {
                   const event = booking.eventId;
                   const seats = booking.selectedSeats || [];
@@ -147,9 +138,9 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
                   const ticketCode = booking.ticketCode || booking._id.toString().toUpperCase().slice(-8);
 
                   return (
-                    <div key={booking._id} className="mfc-card" style={{ display: 'flex', overflow: 'hidden', minHeight: 180 }}>
+                    <div key={booking._id} className="mfc-card ticket-card" style={{ display: 'flex', overflow: 'hidden', minHeight: 180 }}>
                       {/* Image */}
-                      <div style={{ width: 160, flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
+                      <div className="ticket-img-col" style={{ width: 160, flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
                         <img src={event?.image} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: .6, mixBlendMode: 'luminosity' }} />
                         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, transparent, rgba(7,8,24,.4))' }} />
                       </div>
@@ -171,7 +162,7 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
                           </button>
                         </div>
                       ) : (
-                        <div style={{ flex: 1, padding: '20px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <div className="ticket-info" style={{ flex: 1, padding: '20px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                           <div>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                               <span style={{ fontSize: 10, padding: '4px 12px', borderRadius: 999, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', background: booking.isCheckedIn ? 'rgba(255,255,255,.1)' : 'rgba(158,254,253,.1)', color: booking.isCheckedIn ? 'var(--muted)' : 'var(--mint)', border: `1px solid ${booking.isCheckedIn ? 'rgba(255,255,255,.15)' : 'rgba(158,254,253,.3)'}` }}>
@@ -183,21 +174,21 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
                             </div>
                             <h3 className="serif" style={{ color: '#fff', fontSize: 20, margin: '0 0 4px' }}>{l(event?.title)}</h3>
                             <p style={{ color: 'var(--muted)', fontSize: 13, margin: '0 0 12px' }}>{l(event?.venueName)}</p>
-                            <div style={{ display: 'flex', gap: 12 }}>
+                            <div className="ticket-info-grid" style={{ display: 'flex', gap: 12 }}>
                               {[
                                 { lbl: vi ? 'Ghế' : 'Seats', val: `${seats.length}×` },
                                 { lbl: vi ? 'Hạng' : 'Type',  val: l(event?.pricingTiers?.[seats[0]?.type?.toLowerCase()]?.label) || seats[0]?.type },
                                 { lbl: vi ? 'Giá' : 'Total',  val: formatPrice(booking.subtotal) },
                               ].map(c => (
-                                <div key={c.lbl} style={{ padding: '8px 12px', background: 'rgba(168,150,246,.07)', borderRadius: 10, border: '1px solid rgba(168,150,246,.15)' }}>
+                                <div key={c.lbl} className="ticket-info-item" style={{ padding: '8px 12px', background: 'rgba(168,150,246,.07)', borderRadius: 10, border: '1px solid rgba(168,150,246,.15)' }}>
                                   <p style={{ fontSize: 9, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', margin: '0 0 2px' }}>{c.lbl}</p>
                                   <p style={{ fontSize: 14, color: '#fff', fontWeight: 700, margin: 0 }}>{c.val}</p>
                                 </div>
                               ))}
                             </div>
                           </div>
-                          <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
-                            <button
+                            <div style={{ display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
+                              <button
                               onClick={() => setQrReveal(booking._id)}
                               className="btn-outline-pill btn-pill-sm"
                               style={{ display: 'flex', alignItems: 'center', gap: 6 }}
@@ -230,7 +221,7 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
             <h3 className="gradient-title" style={{ fontSize: 24, marginBottom: 20 }}>
               {vi ? 'Lịch sử đặt vé' : 'Booking History'}
             </h3>
-            <div className="mfc-card" style={{ padding: '24px', overflowX: 'auto' }}>
+            <div className="mfc-card history-card" style={{ overflowX: 'auto' }}>
               {bookings.length === 0 ? (
                 <p style={{ color: 'var(--muted)', textAlign: 'center', padding: '24px 0', fontSize: 14 }}>
                   {vi ? 'Chưa có giao dịch nào.' : 'No transactions yet.'}
@@ -277,7 +268,7 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
             <h3 className="gradient-title" style={{ fontSize: 24, marginBottom: 20 }}>
               {vi ? 'Tài khoản' : 'Your Account'}
             </h3>
-            <div className="mfc-card" style={{ padding: '32px' }}>
+            <div className="mfc-card profile-card">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 {[
                   { labelVi: 'Họ và tên', labelEn: 'Full Name', value: name },
@@ -288,8 +279,8 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
                     <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
                       {vi ? f.labelVi : f.labelEn}
                     </label>
-                    <div style={{ padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(168,150,246,.28)', background: 'rgba(1,1,10,.4)', color: f.highlight ? 'var(--mint)' : '#fff', fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10 }}>
-                      {f.highlight && <span className="material-symbols-outlined" style={{ color: 'var(--mint)', fontSize: 18 }}>verified</span>}
+                    <div style={{ padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(168,150,246,.28)', background: 'rgba(1,1,10,.4)', color: f.highlight ? 'var(--mint)' : '#fff', fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10, wordBreak: 'break-all' }}>
+                      {f.highlight && <span className="material-symbols-outlined" style={{ color: 'var(--mint)', fontSize: 18, flexShrink: 0 }}>verified</span>}
                       {f.value}
                     </div>
                   </div>
@@ -309,6 +300,7 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 };

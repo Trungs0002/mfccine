@@ -63,9 +63,18 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
     <div className="animate-fade-in" style={{ paddingTop: 120, paddingBottom: 64, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <div style={{ width: '100%', maxWidth: 460, padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center' }}>
 
+        {/* Back to Dashboard */}
+        <button
+          onClick={() => { navigate('/dashboard'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 13, textDecoration: 'none', padding: '6px 0', display: 'flex', alignItems: 'center', gap: 4 }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_left</span>
+          {vi ? 'Về Dashboard' : 'Back to Dashboard'}
+        </button>
+
         {/* Success badge */}
         <span style={{ padding: '6px 18px', borderRadius: 999, background: 'rgba(158,254,253,.1)', border: '1px solid rgba(158,254,253,.3)', color: 'var(--mint)', fontSize: 12, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase' }}>
-          ✓ {vi ? 'Đặt vé thành công' : 'Booking Confirmed'}
+          ✓ {vi ? 'Xuất vé thành công' : 'Booking Confirmed'}
         </span>
 
         {/* Ticket card */}
@@ -163,17 +172,11 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
             </button>
           </div>
           <button
-            onClick={() => { navigate('/dashboard'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            onClick={() => { navigate('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             className="btn-pill"
             style={{ justifyContent: 'center', gap: 8 }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>account_circle</span>
-            {vi ? 'Xem Dashboard' : 'My Dashboard'}
-          </button>
-          <button
-            onClick={() => { navigate('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-            style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 13, textDecoration: 'underline', padding: '6px 0' }}
-          >
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>home</span>
             {vi ? 'Về trang chủ' : 'Back to Home'}
           </button>
         </div>

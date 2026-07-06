@@ -28,7 +28,7 @@ const LoginPage = ({ setUser }) => {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         setUser(data.user);
-        navigate(data.user.role === 'admin' ? '/admin' : '/dashboard');
+        navigate(data.user.role === 'admin' ? '/admin' : '/');
       } else {
         setError(data.error || (vi ? 'Đăng nhập thất bại.' : 'Login failed.'));
       }

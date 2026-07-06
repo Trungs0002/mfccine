@@ -31,7 +31,7 @@ const RegisterPage = ({ setUser }) => {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         setUser(data.user);
-        navigate('/dashboard');
+        navigate('/');
       } else {
         setError(data.error || (vi ? 'Đăng ký thất bại.' : 'Registration failed.'));
       }

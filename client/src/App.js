@@ -107,11 +107,11 @@ function AppContent() {
           <Route path="/"          element={<LandingPage events={events} setEvent={setSelectedEvent} settings={settings} />} />
           <Route path="/about"     element={<AboutPage />} />
           <Route path="/recruit"   element={<RecruitPage />} />
-          <Route path="/login"     element={user ? <Navigate to="/dashboard" /> : <LoginPage setUser={setUser} />} />
-          <Route path="/register"  element={user ? <Navigate to="/dashboard" /> : <RegisterPage setUser={setUser} />} />
+          <Route path="/login"     element={user ? <Navigate to="/" /> : <LoginPage setUser={setUser} />} />
+          <Route path="/register"  element={user ? <Navigate to="/" /> : <RegisterPage setUser={setUser} />} />
           <Route path="/event/:id" element={<EventDetailsPage event={selectedEvent} setEvent={setSelectedEvent} />} />
-          <Route path="/seating"   element={selectedEvent ? <SeatSelectionPage event={selectedEvent} setBookingDetails={setBookingDetails} /> : <Navigate to="/" />} />
-          <Route path="/checkout"  element={selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} user={user} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />} />
+          <Route path="/seating"   element={user ? (selectedEvent ? <SeatSelectionPage event={selectedEvent} setBookingDetails={setBookingDetails} /> : <Navigate to="/" />) : <Navigate to="/login" />} />
+          <Route path="/checkout"  element={user ? (selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} user={user} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />) : <Navigate to="/login" />} />
           <Route path="/ticket"    element={<DigitalTicketPage completedBookingId={completedBookingId} settings={settings} />} />
           <Route path="/dashboard" element={user ? <UserDashboardPage userEmail={user.email} setCompletedBookingId={setCompletedBookingId} settings={settings} /> : <Navigate to="/login" />} />
           <Route path="/admin"     element={user?.role === 'admin' ? <AdminPanelPage events={events} setEvents={setEvents} settings={settings} setSettings={setSettings} /> : <Navigate to="/login" />} />

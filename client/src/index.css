@@ -457,6 +457,168 @@ img { display: block; max-width: 100%; }
 ::-webkit-scrollbar-track { background: var(--black); }
 ::-webkit-scrollbar-thumb { background: #1a1a3a; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--ultra); }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--purple);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--mint);
+}
+
+/* ─── User Dashboard Styles ─────────────────────────────────── */
+.dashboard-layout {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+.dashboard-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: rgba(7,8,24,.72);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(168,150,246,.18);
+  border-radius: 16px;
+  padding: 24px 16px;
+  position: sticky;
+  top: 100px;
+  display: flex;
+  flex-direction: column;
+}
+.dashboard-main {
+  flex: 1;
+  min-width: 0;
+  padding: 16px 24px;
+}
+.history-card {
+  padding: 24px;
+}
+.profile-card {
+  padding: 32px;
+}
+.empty-tickets-card {
+  padding: 48px 32px;
+}
+.dashboard-sidebar-nav {
+  flex-direction: column;
+}
+.dashboard-tab {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  border-left: 3px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  transition: all .15s;
+}
+.dashboard-tab.active {
+  background: rgba(70,69,215,.2);
+  border-left: 3px solid var(--purple);
+  color: #fff;
+  font-weight: 700;
+}
+.dashboard-tab-icon {
+  font-size: 20px;
+  color: var(--muted);
+}
+.dashboard-tab.active .dashboard-tab-icon {
+  color: var(--purple);
+}
+.dashboard-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,107,107,.25);
+  background: none;
+  color: #ff6b6b;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background .2s;
+}
+@media (max-width: 768px) {
+  .dashboard-layout {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  .dashboard-sidebar {
+    width: 100%;
+    position: relative;
+    top: 0;
+    padding: 20px 16px;
+  }
+  .dashboard-main {
+    padding: 0;
+    width: 100%;
+  }
+  .history-card {
+    padding: 16px;
+  }
+  .profile-card {
+    padding: 20px;
+  }
+  .empty-tickets-card {
+    padding: 32px 20px;
+  }
+  .dashboard-user-info {
+    text-align: center;
+    margin-bottom: 20px !important;
+  }
+  .dashboard-sidebar-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .dashboard-sidebar-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .dashboard-tab {
+    flex: 1;
+    justify-content: center;
+    white-space: nowrap;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    border-radius: 8px;
+    padding: 10px 16px;
+  }
+  .dashboard-tab.active {
+    border-left: none;
+    border-bottom: 3px solid var(--purple);
+  }
+  .dashboard-logout-btn {
+    display: none;
+  }
+  .dashboard-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .ticket-card {
+    flex-direction: column;
+  }
+  .ticket-img-col {
+    width: 100% !important;
+    height: 140px;
+  }
+  .ticket-info-grid {
+    flex-wrap: wrap;
+  }
+  .ticket-info-item {
+    flex: 1;
+    min-width: 80px;
+  }
+  .ticket-info {
+    padding: 16px !important;
+  }
+}
 
 /* ─── Legacy shims (AdminPanel + older pages use these class names) */
 .font-display-xl       { font-family: Georgia, "Times New Roman", serif; }
