@@ -51,7 +51,7 @@ const RecruitPage = () => {
 
       {/* ── HERO ─────────────────────────────────────────────── */}
       <section style={{ padding: '48px 0 40px' }}>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center' }}>
+        <div className="container recruit-hero" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center' }}>
           <div>
             <div style={{ fontSize: 12, color: 'var(--mint)', letterSpacing: '.18em', textTransform: 'uppercase', marginBottom: 10 }}>
               {vi ? 'Cộng tác viên · ĐỘC FTU Fashion Show 2026' : 'Collaborate · ĐỘC FTU Fashion Show 2026'}
@@ -98,7 +98,7 @@ const RecruitPage = () => {
           <div className="section-eyebrow" style={{ marginBottom: 32 }}>
             <span>{vi ? 'Các ban tuyển' : 'Departments'}</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 14 }}>
+          <div className="recruit-teams" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 14 }}>
             {TEAMS.map((t, i) => (
               <div key={t.vi} className="mfc-card" style={{ padding: '22px 18px' }}>
                 <div style={{ fontSize: 11, color: 'var(--purple)', letterSpacing: '.18em', fontWeight: 600, marginBottom: 10 }}>
@@ -114,7 +114,7 @@ const RecruitPage = () => {
 
       {/* ── BENEFITS + REQUIREMENTS + FORM ───────────────────── */}
       <section style={{ padding: '40px 0' }}>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: 24, alignItems: 'start' }}>
+        <div className="container recruit-main" style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: 24, alignItems: 'start' }}>
           {/* Left */}
           <div>
             <div className="section-eyebrow" style={{ justifyContent: 'flex-start', marginBottom: 24 }}>
@@ -209,17 +209,17 @@ const RecruitPage = () => {
           </div>
           <div style={{ position: 'relative' }}>
             {/* Connector */}
-            <div style={{
+            <div className="recruit-connector" style={{
               position: 'absolute', left: '12%', right: '12%', top: 28, height: 2,
               background: 'linear-gradient(90deg, transparent, var(--purple), var(--mint), var(--purple), transparent)',
               boxShadow: '0 0 12px var(--purple)',
             }} />
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, position: 'relative', paddingTop: 56 }}>
+            <div className="recruit-milestones" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '80px 16px', position: 'relative', paddingTop: 72 }}>
               {MILESTONES.map((m, i) => (
                 <div key={i} style={{ position: 'relative' }}>
                   {/* Number dot */}
                   <div style={{
-                    position: 'absolute', top: -44, left: '50%', transform: 'translateX(-50%)',
+                    position: 'absolute', top: -64, left: '50%', transform: 'translateX(-50%)',
                     width: 48, height: 48, borderRadius: '50%',
                     display: 'grid', placeItems: 'center',
                     background: 'linear-gradient(135deg, var(--ultra), var(--purple))',
@@ -247,6 +247,7 @@ const RecruitPage = () => {
           .recruit-teams { grid-template-columns: repeat(3, 1fr) !important; }
           .recruit-main { grid-template-columns: 1fr !important; }
           .recruit-milestones { grid-template-columns: 1fr 1fr !important; }
+          .recruit-connector { display: none !important; }
         }
         @media (max-width: 600px) {
           .recruit-teams { grid-template-columns: 1fr 1fr !important; }

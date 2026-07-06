@@ -190,7 +190,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
                 >
                   {featured && (
                     <div style={{
-                      position: 'absolute', top: 0, right: 22, transform: 'translateY(-50%)',
+                      position: 'absolute', top: 16, right: 16,
                       background: 'linear-gradient(135deg, var(--ultra), var(--purple))',
                       color: '#fff', fontSize: 10, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase',
                       padding: '5px 16px', borderRadius: 999,

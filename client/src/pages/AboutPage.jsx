@@ -111,7 +111,7 @@ const AboutPage = () => {
 
       {/* ── HERO ─────────────────────────────────────────────── */}
       <section style={{ padding: '48px 0 40px' }}>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center' }}>
+        <div className="container about-hero-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center' }}>
           {/* KV image left */}
           <div style={{ position: 'relative', borderRadius: 28, overflow: 'hidden', border: '1px solid var(--line)', minHeight: 420 }}>
             <img
@@ -176,7 +176,7 @@ const AboutPage = () => {
           <div className="section-eyebrow" style={{ marginBottom: 32 }}>
             <span>{vi ? 'MFC có gì đặc biệt?' : 'What makes MFC special?'}</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          <div className="about-special" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
             {SPECIAL.map((s, i) => (
               <div key={s.vi} className="mfc-card" style={{ padding: '26px 22px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                 <div style={{ fontSize: 11, color: 'var(--purple)', letterSpacing: '.18em', textTransform: 'uppercase', marginBottom: 14, fontWeight: 600 }}>
@@ -200,24 +200,24 @@ const AboutPage = () => {
           {/* Timeline bar */}
           <div style={{ position: 'relative', overflowX: 'auto', paddingBottom: 8 }}>
             {/* Connector line */}
-            <div style={{
-              position: 'absolute', left: '4%', right: '4%', top: 26, height: 2,
+            <div className="about-timeline-connector" style={{
+              position: 'absolute', left: '4%', right: '4%', top: 36, height: 2,
               background: 'linear-gradient(90deg, transparent, var(--purple), var(--mint), var(--purple), transparent)',
               boxShadow: '0 0 16px var(--purple)',
             }} />
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16, position: 'relative', paddingTop: 50 }}>
+            <div className="about-timeline" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '84px 16px', position: 'relative', paddingTop: 76 }}>
               {TIMELINE.map((t, i) => (
                 <div key={t.year} style={{ position: 'relative' }}>
                   {/* Dot */}
                   <div style={{
-                    position: 'absolute', top: -38, left: '50%', transform: 'translateX(-50%)',
+                    position: 'absolute', top: -46, left: '50%', transform: 'translateX(-50%)',
                     width: 14, height: 14, borderRadius: '50%',
                     background: 'var(--purple)', boxShadow: '0 0 18px var(--purple)',
                   }} />
                   {/* Year label */}
                   <div style={{
-                    position: 'absolute', top: -56, left: '50%', transform: 'translateX(-50%)',
+                    position: 'absolute', top: -74, left: '50%', transform: 'translateX(-50%)',
                     fontFamily: 'Georgia, serif', fontSize: 16, color: '#fff', whiteSpace: 'nowrap',
                   }}>
                     {t.year}
@@ -240,7 +240,7 @@ const AboutPage = () => {
           <div className="section-eyebrow" style={{ marginBottom: 32 }}>
             <span>{vi ? 'Giá trị cốt lõi' : 'Core Values'}</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          <div className="about-values" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
             {CORE_VALUES.map((c, i) => (
               <div key={c.vi} className="mfc-card" style={{ padding: '26px 22px' }}>
                 <div style={{ width: 24, height: 2, background: 'linear-gradient(90deg, var(--mint), var(--purple))', marginBottom: 16, borderRadius: 2 }} />
@@ -258,7 +258,7 @@ const AboutPage = () => {
           <div className="section-eyebrow" style={{ marginBottom: 32 }}>
             <span>{vi ? 'Dấu mốc nổi bật' : 'Highlights'}</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+          <div className="about-highlights" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
             {HIGHLIGHTS.map(card => (
               <div
                 key={card.label}
@@ -290,6 +290,7 @@ const AboutPage = () => {
           .about-timeline { grid-template-columns: 1fr 1fr !important; }
           .about-values { grid-template-columns: 1fr 1fr !important; }
           .about-highlights { grid-template-columns: 1fr !important; }
+          .about-timeline-connector { display: none !important; }
         }
         @media (max-width: 600px) {
           .about-special { grid-template-columns: 1fr !important; }
