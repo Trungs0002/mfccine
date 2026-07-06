@@ -262,9 +262,10 @@ const LandingPage = ({ events, setEvent, settings }) => {
             <button
               className="btn-outline-pill"
               onClick={() => { navigate('/about'); window.scrollTo(0, 0); }}
-              style={{ whiteSpace: 'nowrap' }}
+              style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}
             >
-              {vi ? 'Tìm hiểu thêm ↗' : 'Learn More ↗'}
+              {vi ? 'Tìm hiểu thêm' : 'Learn More'}
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>arrow_outward</span>
             </button>
           </div>
         </div>
@@ -314,8 +315,9 @@ const LandingPage = ({ events, setEvent, settings }) => {
             <h2 className="serif" style={{ fontSize: 'clamp(20px, 2.5vw, 28px)', color: '#fff', margin: 0 }}>
               {vi ? 'Khoảnh khắc nổi bật' : 'Highlights'}
             </h2>
-            <button className="btn-outline-pill btn-pill-sm" onClick={handleBook}>
-              {vi ? 'Xem thêm ↗' : 'See More ↗'}
+            <button className="btn-outline-pill" onClick={handleBook} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {vi ? 'Xem thêm' : 'See More'}
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>arrow_outward</span>
             </button>
           </div>
           <div className="lp-highlights-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>

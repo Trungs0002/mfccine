@@ -141,8 +141,13 @@ const AboutPage = () => {
                 : 'MFC is a dynamic hub for students passionate about MCing, modeling, and media. Here, every individual is empowered to step into the spotlight and express their unique identity.'}
             </p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <button className="btn-pill" onClick={() => window.open('https://www.facebook.com/mfc.ftu', '_blank')}>
-                {vi ? 'Ghé thăm Fanpage ↗' : 'Visit Fanpage ↗'}
+              <button
+                className="btn-pill"
+                onClick={() => window.open('https://www.facebook.com/mfc.ftu/', '_blank')}
+                style={{ alignSelf: 'flex-start', padding: '14px 28px', display: 'flex', alignItems: 'center', gap: 6 }}
+              >
+                {vi ? 'Ghé thăm Fanpage' : 'Visit Fanpage'}
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_outward</span>
               </button>
               <button className="btn-outline-pill" onClick={() => { navigate('/recruit'); window.scrollTo(0, 0); }}>
                 {vi ? 'Tham gia MFC →' : 'Join MFC →'}
