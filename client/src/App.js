@@ -37,10 +37,10 @@ const FALLBACK_EVENTS = [
       { time: "22:00", title: { en: "Closing",          vi: "Bế mạc" },             description: { en: "Awards & Finale",        vi: "Trao giải & Kết thúc" } },
     ],
     pricingTiers: {
-      standard: { price: 199000, label: { en: "Standard",        vi: "Vé Tiêu chuẩn" },   description: { en: "Standard seating area",         vi: "Khu vực khán đài tiêu chuẩn" } },
-      silver:   { price: 299000, label: { en: "Near Stage",      vi: "Vận sân khấu" },     description: { en: "Near-stage premium seats",       vi: "Ghế gần sân khấu, tầm nhìn rõ nét" } },
-      gold:     { price: 299000, label: { en: "Near Stage Plus",  vi: "Vận sân khấu +" },  description: { en: "Enhanced near-stage experience", vi: "Trải nghiệm cận sân khấu nâng cao" } },
-      vip:      { price: 499000, label: { en: "VIP",             vi: "Vé VIP" },            description: { en: "Center VIP with exclusive perks", vi: "Vị trí trung tâm và đặc quyền riêng" } },
+      standard: { price: 150000, label: { en: "Standard",        vi: "Khu phổ thông" },     description: { en: "Standard seating area",         vi: "Khu vực khán đài tiêu chuẩn" } },
+      silver:   { price: 250000, label: { en: "Standard VIP",    vi: "Khu phổ thông VIP" }, description: { en: "Premium view",                  vi: "Khu vực khán đài VIP" } },
+      gold:     { price: 350000, label: { en: "VIP",             vi: "Khu VIP" },           description: { en: "Enhanced near-stage experience", vi: "Ghế gần sân khấu, tầm nhìn rõ nét" } },
+      vip:      { price: 500000, label: { en: "Premium VIP",     vi: "Khu VIP cao cấp" },   description: { en: "Center VIP with exclusive perks", vi: "Vị trí trung tâm và đặc quyền riêng" } },
     }
   }
 ];

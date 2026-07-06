@@ -6,69 +6,55 @@ import { API_URL } from '../apiConfig';
 /* ─── Seat generation ──────────────────────────────────────── */
 const ROWS_ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const SP = 24;   // seat spacing px
-const X_OFF = 30; // centering offset
+const X_OFF = 173; // centering offset
 
-/*
-  Layout (canvas 820 × 560):
-  Stage at top center
-
-  [STD-C-L]  [VIP-A-L]   [VIP-B]   [VIP-A-R]  [STD-C-R]
-  (7r×6c)     (7r×5c)   (5r×10c)   (7r×5c)     (7r×6c)
-
-  [STD-D-L]                                     [STD-D-R]
-  (4r×6c)                                        (4r×6c)
-
-                    [STD-E]
-                   (4r×14c)
-*/
-
-const buildSeats = (vi, vipPrice, silverPrice, standardPrice) => {
+const buildSeats = (vi, vipPrice, goldPrice, silverPrice, standardPrice) => {
   const list = [];
+  const ROWS = 20; // A to T
+  const COLS = 20; // 1 to 20
 
-  const addZone = (key, labelEn, labelVi, type, price, color, baseX, startY, numRows, numCols) => {
-    for (let r = 0; r < numRows; r++) {
-      for (let c = 0; c < numCols; c++) {
-        const rowLetter = ROWS_ALPHA[r];
-        const seatNum = c + 1;
-        list.push({
-          id:        `${key}-${rowLetter}${seatNum}`,
-          num:       `${rowLetter}${seatNum}`,
-          rowLetter,
-          type,
-          zone:      key,
-          zoneName:  vi ? labelVi : labelEn,
-          price,
-          color,
-          x: X_OFF + baseX + c * SP,
-          y: startY + r * SP,
-        });
+  for (let r = 0; r < ROWS; r++) {
+    const rowLetter = ROWS_ALPHA[r];
+
+    for (let c = 1; c <= COLS; c++) {
+      let type, price, color, label;
+      
+      if (r < 18) {
+        if (c === 10 || c === 11) continue; // Runway gap
+        if (c <= 2 || c >= 19) {
+          type = 'Standard'; price = standardPrice; color = '#7c6fe0'; label = vi ? 'Khu phổ thông' : 'Standard';
+        } else if (c <= 5 || c >= 16) {
+          type = 'Silver'; price = silverPrice; color = '#5aaddc'; label = vi ? 'Khu phổ thông VIP' : 'Standard VIP';
+        } else if (c <= 7 || c >= 14) {
+          type = 'Gold'; price = goldPrice; color = '#a896f6'; label = vi ? 'Khu VIP' : 'VIP';
+        } else if (c <= 9 || c >= 12) {
+          type = 'VIP'; price = vipPrice; color = '#e83e8c'; label = vi ? 'Khu VIP cao cấp' : 'Premium VIP';
+        }
+      } else if (r === 18) {
+        if (c <= 2 || c >= 19) {
+          type = 'Standard'; price = standardPrice; color = '#7c6fe0'; label = vi ? 'Khu phổ thông' : 'Standard';
+        } else {
+          type = 'Silver'; price = silverPrice; color = '#5aaddc'; label = vi ? 'Khu phổ thông VIP' : 'Standard VIP';
+        }
+      } else {
+        type = 'Standard'; price = standardPrice; color = '#7c6fe0'; label = vi ? 'Khu phổ thông' : 'Standard';
       }
+
+      list.push({
+        id: `${rowLetter}${c}`,
+        num: `${rowLetter}${c}`,
+        rowLetter,
+        type,
+        zoneName: label,
+        price,
+        color,
+        x: X_OFF + (c - 1) * SP,
+        y: 110 + r * SP,
+      });
     }
-  };
-
-  addZone('STD-C-L', 'Standard C', 'Tiêu chuẩn C', 'Standard', standardPrice, '#4b5169', 14,  110, 7, 6);
-  addZone('VIP-A-L', 'VIP A',      'VIP A',         'VIP',      vipPrice,      '#b026d9', 162, 110, 7, 5);
-  addZone('VIP-B',   'VIP B',      'VIP B',         'Silver',   silverPrice,   '#2563eb', 282, 110, 5, 10);
-  addZone('VIP-A-R', 'VIP A',      'VIP A',         'VIP',      vipPrice,      '#b026d9', 526, 110, 7, 5);
-  addZone('STD-C-R', 'Standard C', 'Tiêu chuẩn C', 'Standard', standardPrice, '#4b5169', 674, 110, 7, 6);
-  addZone('STD-D-L', 'Standard D', 'Tiêu chuẩn D', 'Standard', standardPrice, '#4b5169', 14,  290, 4, 6);
-  addZone('STD-D-R', 'Standard D', 'Tiêu chuẩn D', 'Standard', standardPrice, '#4b5169', 674, 290, 4, 6);
-  addZone('STD-E',   'Standard E', 'Tiêu chuẩn E', 'Standard', standardPrice, '#7c55d9', 158, 420, 4, 14);
-
+  }
   return list;
 };
-
-/* ─── Zone label config ─────────────────────────────────────── */
-const ZONE_LABELS = [
-  { key: 'STD-C-L', text: 'STANDARD C', x: X_OFF + 14 + 5 * 24 / 2 - 12,  y: 95,  anchor: 'middle' },
-  { key: 'VIP-A-L', text: 'VIP A',      x: X_OFF + 162 + 4 * 24 / 2,       y: 95,  anchor: 'middle' },
-  { key: 'VIP-B',   text: 'VIP B',      x: X_OFF + 282 + 9 * 24 / 2,       y: 95,  anchor: 'middle' },
-  { key: 'VIP-A-R', text: 'VIP A',      x: X_OFF + 526 + 4 * 24 / 2,       y: 95,  anchor: 'middle' },
-  { key: 'STD-C-R', text: 'STANDARD C', x: X_OFF + 674 + 5 * 24 / 2 - 12,  y: 95,  anchor: 'middle' },
-  { key: 'STD-D-L', text: 'STANDARD D', x: X_OFF + 14 + 5 * 24 / 2 - 12,   y: 276, anchor: 'middle' },
-  { key: 'STD-D-R', text: 'STANDARD D', x: X_OFF + 674 + 5 * 24 / 2 - 12,  y: 276, anchor: 'middle' },
-  { key: 'STD-E',   text: 'STANDARD E', x: X_OFF + 158 + 13 * 24 / 2,       y: 407, anchor: 'middle' },
-];
 
 /* ─── Component ─────────────────────────────────────────────── */
 const SeatSelectionPage = ({ event, setBookingDetails }) => {
@@ -81,9 +67,10 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
   const [loading, setLoading] = useState(true);
   const containerRef = React.useRef(null);
 
-  const vipPrice      = event?.pricingTiers?.vip?.price      || 499000;
-  const silverPrice   = event?.pricingTiers?.silver?.price   || 299000;
-  const standardPrice = event?.pricingTiers?.standard?.price || 199000;
+  const vipPrice      = event?.pricingTiers?.vip?.price      || 500000;
+  const goldPrice     = event?.pricingTiers?.gold?.price     || 350000;
+  const silverPrice   = event?.pricingTiers?.silver?.price   || 250000;
+  const standardPrice = event?.pricingTiers?.standard?.price || 150000;
 
   const formatPrice = (p) => vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + p;
 
@@ -96,7 +83,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
       .catch(() => { setOccupiedSeats([]); setLoading(false); });
   }, [event]);
 
-  const seats = buildSeats(vi, vipPrice, silverPrice, standardPrice);
+  const seats = buildSeats(vi, vipPrice, goldPrice, silverPrice, standardPrice);
 
   const handleSeatClick = (seat) => {
     if (occupiedSeats.includes(seat.id)) return;
@@ -128,9 +115,10 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
   const selectedZones = [...new Set(selectedSeats.map(s => s.zoneName))];
 
   const LEGEND_ITEMS = [
-    { color: '#b026d9', label: vi ? 'VIP A' : 'VIP A', price: formatPrice(vipPrice) },
-    { color: '#2563eb', label: vi ? 'VIP B' : 'VIP B', price: formatPrice(silverPrice) },
-    { color: '#4b5169', label: vi ? 'Tiêu chuẩn' : 'Standard', price: formatPrice(standardPrice) },
+    { color: '#e83e8c', label: vi ? 'Khu VIP cao cấp' : 'Premium VIP', price: formatPrice(vipPrice) },
+    { color: '#a896f6', label: vi ? 'Khu VIP' : 'VIP', price: formatPrice(goldPrice) },
+    { color: '#5aaddc', label: vi ? 'Khu phổ thông VIP' : 'Standard VIP', price: formatPrice(silverPrice) },
+    { color: '#7c6fe0', label: vi ? 'Khu phổ thông' : 'Standard', price: formatPrice(standardPrice) },
     { color: '#00e8c8', label: vi ? 'Đang chọn' : 'Selected', price: null },
     { color: '#1e1e2f', label: vi ? 'Đã bán' : 'Taken', price: null, bordered: true },
   ];
@@ -138,7 +126,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
   if (!event) return null;
 
   const CANVAS_W = 820;
-  const CANVAS_H = 560;
+  const CANVAS_H = 640;
 
   return (
     <div style={{ paddingTop: 120, paddingBottom: 64 }} className="animate-fade-in">
@@ -219,33 +207,28 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                   {/* Stage */}
                   <div style={{
                     position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
-                    width: 280, height: 62,
+                    width: 320, height: 62,
                     background: 'linear-gradient(135deg, rgba(14,16,44,.9), rgba(70,69,215,.2))',
                     border: '1px solid rgba(168,150,246,.35)',
                     borderRadius: 10,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     zIndex: 20,
-                    clipPath: 'polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%)',
                   }}>
                     <span className="serif" style={{ color: 'var(--purple)', letterSpacing: '.6em', fontWeight: 800, fontSize: 13, textTransform: 'uppercase' }}>
                       {vi ? 'SÂN KHẤU' : 'STAGE'}
                     </span>
                   </div>
 
-                  {/* Zone labels (SVG overlay) */}
-                  <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 15 }}>
-                    {ZONE_LABELS.map(zl => (
-                      <text
-                        key={zl.key}
-                        x={zl.x}
-                        y={zl.y}
-                        textAnchor="middle"
-                        style={{ fontSize: 9, fill: 'rgba(200,190,255,.55)', fontFamily: 'Inter, sans-serif', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600 }}
-                      >
-                        {zl.text}
-                      </text>
-                    ))}
-                  </svg>
+                  {/* Runway */}
+                  <div style={{
+                    position: 'absolute', top: 76, left: '50%', transform: 'translateX(-50%)',
+                    width: 52, height: 462,
+                    background: 'linear-gradient(180deg, rgba(14,16,44,.9), rgba(70,69,215,.2))',
+                    border: '1px solid rgba(168,150,246,.35)',
+                    borderTop: 'none',
+                    borderRadius: '0 0 10px 10px',
+                    zIndex: 15,
+                  }} />
 
                   {/* Seats */}
                   {seats.map(seat => {
