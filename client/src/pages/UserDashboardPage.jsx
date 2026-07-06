@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
+import { QRCodeSVG } from 'qrcode.react';
 
 const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
   const navigate = useNavigate();
@@ -166,16 +167,21 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
                         <div className="absolute top-[-10px] left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-background hidden lg:block border border-outline-variant/10"></div>
                         
                         {isReveal ? (
-                          <div className="flex flex-col items-center justify-center animate-fade-in py-4">
-                            <div className="bg-white p-2 rounded-lg mb-4">
-                              <svg className="w-32 h-32 text-black" viewBox="0 0 100 100">
-                                <rect width="100" height="100" fill="white" />
-                                <g fill="black">
-                                  <rect x="5" y="5" width="25" height="25" /><rect x="70" y="5" width="25" height="25" /><rect x="5" y="70" width="25" height="25" /><rect x="40" y="40" width="20" height="20" />
-                                </g>
-                              </svg>
+                          <div className="flex flex-col items-center justify-center animate-fade-in py-4 gap-3">
+                            <div className="bg-white p-3 rounded-xl shadow-lg">
+                              <QRCodeSVG
+                                value={booking.ticketCode || booking._id.toString()}
+                                size={140}
+                                bgColor="#ffffff"
+                                fgColor="#01010A"
+                                level="H"
+                                includeMargin={false}
+                              />
                             </div>
-                            <p className="font-mono text-[11px] text-primary mb-4">{booking._id}</p>
+                            <div className="text-center">
+                              <p className="font-label-sm text-[9px] text-on-surface-variant uppercase tracking-widest mb-1">{language === 'vi' ? 'Mã vé' : 'Ticket Code'}</p>
+                              <p className="font-mono text-[16px] text-primary font-bold tracking-[0.15em]">{booking.ticketCode || booking._id.toString().toUpperCase().slice(-8)}</p>
+                            </div>
                             <button onClick={() => setQrReveal(null)} className="text-[10px] text-on-surface-variant uppercase tracking-widest hover:text-white underline">{t('closeScan')}</button>
                           </div>
                         ) : (

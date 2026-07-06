@@ -98,6 +98,7 @@ const Event = mongoose.model('Event', EventSchema);
 // 4. Booking Model
 const BookingSchema = new mongoose.Schema({
   eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true },
+  ticketCode: { type: String, unique: true, sparse: true },
   fullName: { type: String, required: true },
   email: { type: String, required: true },
   phone: { type: String, required: true },
@@ -115,6 +116,16 @@ const BookingSchema = new mongoose.Schema({
   isCheckedIn: { type: Boolean, default: false },
   checkInDate: { type: Date }
 });
+
+// Generate unique ticket code: MFC-XXXXXXXX
+const generateTicketCode = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = 'MFC';
+  for (let i = 0; i < 8; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+};
 
 const Booking = mongoose.model('Booking', BookingSchema);
 
@@ -249,8 +260,16 @@ app.get('/api/bookings', async (req, res) => {
 
 app.post('/api/bookings', async (req, res) => {
   try {
-    const booking = await Booking.create(req.body);
-    res.status(201).json({ message: 'Booking confirmed', bookingId: booking._id });
+    // Generate a unique ticket code
+    let ticketCode;
+    let isUnique = false;
+    while (!isUnique) {
+      ticketCode = generateTicketCode();
+      const existing = await Booking.findOne({ ticketCode });
+      if (!existing) isUnique = true;
+    }
+    const booking = await Booking.create({ ...req.body, ticketCode });
+    res.status(201).json({ message: 'Booking confirmed', bookingId: booking._id, ticketCode: booking.ticketCode });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -281,24 +300,59 @@ app.post('/api/bookings/check-in/:id', async (req, res) => {
   try {
     const id = req.params.id;
     let booking;
-    
-    // Check if provided ID is a valid MongoDB ObjectId
-    if (mongoose.Types.ObjectId.isValid(id)) {
-      booking = await Booking.findById(id);
-    } else {
-      // If not valid, search by the last 8 characters (Ref ID logic)
-      // Note: This is an expensive fallback but useful for the scanner simulator
-      const allBookings = await Booking.find({});
+
+    // 1. Try matching by ticketCode (primary method for QR scanner)
+    booking = await Booking.findOne({ ticketCode: id.toUpperCase() }).populate('eventId');
+
+    // 2. Fallback: try MongoDB ObjectId
+    if (!booking && mongoose.Types.ObjectId.isValid(id)) {
+      booking = await Booking.findById(id).populate('eventId');
+    }
+
+    // 3. Last fallback: search by last 8 characters of ObjectId
+    if (!booking) {
+      const allBookings = await Booking.find({}).populate('eventId');
       booking = allBookings.find(b => b._id.toString().toUpperCase().endsWith(id.toUpperCase()));
     }
 
     if (!booking) return res.status(404).json({ error: 'Ticket not found' });
-    if (booking.isCheckedIn) return res.status(400).json({ error: 'Ticket already checked in' });
-    
+
+    // Helper to build the compact booking info object
+    const buildTicketInfo = (b) => ({
+      _id: b._id,
+      ticketCode: b.ticketCode,
+      fullName: b.fullName,
+      email: b.email,
+      phone: b.phone,
+      selectedSeats: b.selectedSeats,
+      subtotal: b.subtotal,
+      paymentMethod: b.paymentMethod,
+      eventTitle: b.eventId?.title,
+      eventDate: b.eventId?.date,
+      venueName: b.eventId?.venueName,
+      location: b.eventId?.location,
+      bookingDate: b.bookingDate,
+      isCheckedIn: b.isCheckedIn,
+      checkInDate: b.checkInDate,
+    });
+
+    // Already checked in — return info but with warning status
+    if (booking.isCheckedIn) {
+      return res.status(400).json({
+        status: 'already_used',
+        error: 'Ticket already checked in',
+        booking: buildTicketInfo(booking)
+      });
+    }
+
     booking.isCheckedIn = true;
     booking.checkInDate = new Date();
     await booking.save();
-    res.json({ message: 'Checked in successfully', booking });
+    res.json({
+      status: 'valid',
+      message: 'Checked in successfully',
+      booking: buildTicketInfo(booking)
+    });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

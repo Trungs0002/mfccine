@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
+import QrScannerOverlay from '../components/QrScannerOverlay';
 
 const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
   const navigate = useNavigate();
@@ -62,10 +63,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
   const [editBookingName, setEditBookingName] = useState('');
   const [editBookingEmail, setEditBookingEmail] = useState('');
 
-  // QR Scanning Simulation state
+  // QR Scanning state
   const [scanBookingId, setScanBookingId] = useState('');
   const [scanning, setScanning] = useState(false);
   const [scanResult, setScanResult] = useState(null);
+  const [showScanner, setShowScanner] = useState(false);
 
   const fetchAnalytics = () => {
     fetch(`${API_URL}/api/analytics`)
@@ -309,21 +311,42 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
     }
   };
 
-  const handleCheckIn = async (e) => {
-    e.preventDefault();
+  const handleCheckIn = async (code) => {
+    const idToScan = code || scanBookingId;
+    if (!idToScan.trim()) return;
     setScanning(true);
-    const res = await fetch(`${API_URL}/api/bookings/check-in/${scanBookingId}`, { method: 'POST' });
+    const res = await fetch(`${API_URL}/api/bookings/check-in/${idToScan.trim()}`, { method: 'POST' });
     const data = await res.json();
     if (res.ok) {
-      setScanResult({ success: true, message: 'Done!', details: data.booking });
+      // status: 'valid' — newly checked in
+      setScanResult({ status: 'valid', message: data.message, details: data.booking });
       fetchAnalytics();
-    } else setScanResult({ success: false, message: data.error });
+    } else if (data.status === 'already_used') {
+      // status: 'already_used' — ticket was already scanned before
+      setScanResult({ status: 'already_used', message: data.error, details: data.booking });
+    } else {
+      // not found or server error
+      setScanResult({ status: 'not_found', message: data.error || 'Ticket not found' });
+    }
     setScanning(false);
     setScanBookingId('');
   };
 
   return (
-    <div className="w-full flex-grow flex flex-col pt-[100px] pb-section-gap px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto relative z-10 gap-12">
+    <>
+      {/* Full-screen QR Scanner Overlay */}
+      {showScanner && (
+        <QrScannerOverlay
+          language={language}
+          onScan={(code) => {
+            setShowScanner(false);
+            handleCheckIn(code);
+          }}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
+
+      <div className="w-full flex-grow flex flex-col pt-[100px] pb-section-gap px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto relative z-10 gap-12">
       
       {/* HEADER */}
       <div className="flex flex-col gap-8 border-b border-outline-variant/15 pb-8 select-none">
@@ -387,14 +410,161 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
             </div>
 
             <div className="glass-panel p-8 rounded-xl border border-primary/20 bg-primary/5">
-              <h3 className="font-label-sm text-[11px] text-primary uppercase tracking-widest mb-4">{t('liveScanner')}</h3>
-              <form onSubmit={handleCheckIn} className="flex gap-2">
-                <input type="text" value={scanBookingId} onChange={(e) => setScanBookingId(e.target.value)} placeholder={t('enterTicketId')} className="flex-1 bg-surface-container/60 border border-outline-variant/30 rounded-lg px-4 py-3 text-[13px] font-mono text-on-surface focus:border-primary outline-none" required />
-                <button type="submit" disabled={scanning} className="bg-primary text-on-primary px-6 py-3 rounded-lg font-label-sm text-[11px] uppercase tracking-wider hover:bg-white hover:text-black transition-all shadow-md">
-                  {t('scan')}
-                </button>
-              </form>
-              {scanResult && <p className={`mt-3 text-[12px] font-bold ${scanResult.success ? 'text-secondary' : 'text-error'}`}>{scanResult.message}</p>}
+              <h3 className="font-label-sm text-[11px] text-primary uppercase tracking-widest mb-5">{t('liveScanner')}</h3>
+
+              {/* Camera Button */}
+              <button
+                onClick={() => { setScanResult(null); setShowScanner(true); }}
+                className="w-full flex items-center justify-center gap-3 bg-primary text-on-primary py-5 rounded-xl font-label-sm text-[13px] uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-lg mb-4"
+              >
+                <span className="material-symbols-outlined text-[22px]">photo_camera</span>
+                {language === 'vi' ? 'Bật camera quét QR' : 'Start Camera Scanner'}
+              </button>
+
+              {/* Manual input fallback */}
+              <div className="border-t border-outline-variant/10 pt-4">
+                <p className="font-label-sm text-[9px] text-on-surface-variant uppercase tracking-widest mb-2">
+                  {language === 'vi' ? 'Hoặc nhập mã vé thủ công' : 'Or enter ticket code manually'}
+                </p>
+                <form onSubmit={(e) => { e.preventDefault(); handleCheckIn(); }} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={scanBookingId}
+                    onChange={(e) => setScanBookingId(e.target.value)}
+                    placeholder="MFCXXXXXXXX"
+                    className="flex-1 bg-surface-container/60 border border-outline-variant/30 rounded-lg px-4 py-3 text-[13px] font-mono text-on-surface focus:border-primary outline-none"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={scanning}
+                    className="bg-primary text-on-primary px-5 py-3 rounded-lg font-label-sm text-[11px] uppercase tracking-wider hover:bg-white hover:text-black transition-all shadow-md"
+                  >
+                    {scanning ? <span className="material-symbols-outlined text-[16px] animate-spin">sync</span> : t('scan')}
+                  </button>
+                </form>
+              </div>
+
+              {/* ── Scan Result Card ── */}
+              {scanResult && (() => {
+                const isValid   = scanResult.status === 'valid';
+                const isUsed    = scanResult.status === 'already_used';
+                const d         = scanResult.details;
+
+                const statusCfg = isValid
+                  ? { border: 'border-secondary/40', bg: 'bg-secondary/5', icon: 'check_circle', iconColor: 'text-secondary', badge: 'bg-secondary/15 text-secondary border-secondary/30', label: language === 'vi' ? 'HỢP LỆ — VÀO CỬA' : 'VALID — ADMITTED' }
+                  : isUsed
+                  ? { border: 'border-[#ffb800]/40', bg: 'bg-[#ffb800]/5', icon: 'warning', iconColor: 'text-[#ffb800]', badge: 'bg-[#ffb800]/15 text-[#ffb800] border-[#ffb800]/30', label: language === 'vi' ? 'ĐÃ SỬ DỤNG' : 'ALREADY USED' }
+                  : { border: 'border-error/40', bg: 'bg-error/5', icon: 'cancel', iconColor: 'text-error', badge: 'bg-error/10 text-error border-error/30', label: language === 'vi' ? 'KHÔNG TÌM THẤY' : 'NOT FOUND' };
+
+                return (
+                  <div className={`mt-4 rounded-xl border overflow-hidden ${statusCfg.border} ${statusCfg.bg}`}>
+                    {/* Status Header */}
+                    <div className={`flex items-center gap-3 px-4 py-3 border-b ${statusCfg.border}`}>
+                      <span className={`material-symbols-outlined text-[22px] ${statusCfg.iconColor}`}>
+                        {statusCfg.icon}
+                      </span>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full border text-[10px] font-label-sm font-black uppercase tracking-widest ${statusCfg.badge}`}>
+                        {statusCfg.label}
+                      </span>
+                      <button
+                        onClick={() => setScanResult(null)}
+                        className="ml-auto text-on-surface-variant hover:text-on-surface"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">close</span>
+                      </button>
+                    </div>
+
+                    {/* Ticket Info */}
+                    {d && (
+                      <div className="p-4 space-y-3 text-[13px]">
+                        {/* Attendee */}
+                        <div className="flex items-start gap-3">
+                          <span className="material-symbols-outlined text-[18px] text-on-surface-variant mt-0.5">person</span>
+                          <div>
+                            <p className="font-semibold text-on-surface text-[14px]">{d.fullName}</p>
+                            <p className="text-on-surface-variant text-[12px]">{d.email}</p>
+                          </div>
+                        </div>
+
+                        {/* Ticket code */}
+                        <div className="flex items-center gap-3">
+                          <span className="material-symbols-outlined text-[18px] text-on-surface-variant">qr_code</span>
+                          <span className="font-mono text-primary font-bold tracking-widest">{d.ticketCode}</span>
+                        </div>
+
+                        {/* Event */}
+                        {d.eventTitle && (
+                          <div className="flex items-start gap-3">
+                            <span className="material-symbols-outlined text-[18px] text-on-surface-variant mt-0.5">event</span>
+                            <div>
+                              <p className="text-on-surface font-semibold">
+                                {typeof d.eventTitle === 'object' ? (d.eventTitle[language] || d.eventTitle.en) : d.eventTitle}
+                              </p>
+                              {d.eventDate && (
+                                <p className="text-on-surface-variant text-[12px]">
+                                  {new Date(d.eventDate).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Seats */}
+                        {d.selectedSeats?.length > 0 && (
+                          <div className="flex items-center gap-3">
+                            <span className="material-symbols-outlined text-[18px] text-on-surface-variant">chair</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {d.selectedSeats.map((s, i) => (
+                                <span key={i} className="bg-primary/10 border border-primary/20 text-primary text-[10px] font-mono px-2 py-0.5 rounded">
+                                  {s.seatId.split('-').slice(2).join(' ')} • {s.type}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Amount */}
+                        <div className="flex items-center gap-3">
+                          <span className="material-symbols-outlined text-[18px] text-on-surface-variant">payments</span>
+                          <span className="font-bold text-on-surface text-[15px]">${d.subtotal}</span>
+                          <span className="text-on-surface-variant text-[11px]">{d.paymentMethod}</span>
+                        </div>
+
+                        {/* Check-in time (if already used) */}
+                        {isUsed && d.checkInDate && (
+                          <div className="flex items-center gap-3 pt-2 border-t border-[#ffb800]/20">
+                            <span className="material-symbols-outlined text-[18px] text-[#ffb800]">schedule</span>
+                            <div>
+                              <p className="text-[11px] text-[#ffb800] uppercase tracking-widest font-label-sm">
+                                {language === 'vi' ? 'Đã quét lúc' : 'Scanned at'}
+                              </p>
+                              <p className="text-[13px] text-on-surface font-mono">
+                                {new Date(d.checkInDate).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Success check-in time */}
+                        {isValid && d.checkInDate && (
+                          <div className="flex items-center gap-3 pt-2 border-t border-secondary/20">
+                            <span className="material-symbols-outlined text-[18px] text-secondary">verified</span>
+                            <p className="text-[12px] text-secondary font-mono">
+                              {new Date(d.checkInDate).toLocaleTimeString(language === 'vi' ? 'vi-VN' : 'en-US')}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Not found — no details */}
+                    {!d && (
+                      <p className="p-4 text-[13px] text-error">{scanResult.message}</p>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
@@ -683,6 +853,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

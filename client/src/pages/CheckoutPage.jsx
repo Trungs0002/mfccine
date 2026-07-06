@@ -49,6 +49,7 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
       const data = await res.json();
       if (res.ok) {
         setCompletedBookingId(data.bookingId);
+        localStorage.setItem('lastTicketCode', data.ticketCode || '');
         navigate('/ticket');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
