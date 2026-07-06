@@ -5,14 +5,15 @@ import { API_URL } from '../apiConfig';
 
 const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) => {
   const navigate = useNavigate();
-  const { language, t } = useLanguage();
-  
-  const [fullName, setFullName] = useState(user?.fullName || '');
-  const [email, setEmail] = useState(user?.email || '');
-  const [phone, setPhone] = useState('');
+  const { language } = useLanguage();
+  const vi = language === 'vi';
+
+  const [fullName, setFullName]       = useState(user?.fullName || '');
+  const [email, setEmail]             = useState(user?.email    || '');
+  const [phone, setPhone]             = useState('');
   const [paymentMethod, setPaymentMethod] = useState('MoMo');
-  const [isStudent, setIsStudent] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isStudent, setIsStudent]     = useState(false);
+  const [loading, setLoading]         = useState(false);
 
   const l = useCallback((field) => {
     if (!field) return '';
@@ -23,28 +24,29 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
   useEffect(() => {
     if (user) {
       if (!fullName) setFullName(user.fullName);
-      if (!email) setEmail(user.email);
+      if (!email)    setEmail(user.email);
     }
-  }, [user, fullName, email]);
+  }, [user]); // eslint-disable-line
 
-  const subtotal = bookingDetails.subtotal;
+  const subtotal   = bookingDetails.subtotal;
   const seatsCount = bookingDetails.selectedSeats.length;
+  const finalTotal = isStudent ? Math.round(subtotal * 0.95) : subtotal;
+  const formatPrice = (p) => vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + p;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const bookingData = {
-      eventId: event._id,
-      fullName, email, phone,
-      selectedSeats: bookingDetails.selectedSeats,
-      subtotal: isStudent ? Math.round(subtotal * 0.95) : subtotal,
-      paymentMethod
-    };
     try {
       const res = await fetch(`${API_URL}/api/bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bookingData)
+        body: JSON.stringify({
+          eventId: event._id,
+          fullName, email, phone,
+          selectedSeats: bookingDetails.selectedSeats,
+          subtotal: finalTotal,
+          paymentMethod,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -58,74 +60,211 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
     }
   };
 
-  return (
-    <div className="w-full flex-grow flex flex-col pt-[100px] pb-section-gap px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto relative z-10">
-      <div className="mb-10 select-none">
-        <button onClick={() => navigate('/seating')} className="flex items-center gap-2 font-label-sm text-[13px] text-on-surface-variant hover:text-primary transition-colors uppercase tracking-widest mb-4">
-          <span className="material-symbols-outlined text-[18px]">keyboard_backspace</span>
-          {language === 'vi' ? 'Điều chỉnh chỗ ngồi' : 'Adjust Seating'}
-        </button>
-        <h1 className="font-headline-lg-mobile md:font-headline-lg text-on-surface uppercase leading-none font-bold tracking-tight">
-          {language === 'vi' ? 'Xác nhận Đặt chỗ' : 'Secure Final Access'}
-        </h1>
-      </div>
+  const PAYMENT_METHODS = [
+    { id: 'MoMo',          icon: '💜', label: 'MoMo' },
+    { id: 'VNPay',         icon: '🔵', label: 'VNPay' },
+    { id: 'Bank Transfer', icon: '🏦', label: vi ? 'Chuyển khoản' : 'Bank Transfer' },
+  ];
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-        <div className="lg:col-span-7">
-          <form onSubmit={handleSubmit} className="glass-panel p-8 md:p-10 rounded-xl border border-outline-variant/20 shadow-xl space-y-8">
-            <div className="space-y-6">
-              <h3 className="font-label-sm text-[11px] text-primary uppercase tracking-widest border-b border-outline-variant/10 pb-4">{language === 'vi' ? 'Thông tin cá nhân' : 'Personal Credentials'}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-2">
-                  <label className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">{language === 'vi' ? 'Họ và tên' : 'Legal Full Name'}</label>
-                  <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="bg-surface-container/40 border border-outline-variant/30 rounded-lg px-4 py-3.5 text-[14px] text-on-surface" required />
+  return (
+    <div style={{ paddingTop: 96, paddingBottom: 64 }} className="animate-fade-in">
+      <div className="container">
+        {/* Header + Steps */}
+        <div style={{ marginBottom: 32 }}>
+          <button
+            onClick={() => navigate('/seating')}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--muted)', fontSize: 13, letterSpacing: '.1em', textTransform: 'uppercase', background: 'none', border: 'none', cursor: 'pointer', marginBottom: 16, transition: 'color .2s' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>keyboard_backspace</span>
+            {vi ? 'Chỉnh sửa ghế' : 'Edit Seats'}
+          </button>
+
+          <div className="steps" style={{ marginBottom: 24 }}>
+            <div className="step-item done">
+              <div className="step-num">✓</div>
+              <span>{vi ? 'Chọn ghế' : 'Seats'}</span>
+            </div>
+            <div className="step-connector" />
+            <div className="step-item active">
+              <div className="step-num">2</div>
+              <span>{vi ? 'Thông tin' : 'Your Info'}</span>
+            </div>
+            <div className="step-connector" />
+            <div className="step-item">
+              <div className="step-num">3</div>
+              <span>{vi ? 'Xác nhận' : 'Confirm'}</span>
+            </div>
+          </div>
+
+          <h1 className="gradient-title" style={{ fontSize: 'clamp(24px, 4vw, 36px)', margin: 0 }}>
+            {vi ? 'Thông tin & Thanh toán' : 'Your Details & Payment'}
+          </h1>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 24, alignItems: 'start' }}>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="mfc-card" style={{ padding: '32px' }}>
+            {/* Personal info */}
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ fontSize: 11, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 18, paddingBottom: 10, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
+                {vi ? 'Thông tin cá nhân' : 'Personal Information'}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
+                    {vi ? 'Họ và tên' : 'Full Name'}
+                  </label>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={e => setFullName(e.target.value)}
+                    className="mfc-input"
+                    placeholder={vi ? 'Nguyễn Văn A' : 'John Doe'}
+                    required
+                  />
                 </div>
-                <div className="flex flex-col gap-2">
-                  <label className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">Email</label>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-surface-container/40 border border-outline-variant/30 rounded-lg px-4 py-3.5 text-[14px] text-on-surface" required />
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    className="mfc-input"
+                    placeholder="email@example.com"
+                    required
+                  />
                 </div>
               </div>
-              <div className="flex flex-col gap-2">
-                <label className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">{language === 'vi' ? 'Số điện thoại' : 'Phone Index'}</label>
-                <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-surface-container/40 border border-outline-variant/30 rounded-lg px-4 py-3.5 text-[14px] text-on-surface w-full" required />
-              </div>
-              <div className="flex items-center gap-3 select-none pt-2">
-                <input type="checkbox" id="student" checked={isStudent} onChange={(e) => setIsStudent(e.target.checked)} className="w-5 h-5 rounded accent-primary" />
-                <label htmlFor="student" className="font-body-md text-[14px] text-on-surface-variant cursor-pointer">{language === 'vi' ? 'Áp dụng ưu đãi sinh viên' : 'Apply Student Benefit'} <span className="text-primary font-bold">(5% Reduction)</span></label>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
+                  {vi ? 'Số điện thoại' : 'Phone Number'}
+                </label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  className="mfc-input"
+                  placeholder="0912 345 678"
+                  required
+                />
               </div>
             </div>
 
-            <div className="space-y-6 pt-4">
-              <h3 className="font-label-sm text-[11px] text-primary uppercase tracking-widest border-b border-outline-variant/10 pb-4">{language === 'vi' ? 'Phương thức thanh toán' : 'Payment Architecture'}</h3>
-              <div className="grid grid-cols-3 gap-4">
-                {['MoMo', 'VNPay', 'Bank Transfer'].map(method => (
-                  <button key={method} type="button" onClick={() => setPaymentMethod(method)} className={`p-5 rounded-lg border text-center font-label-sm text-[13px] uppercase tracking-wider transition-all ${paymentMethod === method ? 'border-primary bg-primary-container/20 text-primary font-bold' : 'border-outline-variant/20 text-on-surface-variant hover:text-on-surface'}`}>{method}</button>
+            {/* Payment */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 11, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 18, paddingBottom: 10, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
+                {vi ? 'Phương thức thanh toán' : 'Payment Method'}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                {PAYMENT_METHODS.map(({ id, icon, label }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setPaymentMethod(id)}
+                    style={{
+                      padding: '16px 12px',
+                      borderRadius: 14,
+                      border: paymentMethod === id ? '1px solid rgba(168,150,246,.8)' : '1px solid rgba(168,150,246,.25)',
+                      background: paymentMethod === id ? 'rgba(70,69,215,.2)' : 'rgba(1,1,10,.4)',
+                      color: paymentMethod === id ? '#fff' : 'var(--muted)',
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                      fontSize: 13, fontWeight: paymentMethod === id ? 700 : 500,
+                      boxShadow: paymentMethod === id ? '0 0 18px rgba(168,150,246,.2)' : 'none',
+                      transition: 'all .2s',
+                    }}
+                  >
+                    <span style={{ fontSize: 22 }}>{icon}</span>
+                    {label}
+                  </button>
                 ))}
               </div>
             </div>
 
-            <button type="submit" disabled={loading} className="w-full mt-8 bg-primary text-on-primary py-6 rounded-xl font-label-sm text-[15px] uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-xl flex justify-center items-center gap-3">
-              {loading ? <span className="material-symbols-outlined text-[18px] animate-spin">sync</span> : <><span className="material-symbols-outlined text-[18px]">verified_user</span> {language === 'vi' ? 'Xác nhận & Thanh toán' : 'Confirm & Finalize Payment'}</>}
+            {/* Student discount */}
+            <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', padding: '16px', borderRadius: 12, border: '1px solid rgba(168,150,246,.2)', background: 'rgba(70,69,215,.06)', marginBottom: 24, userSelect: 'none' }}>
+              <input
+                type="checkbox"
+                checked={isStudent}
+                onChange={e => setIsStudent(e.target.checked)}
+                style={{ width: 18, height: 18, accentColor: 'var(--purple)' }}
+              />
+              <div>
+                <span style={{ color: '#fff', fontSize: 14, fontWeight: 600 }}>
+                  {vi ? 'Áp dụng ưu đãi sinh viên (giảm 5%)' : 'Apply student discount (5% off)'}
+                </span>
+                <br />
+                <span style={{ color: 'var(--muted)', fontSize: 12 }}>
+                  {vi ? 'Áp dụng cho sinh viên đang học tại FTU và các trường đại học.' : 'Valid for students at FTU and other universities.'}
+                </span>
+              </div>
+            </label>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-pill"
+              style={{ width: '100%', justifyContent: 'center', fontSize: 16, padding: '16px 20px' }}
+            >
+              {loading ? (
+                <><span className="material-symbols-outlined animate-spin" style={{ fontSize: 18 }}>sync</span> {vi ? 'Đang xử lý...' : 'Processing...'}</>
+              ) : (
+                <><span className="material-symbols-outlined" style={{ fontSize: 18 }}>verified_user</span> {vi ? 'Xác nhận & Thanh toán' : 'Confirm & Pay'}</>
+              )}
             </button>
           </form>
-        </div>
 
-        <div className="lg:col-span-5 flex flex-col gap-6 sticky top-[120px]">
-          <div className="glass-panel p-8 rounded-xl border border-outline-variant/20 shadow-lg bg-surface-container-low/20">
-            <h3 className="font-title-md text-[20px] text-on-surface mb-6 uppercase italic">{language === 'vi' ? 'Chi tiết đơn hàng' : 'Access Portfolio'}</h3>
-            <div className="flex gap-6 mb-8 select-none">
-              <div className="w-24 h-24 rounded-lg overflow-hidden border border-outline-variant/10"><img src={event?.image} alt="Show" className="w-full h-full object-cover mix-blend-luminosity" /></div>
-              <div className="flex-1">
-                <h4 className="font-title-md text-[18px] text-on-surface mb-1">{l(event?.title)}</h4>
-                <p className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">{l(event?.venueName)} • {l(event?.location)}</p>
-                <p className="font-body-md text-[13px] text-primary mt-1">{new Date(event?.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+          {/* Order Summary */}
+          <div className="mfc-card" style={{ padding: '24px', position: 'sticky', top: 96 }}>
+            <h3 className="serif" style={{ color: '#fff', fontSize: 20, margin: '0 0 20px' }}>
+              {vi ? 'Tóm tắt đơn hàng' : 'Order Summary'}
+            </h3>
+
+            {/* Event info */}
+            <div style={{ display: 'flex', gap: 14, marginBottom: 20, paddingBottom: 20, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
+              <div style={{ width: 80, height: 80, borderRadius: 12, overflow: 'hidden', flexShrink: 0, border: '1px solid var(--line)' }}>
+                <img src={event?.image} alt="Event" style={{ width: '100%', height: '100%', objectFit: 'cover', mixBlendMode: 'luminosity' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <h4 className="serif" style={{ color: '#fff', fontSize: 18, margin: '0 0 4px' }}>{l(event?.title)}</h4>
+                <p style={{ color: 'var(--muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.06em', margin: '0 0 4px' }}>{l(event?.venueName)}</p>
+                <p style={{ color: 'var(--purple)', fontSize: 13, margin: 0 }}>
+                  {new Date(event?.date).toLocaleDateString(vi ? 'vi-VN' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
               </div>
             </div>
-            <div className="space-y-4 border-t border-outline-variant/10 pt-6 select-none">
-              <div className="flex justify-between items-center text-[14px]"><span className="text-on-surface-variant">{language === 'vi' ? 'Vé tham dự' : 'Tier Passes'} ({seatsCount}x)</span><span className="text-on-surface font-semibold">${subtotal}</span></div>
-              <div className="flex justify-between items-center pt-4 border-t border-outline-variant/20">
-                <span className="font-label-sm text-[11px] text-on-surface-variant uppercase tracking-widest">{t('consolidatedTotal')}</span>
-                <span className="font-display-xl text-[30px] text-on-surface font-bold">${isStudent ? Math.round(subtotal * 0.95) : subtotal}</span>
+
+            {/* Seats list */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+              {bookingDetails.selectedSeats.map((s, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
+                  <span style={{ color: 'var(--muted)' }}>{s.seatId}</span>
+                  <span style={{ color: '#fff', fontWeight: 600 }}>{formatPrice(s.price)}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Totals */}
+            <div style={{ borderTop: '1px solid rgba(168,150,246,.18)', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <span style={{ color: 'var(--muted)' }}>{vi ? `Tạm tính (${seatsCount} vé)` : `Subtotal (${seatsCount} seats)`}</span>
+                <span style={{ color: '#fff' }}>{formatPrice(subtotal)}</span>
+              </div>
+              {isStudent && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <span style={{ color: 'var(--mint)' }}>{vi ? 'Ưu đãi sinh viên (−5%)' : 'Student discount (−5%)'}</span>
+                  <span style={{ color: 'var(--mint)' }}>−{formatPrice(subtotal - finalTotal)}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 8, paddingTop: 12, borderTop: '1px solid rgba(168,150,246,.18)' }}>
+                <span style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.12em' }}>
+                  {vi ? 'Tổng thanh toán' : 'Total'}
+                </span>
+                <span className="serif" style={{ fontSize: 32, color: 'var(--purple)', fontWeight: 700 }}>{formatPrice(finalTotal)}</span>
               </div>
             </div>
           </div>

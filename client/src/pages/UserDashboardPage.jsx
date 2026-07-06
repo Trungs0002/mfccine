@@ -6,46 +6,40 @@ import { QRCodeSVG } from 'qrcode.react';
 
 const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
   const navigate = useNavigate();
-  const { language, t } = useLanguage();
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { language } = useLanguage();
+  const vi = language === 'vi';
+
+  const [bookings, setBookings]   = useState([]);
+  const [loading, setLoading]     = useState(true);
   const [activeTab, setActiveTab] = useState('tickets');
-  const [qrReveal, setQrReveal] = useState(null);
+  const [qrReveal, setQrReveal]   = useState(null);
 
   const savedUser = useMemo(() => JSON.parse(localStorage.getItem('user') || '{}'), []);
-  const email = userEmail || savedUser.email || 'guest@example.com';
-  const name = (savedUser.fullName || email.split('@')[0]).split('.').map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' ');
+  const email = userEmail || savedUser.email || '';
+  const name  = (savedUser.fullName || email.split('@')[0])
+    .split(' ').map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' ');
 
-  // Helper for bilingual fields
   const l = useCallback((field) => {
     if (!field) return '';
     if (typeof field === 'string') return field;
     return field[language] || field.en || '';
   }, [language]);
 
-  const stats = useMemo(() => {
-    const totalPasses = bookings.reduce((sum, b) => sum + (b.selectedSeats?.length || 0), 0);
-    const upcomingShows = bookings.filter(b => !b.isCheckedIn).length;
-    const memberSince = bookings.length > 0 
-      ? new Date(bookings[bookings.length - 1].bookingDate).getFullYear() 
-      : new Date().getFullYear();
-    
-    return { totalPasses, upcomingShows, memberSince };
-  }, [bookings]);
+  const formatPrice = (p) => vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + p;
+
+  const stats = useMemo(() => ({
+    totalPasses:  bookings.reduce((sum, b) => sum + (b.selectedSeats?.length || 0), 0),
+    upcomingShows: bookings.filter(b => !b.isCheckedIn).length,
+    memberSince:  bookings.length > 0 ? new Date(bookings[bookings.length - 1].bookingDate).getFullYear() : new Date().getFullYear(),
+  }), [bookings]);
 
   useEffect(() => {
     if (!email) return;
     setLoading(true);
     fetch(`${API_URL}/api/bookings/email/${email}`)
       .then(res => res.json())
-      .then(data => {
-        setBookings(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching dashboard bookings:', err);
-        setLoading(false);
-      });
+      .then(data => { setBookings(data); setLoading(false); })
+      .catch(() => setLoading(false));
   }, [email]);
 
   const handleLogout = () => {
@@ -54,193 +48,174 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
     window.location.href = '/';
   };
 
+  const TABS = [
+    { id: 'tickets', icon: 'local_activity', labelVi: 'Vé của tôi',    labelEn: 'My Tickets' },
+    { id: 'history', icon: 'receipt_long',   labelVi: 'Lịch sử',       labelEn: 'History' },
+    { id: 'profile', icon: 'person',         labelVi: 'Tài khoản',      labelEn: 'Profile' },
+  ];
+
   return (
-    <div className="w-full flex-grow flex flex-col md:flex-row min-h-screen relative z-10 pt-[80px]">
-      
-      {/* 1. SIDE NAVIGATION */}
-      <aside className="w-full md:w-64 bg-surface-container/30 backdrop-blur-xl border-b md:border-b-0 md:border-r border-outline-variant/15 p-6 flex flex-col select-none">
-        <div className="font-display-xl text-[24px] text-on-surface mb-8 italic tracking-tight hidden md:block uppercase">
-          {settings?.siteName?.split(' ')[0] || 'SITE'} {t('vaultTitle')}
+    <div style={{ paddingTop: 84, minHeight: '100vh', display: 'flex' }} className="animate-fade-in">
+      {/* Sidebar */}
+      <aside style={{ width: 240, flexShrink: 0, background: 'rgba(7,8,24,.72)', backdropFilter: 'blur(16px)', borderRight: '1px solid rgba(168,150,246,.18)', padding: '32px 16px', display: 'flex', flexDirection: 'column', position: 'sticky', top: 84, height: 'calc(100vh - 84px)', overflowY: 'auto' }}>
+        <div style={{ marginBottom: 28, padding: '0 8px' }}>
+          <h2 className="serif" style={{ color: '#fff', fontSize: 18, margin: '0 0 4px' }}>{name}</h2>
+          <p style={{ color: 'var(--muted)', fontSize: 12, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</p>
         </div>
-        <div className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-x-visible pb-4 md:pb-0 font-label-sm text-[12px] uppercase tracking-widest">
-          <button 
-            onClick={() => setActiveTab('tickets')}
-            className={`flex-1 md:flex-initial text-left px-4 py-4 rounded-lg border transition-all ${
-              activeTab === 'tickets' ? 'border-primary bg-primary-container/20 text-primary font-bold shadow-[0_0_8px_rgba(221,186,238,0.1)]' : 'border-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/20'
-            }`}
-          >
-            {t('myTickets')}
-          </button>
-          <button 
-            onClick={() => setActiveTab('history')}
-            className={`flex-1 md:flex-initial text-left px-4 py-4 rounded-lg border transition-all ${
-              activeTab === 'history' ? 'border-primary bg-primary-container/20 text-primary font-bold shadow-[0_0_8px_rgba(221,186,238,0.1)]' : 'border-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/20'
-            }`}
-          >
-            {t('purchaseHistory')}
-          </button>
-          <button 
-            onClick={() => setActiveTab('profile')}
-            className={`flex-1 md:flex-initial text-left px-4 py-4 rounded-lg border transition-all ${
-              activeTab === 'profile' ? 'border-primary bg-primary-container/20 text-primary font-bold shadow-[0_0_8px_rgba(221,186,238,0.1)]' : 'border-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/20'
-            }`}
-          >
-            {t('profile')}
-          </button>
-        </div>
+
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '12px 16px', borderRadius: 12, border: 'none',
+                background: activeTab === tab.id ? 'rgba(70,69,215,.2)' : 'transparent',
+                borderLeft: activeTab === tab.id ? '3px solid var(--purple)' : '3px solid transparent',
+                color: activeTab === tab.id ? '#fff' : 'var(--muted)',
+                cursor: 'pointer', fontSize: 14, fontWeight: activeTab === tab.id ? 700 : 500,
+                textAlign: 'left', transition: 'all .15s',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 20, color: activeTab === tab.id ? 'var(--purple)' : 'var(--muted)' }}>{tab.icon}</span>
+              {vi ? tab.labelVi : tab.labelEn}
+            </button>
+          ))}
+        </nav>
+
+        <button
+          onClick={handleLogout}
+          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 12, border: '1px solid rgba(255,107,107,.25)', background: 'none', color: '#ff6b6b', cursor: 'pointer', fontSize: 13, fontWeight: 600, transition: 'background .2s' }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,107,107,.1)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'none'}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>logout</span>
+          {vi ? 'Đăng xuất' : 'Log Out'}
+        </button>
       </aside>
 
-      {/* 2. MAIN CONTENT AREA */}
-      <main className="flex-1 p-margin-mobile md:p-margin-desktop max-w-container-max">
-        
-        {/* Editorial Header & Stats */}
-        <header className="mb-12">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10">
-            <div>
-              <h1 className="font-headline-lg-mobile md:font-headline-lg text-on-surface mb-2">{t('welcome')}, {name}</h1>
-              <p className="font-body-lg text-on-surface-variant text-[16px]">{t('dashboardSubtitle')}</p>
+      {/* Main */}
+      <main style={{ flex: 1, padding: '32px 36px', overflow: 'auto' }}>
+        {/* Stats */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
+          {[
+            { icon: 'confirmation_number', labelVi: 'Tổng ghế đặt',  labelEn: 'Total Passes',   value: stats.totalPasses,   color: 'var(--purple)' },
+            { icon: 'event',               labelVi: 'Sắp diễn ra',   labelEn: 'Upcoming',       value: stats.upcomingShows, color: 'var(--mint)' },
+            { icon: 'calendar_month',      labelVi: 'Thành viên từ', labelEn: 'Member Since',   value: stats.memberSince,   color: '#ffb800' },
+          ].map(s => (
+            <div key={s.icon} className="mfc-card" style={{ padding: '20px 24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                <span className="material-symbols-outlined" style={{ color: s.color, fontSize: 22 }}>{s.icon}</span>
+                <span style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em' }}>
+                  {vi ? s.labelVi : s.labelEn}
+                </span>
+              </div>
+              <div className="serif" style={{ fontSize: 32, color: '#fff', fontWeight: 700 }}>{s.value}</div>
             </div>
-          </div>
+          ))}
+        </div>
 
-          {/* Dynamic Stats Row */}
-          <div className="grid grid-cols-3 gap-4 md:gap-8 select-none">
-            <div className="glass-panel p-5 rounded-xl border border-outline-variant/15 flex flex-col gap-1">
-              <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">{t('totalPasses')}</span>
-              <span className="font-display-xl text-[24px] text-primary font-bold">{stats.totalPasses}</span>
-            </div>
-            <div className="glass-panel p-5 rounded-xl border border-outline-variant/15 flex flex-col gap-1">
-              <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">{t('upcoming')}</span>
-              <span className="font-display-xl text-[24px] text-on-surface font-bold">{stats.upcomingShows}</span>
-            </div>
-            <div className="glass-panel p-5 rounded-xl border border-outline-variant/15 flex flex-col gap-1">
-              <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">{t('memberSince')}</span>
-              <span className="font-display-xl text-[24px] text-on-surface font-bold">{stats.memberSince}</span>
-            </div>
-          </div>
-        </header>
-
-        {/* Tab 1: My Tickets */}
+        {/* ── TAB: Tickets ── */}
         {activeTab === 'tickets' && (
-          <div className="space-y-12">
+          <div>
+            <h3 className="gradient-title" style={{ fontSize: 24, marginBottom: 20 }}>
+              {vi ? 'Vé của tôi' : 'My Tickets'}
+            </h3>
+
             {loading ? (
-              <div className="flex flex-col justify-center items-center py-20 gap-4">
-                <span className="material-symbols-outlined text-4xl text-primary animate-spin">sync</span>
-                <p className="font-label-sm text-on-surface-variant uppercase tracking-widest">{t('checkingPasses')}</p>
+              <div style={{ textAlign: 'center', padding: '60px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+                <span className="material-symbols-outlined animate-spin" style={{ fontSize: 40, color: 'var(--purple)' }}>sync</span>
+                <p style={{ color: 'var(--muted)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '.1em' }}>
+                  {vi ? 'Đang tải vé...' : 'Loading tickets...'}
+                </p>
               </div>
             ) : bookings.length === 0 ? (
-              <div className="glass-panel p-12 rounded-xl text-center flex flex-col justify-center items-center gap-6">
-                <span className="material-symbols-outlined text-5xl text-outline-variant font-light">local_activity</span>
-                <div>
-                  <h3 className="font-title-md text-[20px] text-on-surface mb-1">{t('noActiveTickets')}</h3>
-                </div>
-                <button 
-                  onClick={() => navigate('/')}
-                  className="bg-primary text-on-primary px-6 py-2.5 rounded font-label-sm text-[11px] uppercase tracking-widest hover:bg-white hover:text-black transition-colors"
-                >
-                  {t('browseEvents')}
+              <div className="mfc-card" style={{ padding: '48px 32px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 56, color: 'rgba(168,150,246,.3)' }}>local_activity</span>
+                <h3 className="serif" style={{ color: '#fff', fontSize: 20 }}>{vi ? 'Chưa có vé nào' : 'No tickets yet'}</h3>
+                <button className="btn-pill btn-pill-sm" onClick={() => navigate('/')}>
+                  {vi ? 'Mua vé ngay' : 'Browse Events'}
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-gutter">
-                {bookings.map((booking) => {
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {bookings.map(booking => {
                   const event = booking.eventId;
                   const seats = booking.selectedSeats || [];
                   const isReveal = qrReveal === booking._id;
+                  const ticketCode = booking.ticketCode || booking._id.toString().toUpperCase().slice(-8);
 
                   return (
-                    <div 
-                      key={booking._id} 
-                      className="glass-panel rounded-xl overflow-hidden flex flex-col lg:flex-row group transition-all duration-300 border border-outline-variant/20 hover:border-primary/30"
-                    >
-                      {/* Left: Image banner */}
-                      <div className="lg:w-2/5 h-56 lg:h-auto relative overflow-hidden select-none">
-                        <img 
-                          src={event?.image} 
-                          alt="Event"
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-103"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background/90 lg:from-background/10 via-transparent to-transparent"></div>
+                    <div key={booking._id} className="mfc-card" style={{ display: 'flex', overflow: 'hidden', minHeight: 180 }}>
+                      {/* Image */}
+                      <div style={{ width: 160, flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
+                        <img src={event?.image} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: .6, mixBlendMode: 'luminosity' }} />
+                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, transparent, rgba(7,8,24,.4))' }} />
                       </div>
 
-                      {/* Right: Info stub */}
-                      <div className="lg:w-3/5 p-8 flex flex-col justify-between relative bg-surface-container-low/30">
-                        <div className="absolute top-[-10px] left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-background hidden lg:block border border-outline-variant/10"></div>
-                        
-                        {isReveal ? (
-                          <div className="flex flex-col items-center justify-center animate-fade-in py-4 gap-3">
-                            <div className="bg-white p-3 rounded-xl shadow-lg">
-                              <QRCodeSVG
-                                value={booking.ticketCode || booking._id.toString()}
-                                size={140}
-                                bgColor="#ffffff"
-                                fgColor="#01010A"
-                                level="H"
-                                includeMargin={false}
-                              />
-                            </div>
-                            <div className="text-center">
-                              <p className="font-label-sm text-[9px] text-on-surface-variant uppercase tracking-widest mb-1">{language === 'vi' ? 'Mã vé' : 'Ticket Code'}</p>
-                              <p className="font-mono text-[16px] text-primary font-bold tracking-[0.15em]">{booking.ticketCode || booking._id.toString().toUpperCase().slice(-8)}</p>
-                            </div>
-                            <button onClick={() => setQrReveal(null)} className="text-[10px] text-on-surface-variant uppercase tracking-widest hover:text-white underline">{t('closeScan')}</button>
+                      {/* Info */}
+                      {isReveal ? (
+                        <div style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }} className="animate-fade-in">
+                          <div style={{ background: '#fff', padding: 10, borderRadius: 12 }}>
+                            <QRCodeSVG value={ticketCode} size={110} bgColor="#ffffff" fgColor="#01010A" level="H" includeMargin={false} />
                           </div>
-                        ) : (
-                          <>
-                            <div>
-                              <div className="flex justify-between items-start mb-4 select-none">
-                                <span className="inline-block px-3 py-1 bg-primary-container/60 text-on-primary-container font-label-sm text-[9px] uppercase tracking-widest rounded">
-                                  {booking.isCheckedIn ? t('passUsed') : t('activePass')}
-                                </span>
-                                <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">
-                                  {new Date(event?.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                </span>
-                              </div>
-                              
-                              <h3 className="font-title-md text-[22px] text-on-surface font-bold group-hover:text-primary transition-colors mb-2">
-                                {l(event?.title)}
-                              </h3>
-                              <p className="font-body-md text-[13px] text-on-surface-variant mb-6">
-                                {l(event?.venueName)} • {l(event?.location)}
-                              </p>
-
-                              <div className="flex gap-4 select-none">
-                                <div className="bg-surface-container-highest/60 px-4 py-2 rounded border border-outline-variant/10 text-center">
-                                  <span className="block font-label-sm text-[8px] text-on-surface-variant uppercase">{t('seatsCount')}</span>
-                                  <span className="font-title-md text-[16px] text-primary font-bold">
-                                    {seats.length}x
-                                  </span>
-                                </div>
-                                <div className="bg-surface-container-highest/60 px-4 py-2 rounded border border-outline-variant/10 text-center">
-                                  <span className="block font-label-sm text-[8px] text-on-surface-variant uppercase">{t('classLabel')}</span>
-                                  <span className="font-title-md text-[16px] text-on-surface font-bold">
-                                    {l(event?.pricingTiers?.[seats[0]?.type.toLowerCase()]?.label) || seats[0]?.type}
-                                  </span>
-                                </div>
-                              </div>
+                          <div style={{ textAlign: 'center' }}>
+                            <p style={{ fontSize: 9, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.15em', marginBottom: 4 }}>
+                              {vi ? 'Mã vé' : 'Ticket Code'}
+                            </p>
+                            <p style={{ fontFamily: 'monospace', fontSize: 16, color: 'var(--purple)', fontWeight: 700, letterSpacing: '.1em' }}>{ticketCode}</p>
+                          </div>
+                          <button onClick={() => setQrReveal(null)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 12, textDecoration: 'underline' }}>
+                            {vi ? 'Đóng' : 'Close'}
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ flex: 1, padding: '20px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                              <span style={{ fontSize: 10, padding: '4px 12px', borderRadius: 999, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', background: booking.isCheckedIn ? 'rgba(255,255,255,.1)' : 'rgba(158,254,253,.1)', color: booking.isCheckedIn ? 'var(--muted)' : 'var(--mint)', border: `1px solid ${booking.isCheckedIn ? 'rgba(255,255,255,.15)' : 'rgba(158,254,253,.3)'}` }}>
+                                {booking.isCheckedIn ? (vi ? 'Đã check-in' : 'Used') : (vi ? 'Còn hiệu lực' : 'Active')}
+                              </span>
+                              <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+                                {event?.date ? new Date(event.date).toLocaleDateString(vi ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
+                              </span>
                             </div>
-
-                            <div className="mt-8 pt-6 border-t border-outline-variant/10 flex justify-between items-center select-none gap-4">
-                              <button 
-                                onClick={() => setQrReveal(booking._id)}
-                                className="flex-1 border border-primary/40 text-primary hover:bg-primary hover:text-on-primary py-3.5 rounded font-label-sm text-[12px] uppercase tracking-widest transition-all flex justify-center items-center gap-2"
-                              >
-                                <span className="material-symbols-outlined text-[18px]">qr_code_2</span>
-                                {t('quickQr')}
-                              </button>
-                              <button 
-                                onClick={() => {
-                                  setCompletedBookingId(booking._id);
-                                  navigate('/ticket');
-                                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
-                                className="flex-1 bg-primary text-on-primary px-4 py-3.5 rounded font-label-sm text-[12px] uppercase tracking-widest hover:bg-white hover:text-black transition-colors"
-                              >
-                                {t('viewStub')}
-                              </button>
+                            <h3 className="serif" style={{ color: '#fff', fontSize: 20, margin: '0 0 4px' }}>{l(event?.title)}</h3>
+                            <p style={{ color: 'var(--muted)', fontSize: 13, margin: '0 0 12px' }}>{l(event?.venueName)}</p>
+                            <div style={{ display: 'flex', gap: 12 }}>
+                              {[
+                                { lbl: vi ? 'Ghế' : 'Seats', val: `${seats.length}×` },
+                                { lbl: vi ? 'Hạng' : 'Type',  val: l(event?.pricingTiers?.[seats[0]?.type?.toLowerCase()]?.label) || seats[0]?.type },
+                                { lbl: vi ? 'Giá' : 'Total',  val: formatPrice(booking.subtotal) },
+                              ].map(c => (
+                                <div key={c.lbl} style={{ padding: '8px 12px', background: 'rgba(168,150,246,.07)', borderRadius: 10, border: '1px solid rgba(168,150,246,.15)' }}>
+                                  <p style={{ fontSize: 9, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', margin: '0 0 2px' }}>{c.lbl}</p>
+                                  <p style={{ fontSize: 14, color: '#fff', fontWeight: 700, margin: 0 }}>{c.val}</p>
+                                </div>
+                              ))}
                             </div>
-                          </>
-                        )}
-                      </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+                            <button
+                              onClick={() => setQrReveal(booking._id)}
+                              className="btn-outline-pill btn-pill-sm"
+                              style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>qr_code_2</span>
+                              QR
+                            </button>
+                            <button
+                              onClick={() => { setCompletedBookingId(booking._id); navigate('/ticket'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                              className="btn-pill btn-pill-sm"
+                              style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>confirmation_number</span>
+                              {vi ? 'Xem vé' : 'View Ticket'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -249,79 +224,87 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
           </div>
         )}
 
-        {/* Tab 2: Purchase History */}
+        {/* ── TAB: History ── */}
         {activeTab === 'history' && (
-          <div className="glass-panel p-8 rounded-xl overflow-x-auto select-none border border-outline-variant/10">
-            <h3 className="font-title-md text-[20px] text-on-surface border-b border-outline-variant/15 pb-4 mb-6 uppercase italic">
-              {t('orderHistoryTitle')}
+          <div>
+            <h3 className="gradient-title" style={{ fontSize: 24, marginBottom: 20 }}>
+              {vi ? 'Lịch sử đặt vé' : 'Booking History'}
             </h3>
-            {bookings.length === 0 ? (
-              <p className="font-body-md text-on-surface-variant text-[14px]">{t('noHistory')}</p>
-            ) : (
-              <table className="w-full text-left text-[13px]">
-                <thead>
-                  <tr className="border-b border-outline-variant/15 font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">
-                    <th className="pb-4">{t('refId')}</th>
-                    <th className="pb-4">{t('showcase')}</th>
-                    <th className="pb-4">{t('payment')}</th>
-                    <th className="pb-4">{t('status')}</th>
-                    <th className="pb-4 text-right">{t('amount')}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant/10">
-                  {bookings.map((booking) => (
-                    <tr key={booking._id} className="text-on-surface/90 hover:text-on-surface transition-colors">
-                      <td className="py-5 font-mono text-[12px] text-primary">{booking._id.toString().toUpperCase().slice(-8)}</td>
-                      <td className="py-5">
-                        <p className="font-semibold leading-none mb-1">{l(booking.eventId?.title)}</p>
-                        <p className="text-[11px] opacity-60 uppercase">{new Date(booking.bookingDate).toLocaleDateString()}</p>
-                      </td>
-                      <td className="py-5 text-[12px]">{booking.paymentMethod}</td>
-                      <td className="py-5">
-                        <span className="px-2 py-0.5 bg-secondary/10 text-secondary border border-secondary/20 rounded text-[10px] uppercase font-bold">{t('confirmed')}</span>
-                      </td>
-                      <td className="py-5 text-right text-primary font-bold text-[16px]">${booking.subtotal}</td>
+            <div className="mfc-card" style={{ padding: '24px', overflowX: 'auto' }}>
+              {bookings.length === 0 ? (
+                <p style={{ color: 'var(--muted)', textAlign: 'center', padding: '24px 0', fontSize: 14 }}>
+                  {vi ? 'Chưa có giao dịch nào.' : 'No transactions yet.'}
+                </p>
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(168,150,246,.2)' }}>
+                      {[vi ? 'Mã' : 'Ref', vi ? 'Sự kiện' : 'Event', vi ? 'Ngày' : 'Date', vi ? 'Thanh toán' : 'Payment', vi ? 'Trạng thái' : 'Status', vi ? 'Số tiền' : 'Amount'].map(h => (
+                        <th key={h} style={{ paddingBottom: 12, color: 'var(--muted)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.1em', textAlign: h === (vi ? 'Số tiền' : 'Amount') ? 'right' : 'left', fontWeight: 600 }}>{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                  </thead>
+                  <tbody>
+                    {bookings.map(b => (
+                      <tr key={b._id} style={{ borderBottom: '1px solid rgba(168,150,246,.08)' }}>
+                        <td style={{ padding: '14px 0', fontFamily: 'monospace', color: 'var(--purple)', fontSize: 12 }}>{b._id.toString().toUpperCase().slice(-8)}</td>
+                        <td style={{ padding: '14px 12px 14px 0' }}>
+                          <p style={{ color: '#fff', fontWeight: 600, margin: '0 0 2px' }}>{l(b.eventId?.title)}</p>
+                          <p style={{ color: 'var(--muted)', fontSize: 11, margin: 0 }}>{(b.selectedSeats || []).length} {vi ? 'ghế' : 'seat(s)'}</p>
+                        </td>
+                        <td style={{ padding: '14px 12px 14px 0', color: 'var(--muted)', fontSize: 12 }}>
+                          {new Date(b.bookingDate).toLocaleDateString(vi ? 'vi-VN' : 'en-US')}
+                        </td>
+                        <td style={{ padding: '14px 12px 14px 0', color: 'var(--muted)', fontSize: 12 }}>{b.paymentMethod}</td>
+                        <td style={{ padding: '14px 12px 14px 0' }}>
+                          <span style={{ fontSize: 10, padding: '3px 10px', borderRadius: 999, background: 'rgba(158,254,253,.1)', color: 'var(--mint)', border: '1px solid rgba(158,254,253,.3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                            {vi ? 'Đã xác nhận' : 'Confirmed'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 0', textAlign: 'right', color: 'var(--purple)', fontWeight: 700, fontSize: 15 }}>{formatPrice(b.subtotal)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
         )}
 
-        {/* Tab 3: Profile */}
+        {/* ── TAB: Profile ── */}
         {activeTab === 'profile' && (
-          <div className="max-w-[600px] space-y-8 animate-fade-in">
-            <div className="glass-panel p-10 rounded-2xl border border-outline-variant/15">
-              <h3 className="font-title-md text-[20px] text-on-surface border-b border-outline-variant/15 pb-4 mb-8">{t('userCredentials')}</h3>
-              
-              <div className="space-y-6">
-                <div className="flex flex-col gap-1.5">
-                  <label className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">{t('legalFullName')}</label>
-                  <p className="bg-surface-container/40 border border-outline-variant/20 rounded-lg p-4 text-[15px] text-on-surface font-semibold">{name}</p>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">{t('authenticatedEmail')}</label>
-                  <p className="bg-surface-container/40 border border-outline-variant/20 rounded-lg p-4 text-[15px] text-on-surface font-semibold">{email}</p>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">{t('accountPrivilege')}</label>
-                  <div className="flex items-center gap-2 bg-secondary/5 border border-secondary/20 rounded-lg p-4">
-                    <span className="material-symbols-outlined text-secondary text-[20px]">verified</span>
-                    <span className="text-[14px] text-secondary font-bold uppercase tracking-widest">{savedUser.role || 'Member'}</span>
+          <div style={{ maxWidth: 560 }}>
+            <h3 className="gradient-title" style={{ fontSize: 24, marginBottom: 20 }}>
+              {vi ? 'Tài khoản' : 'Your Account'}
+            </h3>
+            <div className="mfc-card" style={{ padding: '32px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {[
+                  { labelVi: 'Họ và tên', labelEn: 'Full Name', value: name },
+                  { labelVi: 'Email',     labelEn: 'Email',     value: email },
+                  { labelVi: 'Vai trò',   labelEn: 'Role',      value: savedUser.role || 'Member', highlight: true },
+                ].map(f => (
+                  <div key={f.labelEn}>
+                    <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
+                      {vi ? f.labelVi : f.labelEn}
+                    </label>
+                    <div style={{ padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(168,150,246,.28)', background: 'rgba(1,1,10,.4)', color: f.highlight ? 'var(--mint)' : '#fff', fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10 }}>
+                      {f.highlight && <span className="material-symbols-outlined" style={{ color: 'var(--mint)', fontSize: 18 }}>verified</span>}
+                      {f.value}
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
 
-              <div className="mt-12 pt-8 border-t border-outline-variant/10">
-                <button 
-                  onClick={handleLogout}
-                  className="w-full flex items-center justify-center gap-2 border border-error/30 text-error hover:bg-error hover:text-white py-4 rounded font-label-sm text-[12px] uppercase tracking-widest transition-all"
-                >
-                  <span className="material-symbols-outlined text-[20px]">logout</span>
-                  {t('terminateSession')}
-                </button>
-              </div>
+              <button
+                onClick={handleLogout}
+                style={{ marginTop: 28, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px 20px', borderRadius: 12, border: '1px solid rgba(255,107,107,.3)', background: 'none', color: '#ff6b6b', cursor: 'pointer', fontSize: 14, fontWeight: 600, transition: 'background .2s' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,107,107,.1)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'none'}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>logout</span>
+                {vi ? 'Đăng xuất khỏi tài khoản' : 'Sign out of account'}
+              </button>
             </div>
           </div>
         )}

@@ -7,8 +7,11 @@ import { QRCodeSVG } from 'qrcode.react';
 const DigitalTicketPage = ({ completedBookingId, settings }) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
+  const vi = language === 'vi';
+
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   const l = useCallback((field) => {
     if (!field) return '';
@@ -21,201 +24,157 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
     setLoading(true);
     fetch(`${API_URL}/api/bookings/${completedBookingId}`)
       .then(res => res.json())
-      .then(data => {
-        setBooking(data);
-        setLoading(false);
-      })
+      .then(data => { setBooking(data); setLoading(false); })
       .catch(() => setLoading(false));
   }, [completedBookingId]);
 
-  if (loading) {
-    return (
-      <div className="w-full flex-grow flex flex-col justify-center items-center py-20 gap-4 pt-[120px]">
-        <span className="material-symbols-outlined text-4xl text-primary animate-spin">sync</span>
-        <p className="font-label-sm text-on-surface-variant uppercase tracking-widest">
-          {language === 'vi' ? 'Đang tạo vé điện tử...' : 'Generating Digital Ticket Stub...'}
-        </p>
-      </div>
-    );
-  }
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
-  if (!booking) {
-    return (
-      <div className="w-full flex-grow flex flex-col justify-center items-center py-20 gap-4 pt-[120px] select-none text-center">
-        <span className="material-symbols-outlined text-4xl text-error">error</span>
-        <p className="font-label-sm text-on-surface-variant uppercase tracking-widest">
-          {language === 'vi' ? 'Không tìm thấy vé.' : 'No Ticket Found.'}
-        </p>
-        <button onClick={() => navigate('/')} className="text-primary underline font-label-sm text-[12px] uppercase tracking-widest">
-          {language === 'vi' ? 'Về trang chủ' : 'Return to Homepage'}
-        </button>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+      <span className="material-symbols-outlined animate-spin" style={{ fontSize: 48, color: 'var(--purple)' }}>sync</span>
+      <p style={{ color: 'var(--muted)', fontSize: 13, letterSpacing: '.15em', textTransform: 'uppercase' }}>
+        {vi ? 'Đang tạo vé điện tử...' : 'Generating ticket...'}
+      </p>
+    </div>
+  );
 
-  const event = booking.eventId;
-  const seats = booking.selectedSeats || [];
+  if (!booking) return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+      <span className="material-symbols-outlined" style={{ fontSize: 48, color: '#ff6b6b' }}>error</span>
+      <p style={{ color: 'var(--muted)', fontSize: 14 }}>{vi ? 'Không tìm thấy vé.' : 'Ticket not found.'}</p>
+      <button onClick={() => navigate('/')} style={{ color: 'var(--purple)', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13 }}>
+        {vi ? 'Về trang chủ' : 'Back to Home'}
+      </button>
+    </div>
+  );
+
+  const event     = booking.eventId;
+  const seats     = booking.selectedSeats || [];
   const ticketCode = booking.ticketCode || localStorage.getItem('lastTicketCode') || booking._id.toString().toUpperCase().slice(-8);
-  const refId = booking._id.toString().toUpperCase().slice(-8);
+  const refId     = booking._id.toString().toUpperCase().slice(-8);
+  const formatPrice = (p) => vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + p;
 
   return (
-    <div className="w-full flex-grow flex flex-col pt-[120px] pb-section-gap px-margin-mobile md:px-margin-desktop items-center justify-center min-h-screen relative z-10 animate-fade-in">
+    <div className="animate-fade-in" style={{ paddingTop: 96, paddingBottom: 64, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ width: '100%', maxWidth: 460, padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center' }}>
 
-      <div className="w-full max-w-[440px] flex flex-col gap-6 items-center">
-
-        {/* Success Badge */}
-        <span className="inline-block px-4 py-1.5 bg-primary/10 border border-primary/20 text-primary font-label-sm text-[10px] uppercase tracking-widest rounded-full select-none animate-pulse">
-          {language === 'vi' ? '✓ Đặt vé thành công' : '✓ Reservation Completed Successfully'}
+        {/* Success badge */}
+        <span style={{ padding: '6px 18px', borderRadius: 999, background: 'rgba(158,254,253,.1)', border: '1px solid rgba(158,254,253,.3)', color: 'var(--mint)', fontSize: 12, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase' }}>
+          ✓ {vi ? 'Đặt vé thành công' : 'Booking Confirmed'}
         </span>
 
-        {/* Ticket Card */}
-        <div className="w-full relative bg-surface-container/50 backdrop-blur-[24px] border border-outline-variant/20 rounded-xl overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.55)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_50px_100px_-20px_rgba(70,69,215,0.15)] group">
+        {/* Ticket card */}
+        <div style={{ width: '100%', background: 'linear-gradient(180deg, rgba(14,16,44,.9), rgba(7,8,24,.85))', border: '1px solid rgba(168,150,246,.4)', borderRadius: 24, overflow: 'hidden', boxShadow: '0 40px 80px -20px rgba(70,69,215,.2)' }}>
 
-          {/* Event Image Header */}
-          <div className="h-44 relative bg-surface-container-high overflow-hidden select-none">
-            <div className="absolute inset-0 bg-gradient-to-t from-surface-container/95 via-surface-container/40 to-transparent z-10" />
-            <img
-              src={event?.image}
-              alt="Event"
-              className="absolute w-full h-full object-cover mix-blend-luminosity opacity-55 group-hover:scale-105 transition-transform duration-700"
-            />
-            <div className="absolute bottom-5 left-6 right-6 z-20 flex justify-between items-end">
+          {/* Image header */}
+          <div style={{ height: 160, position: 'relative', overflow: 'hidden' }}>
+            <img src={event?.image} alt="Event" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: .55, filter: 'saturate(1.2)' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(7,8,24,.95) 0%, transparent 60%)' }} />
+            <div style={{ position: 'absolute', bottom: 20, left: 24, right: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
               <div>
-                <p className="font-label-sm text-[9px] text-primary uppercase tracking-[0.2em] mb-1.5 font-bold">Admit One</p>
-                <h2 className="font-headline-lg-mobile text-[22px] text-on-surface leading-none tracking-wide uppercase">
-                  {l(event?.title)}
-                </h2>
+                <p style={{ color: 'var(--mint)', fontSize: 10, fontWeight: 700, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: 4 }}>ADMIT ONE</p>
+                <h2 className="serif" style={{ color: '#fff', fontSize: 26, margin: 0, lineHeight: .9 }}>{l(event?.title)}</h2>
               </div>
-              <span className="material-symbols-outlined text-3xl text-primary font-light">local_activity</span>
+              <span className="material-symbols-outlined" style={{ color: 'var(--purple)', fontSize: 32 }}>local_activity</span>
             </div>
           </div>
 
-          {/* Info Grid */}
-          <div className="p-6 space-y-5">
-            <div className="grid grid-cols-2 gap-4 border-b border-outline-variant/15 pb-5">
-              <div>
-                <p className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest mb-1.5">
-                  {language === 'vi' ? 'Ngày & Giờ' : 'Date & Time'}
+          {/* Info grid */}
+          <div style={{ padding: '20px 24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
+            {[
+              { labelEn: 'Date & Time', labelVi: 'Ngày & Giờ', value: event?.date ? new Date(event.date).toLocaleDateString(vi ? 'vi-VN' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '—', sub: new Date(event?.date).toLocaleTimeString(vi ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit' }) },
+              { labelEn: 'Venue',       labelVi: 'Địa điểm',  value: l(event?.venueName), sub: l(event?.location), align: 'right' },
+              { labelEn: 'Seats',       labelVi: 'Chỗ ngồi',  value: seats.map(s => s.seatId.split('-').slice(2).join(' ')).join(', ') || '—', sub: '' },
+              { labelEn: 'Tier',        labelVi: 'Hạng vé',   value: l(event?.pricingTiers?.[seats[0]?.type?.toLowerCase()]?.label) || seats[0]?.type || '—', sub: '', align: 'right' },
+            ].map(c => (
+              <div key={c.labelEn} style={{ textAlign: c.align || 'left' }}>
+                <p style={{ fontSize: 9, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.15em', marginBottom: 4 }}>
+                  {vi ? c.labelVi : c.labelEn}
                 </p>
-                <p className="font-body-md text-[14px] text-on-surface font-semibold">
-                  {event?.date ? new Date(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
-                </p>
-                <p className="text-[11px] text-on-surface-variant/80 uppercase mt-0.5">8:00 PM</p>
+                <p style={{ color: '#fff', fontSize: 14, fontWeight: 600, margin: 0 }}>{c.value}</p>
+                {c.sub && <p style={{ color: 'var(--muted)', fontSize: 11, margin: '2px 0 0' }}>{c.sub}</p>}
               </div>
-              <div className="text-right">
-                <p className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest mb-1.5">
-                  {language === 'vi' ? 'Địa điểm' : 'Venue'}
-                </p>
-                <p className="font-body-md text-[14px] text-on-surface font-semibold">{l(event?.venueName)}</p>
-                <p className="text-[11px] text-on-surface-variant/80 uppercase mt-0.5">{l(event?.location)}</p>
-              </div>
-            </div>
+            ))}
+          </div>
 
-            {/* Seats & Tier */}
-            <div className="flex justify-between items-center">
-              <div className="bg-surface-container-highest/40 px-4 py-2.5 rounded-lg border border-outline-variant/10">
-                <p className="font-label-sm text-[9px] text-on-surface-variant uppercase tracking-widest mb-1">
-                  {language === 'vi' ? 'Chỗ ngồi' : 'Seats Reserved'}
-                </p>
-                <p className="font-title-md text-[15px] text-primary">
-                  {seats.map(s => s.seatId.split('-').slice(2).join(' ')).join(', ')}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="font-label-sm text-[9px] text-on-surface-variant uppercase tracking-widest mb-1">
-                  {language === 'vi' ? 'Hạng vé' : 'Ticket Type'}
-                </p>
-                <p className="font-body-md text-[14px] text-on-surface font-semibold">
-                  {l(event?.pricingTiers?.[seats[0]?.type?.toLowerCase()]?.label) || seats[0]?.type}
-                </p>
-              </div>
-            </div>
-
-            {/* Total */}
-            <div className="flex justify-between items-center bg-primary/5 border border-primary/15 rounded-lg px-4 py-3">
-              <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">
-                {language === 'vi' ? 'Tổng thanh toán' : 'Total Paid'}
-              </span>
-              <span className="font-display-xl text-[22px] text-primary font-bold">${booking.subtotal}</span>
-            </div>
+          {/* Total */}
+          <div style={{ padding: '14px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(70,69,215,.08)', borderBottom: '1px solid rgba(168,150,246,.18)' }}>
+            <span style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.12em' }}>
+              {vi ? 'Tổng thanh toán' : 'Total Paid'}
+            </span>
+            <span className="serif" style={{ fontSize: 24, color: 'var(--purple)', fontWeight: 700 }}>{formatPrice(booking.subtotal)}</span>
           </div>
 
           {/* Tear line */}
-          <div className="relative flex items-center w-full select-none">
-            <div className="w-6 h-6 rounded-full bg-background absolute -left-3 shadow-[inset_-3px_0_5px_rgba(0,0,0,0.4)]" />
-            <div className="flex-1 border-t-2 border-dashed border-outline-variant/25 mx-4" />
-            <div className="w-6 h-6 rounded-full bg-background absolute -right-3 shadow-[inset_3px_0_5px_rgba(0,0,0,0.4)]" />
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--black)', position: 'absolute', left: -11, boxShadow: 'inset -3px 0 5px rgba(0,0,0,.4)' }} />
+            <div style={{ flex: 1, margin: '0 12px', borderTop: '2px dashed rgba(168,150,246,.25)' }} />
+            <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--black)', position: 'absolute', right: -11, boxShadow: 'inset 3px 0 5px rgba(0,0,0,.4)' }} />
           </div>
 
-          {/* QR Code Section */}
-          <div className="p-8 flex flex-col items-center justify-center bg-surface-container/20 gap-4">
-            {/* Real QR Code */}
-            <div className="bg-white p-3 rounded-xl shadow-lg">
-              <QRCodeSVG
-                value={ticketCode}
-                size={140}
-                bgColor="#ffffff"
-                fgColor="#01010A"
-                level="H"
-                includeMargin={false}
-              />
+          {/* QR section */}
+          <div style={{ padding: '28px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <div style={{ background: '#fff', padding: 12, borderRadius: 16, boxShadow: '0 0 40px rgba(168,150,246,.3)' }}>
+              <QRCodeSVG value={ticketCode} size={140} bgColor="#ffffff" fgColor="#01010A" level="H" includeMargin={false} />
             </div>
 
-            {/* Ticket Code Display */}
-            <div className="text-center">
-              <p className="font-label-sm text-[9px] text-on-surface-variant uppercase tracking-[0.2em] mb-2">
-                {language === 'vi' ? 'MÃ VÉ' : 'TICKET CODE'}
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ fontSize: 9, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.18em', marginBottom: 10 }}>
+                {vi ? 'MÃ VÉ' : 'TICKET CODE'}
               </p>
-              <div className="flex items-center gap-2 bg-surface-container-highest/60 border border-primary/20 px-5 py-2.5 rounded-lg">
-                <span className="font-mono text-[18px] text-primary font-bold tracking-[0.15em]">{ticketCode}</span>
-                <button
-                  onClick={() => { navigator.clipboard.writeText(ticketCode); }}
-                  className="text-on-surface-variant hover:text-primary transition-colors"
-                  title="Copy"
-                >
-                  <span className="material-symbols-outlined text-[16px]">content_copy</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(168,150,246,.08)', border: '1px solid rgba(168,150,246,.3)', borderRadius: 12, padding: '12px 20px' }}>
+                <span style={{ fontFamily: 'monospace', fontSize: 20, color: 'var(--purple)', fontWeight: 700, letterSpacing: '.15em' }}>{ticketCode}</span>
+                <button onClick={() => handleCopy(ticketCode)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? 'var(--mint)' : 'var(--muted)', transition: 'color .2s' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{copied ? 'check' : 'content_copy'}</span>
                 </button>
               </div>
-              <p className="font-label-sm text-[9px] text-on-surface-variant/60 mt-2 uppercase tracking-widest">
-                REF: {refId}
-              </p>
+              <p style={{ fontSize: 9, color: 'rgba(168,150,246,.5)', marginTop: 8, letterSpacing: '.1em', textTransform: 'uppercase' }}>REF: {refId}</p>
             </div>
 
-            <p className="font-label-sm text-[9px] text-on-surface-variant/50 text-center uppercase tracking-wider max-w-[220px]">
-              {language === 'vi'
-                ? 'Xuất trình mã QR hoặc mã vé tại cửa vào'
-                : 'Present QR code or ticket code at venue entrance'}
+            <p style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'center', letterSpacing: '.08em', textTransform: 'uppercase', maxWidth: 240 }}>
+              {vi ? 'Xuất trình mã QR tại cửa vào sự kiện' : 'Present QR code at the event entrance'}
             </p>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="w-full space-y-3 select-none">
-          <div className="flex gap-3">
+        {/* Actions */}
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', gap: 12 }}>
             <button
               onClick={() => window.print()}
-              className="flex-1 flex items-center justify-center gap-2 border border-outline-variant/40 bg-transparent text-on-surface px-6 py-4 rounded-xl font-label-sm text-[12px] uppercase tracking-widest hover:bg-surface-container-highest/20 hover:border-white transition-all"
+              className="btn-outline-pill"
+              style={{ flex: 1, justifyContent: 'center', gap: 8 }}
             >
-              <span className="material-symbols-outlined text-[18px]">download</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>download</span>
               PDF
             </button>
             <button
-              onClick={() => {
-                navigator.clipboard.writeText(ticketCode);
-              }}
-              className="flex-1 flex items-center justify-center gap-2 border border-outline-variant/40 bg-transparent text-on-surface px-6 py-4 rounded-xl font-label-sm text-[12px] uppercase tracking-widest hover:bg-surface-container-highest/20 hover:border-white transition-all"
+              onClick={() => handleCopy(ticketCode)}
+              className="btn-outline-pill"
+              style={{ flex: 1, justifyContent: 'center', gap: 8 }}
             >
-              <span className="material-symbols-outlined text-[18px]">content_copy</span>
-              {language === 'vi' ? 'Sao chép' : 'Copy Code'}
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{copied ? 'check' : 'content_copy'}</span>
+              {copied ? (vi ? 'Đã sao chép' : 'Copied!') : (vi ? 'Sao chép' : 'Copy Code')}
             </button>
           </div>
-
           <button
             onClick={() => { navigate('/dashboard'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-            className="w-full flex items-center justify-center gap-2 bg-surface-container-highest text-on-surface border border-outline-variant/30 py-4 rounded-xl font-label-sm text-[13px] uppercase tracking-widest hover:bg-white hover:text-background transition-all"
+            className="btn-pill"
+            style={{ justifyContent: 'center', gap: 8 }}
           >
-            <span className="material-symbols-outlined text-[20px]">account_circle</span>
-            {language === 'vi' ? 'Quay lại Dashboard' : 'View My Dashboard'}
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>account_circle</span>
+            {vi ? 'Xem Dashboard' : 'My Dashboard'}
+          </button>
+          <button
+            onClick={() => { navigate('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 13, textDecoration: 'underline', padding: '6px 0' }}
+          >
+            {vi ? 'Về trang chủ' : 'Back to Home'}
           </button>
         </div>
       </div>

@@ -1,44 +1,104 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
 
+/* ─── Seat generation ──────────────────────────────────────── */
+const ROWS_ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const SP = 24;   // seat spacing px
+const X_OFF = 30; // centering offset
+
+/*
+  Layout (canvas 820 × 560):
+  Stage at top center
+
+  [STD-C-L]  [VIP-A-L]   [VIP-B]   [VIP-A-R]  [STD-C-R]
+  (7r×6c)     (7r×5c)   (5r×10c)   (7r×5c)     (7r×6c)
+
+  [STD-D-L]                                     [STD-D-R]
+  (4r×6c)                                        (4r×6c)
+
+                    [STD-E]
+                   (4r×14c)
+*/
+
+const buildSeats = (vi, vipPrice, silverPrice, standardPrice) => {
+  const list = [];
+
+  const addZone = (key, labelEn, labelVi, type, price, color, baseX, startY, numRows, numCols) => {
+    for (let r = 0; r < numRows; r++) {
+      for (let c = 0; c < numCols; c++) {
+        const rowLetter = ROWS_ALPHA[r];
+        const seatNum = c + 1;
+        list.push({
+          id:        `${key}-${rowLetter}${seatNum}`,
+          num:       `${rowLetter}${seatNum}`,
+          rowLetter,
+          type,
+          zone:      key,
+          zoneName:  vi ? labelVi : labelEn,
+          price,
+          color,
+          x: X_OFF + baseX + c * SP,
+          y: startY + r * SP,
+        });
+      }
+    }
+  };
+
+  addZone('STD-C-L', 'Standard C', 'Tiêu chuẩn C', 'Standard', standardPrice, '#4b5169', 14,  110, 7, 6);
+  addZone('VIP-A-L', 'VIP A',      'VIP A',         'VIP',      vipPrice,      '#b026d9', 162, 110, 7, 5);
+  addZone('VIP-B',   'VIP B',      'VIP B',         'Silver',   silverPrice,   '#2563eb', 282, 110, 5, 10);
+  addZone('VIP-A-R', 'VIP A',      'VIP A',         'VIP',      vipPrice,      '#b026d9', 526, 110, 7, 5);
+  addZone('STD-C-R', 'Standard C', 'Tiêu chuẩn C', 'Standard', standardPrice, '#4b5169', 674, 110, 7, 6);
+  addZone('STD-D-L', 'Standard D', 'Tiêu chuẩn D', 'Standard', standardPrice, '#4b5169', 14,  290, 4, 6);
+  addZone('STD-D-R', 'Standard D', 'Tiêu chuẩn D', 'Standard', standardPrice, '#4b5169', 674, 290, 4, 6);
+  addZone('STD-E',   'Standard E', 'Tiêu chuẩn E', 'Standard', standardPrice, '#7c55d9', 158, 420, 4, 14);
+
+  return list;
+};
+
+/* ─── Zone label config ─────────────────────────────────────── */
+const ZONE_LABELS = [
+  { key: 'STD-C-L', text: 'STANDARD C', x: X_OFF + 14 + 5 * 24 / 2 - 12,  y: 95,  anchor: 'middle' },
+  { key: 'VIP-A-L', text: 'VIP A',      x: X_OFF + 162 + 4 * 24 / 2,       y: 95,  anchor: 'middle' },
+  { key: 'VIP-B',   text: 'VIP B',      x: X_OFF + 282 + 9 * 24 / 2,       y: 95,  anchor: 'middle' },
+  { key: 'VIP-A-R', text: 'VIP A',      x: X_OFF + 526 + 4 * 24 / 2,       y: 95,  anchor: 'middle' },
+  { key: 'STD-C-R', text: 'STANDARD C', x: X_OFF + 674 + 5 * 24 / 2 - 12,  y: 95,  anchor: 'middle' },
+  { key: 'STD-D-L', text: 'STANDARD D', x: X_OFF + 14 + 5 * 24 / 2 - 12,   y: 276, anchor: 'middle' },
+  { key: 'STD-D-R', text: 'STANDARD D', x: X_OFF + 674 + 5 * 24 / 2 - 12,  y: 276, anchor: 'middle' },
+  { key: 'STD-E',   text: 'STANDARD E', x: X_OFF + 158 + 13 * 24 / 2,       y: 407, anchor: 'middle' },
+];
+
+/* ─── Component ─────────────────────────────────────────────── */
 const SeatSelectionPage = ({ event, setBookingDetails }) => {
   const navigate = useNavigate();
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
+  const vi = language === 'vi';
+
   const [occupiedSeats, setOccupiedSeats] = useState([]);
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [scale, setScale] = useState(1);
   const containerRef = React.useRef(null);
 
-  const l = useCallback((field) => {
-    if (!field) return '';
-    if (typeof field === 'string') return field;
-    return field[language] || field.en || '';
-  }, [language]);
+  const vipPrice      = event?.pricingTiers?.vip?.price      || 499000;
+  const silverPrice   = event?.pricingTiers?.silver?.price   || 299000;
+  const standardPrice = event?.pricingTiers?.standard?.price || 199000;
 
-  const vipPrice = event?.pricingTiers?.vip?.price || 450;
-  const goldPrice = event?.pricingTiers?.gold?.price || 250;
-  const silverPrice = event?.pricingTiers?.silver?.price || 150;
-  const standardPrice = event?.pricingTiers?.standard?.price || 100;
+  const formatPrice = (p) => vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + p;
 
   useEffect(() => {
     const handleResize = () => {
       if (containerRef.current) {
-        const padding = window.innerWidth < 768 ? 24 : 48;
-        const parentWidth = containerRef.current.clientWidth - padding;
-        const newScale = Math.min(1, parentWidth / 820);
-        setScale(newScale);
+        const avail = containerRef.current.clientWidth - 32;
+        setScale(Math.min(1, avail / 820));
       }
     };
     window.addEventListener('resize', handleResize);
     handleResize();
-    const timer = setTimeout(handleResize, 150);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      clearTimeout(timer);
-    };
+    const t = setTimeout(handleResize, 100);
+    return () => { window.removeEventListener('resize', handleResize); clearTimeout(t); };
   }, [loading]);
 
   useEffect(() => {
@@ -46,228 +106,330 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
     setLoading(true);
     fetch(`${API_URL}/api/bookings/event/${event._id}/occupied-seats`)
       .then(res => res.json())
-      .then(data => {
-        setOccupiedSeats(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching occupied seats:', err);
-        setOccupiedSeats([]);
-        setLoading(false);
-      });
+      .then(data => { setOccupiedSeats(data); setLoading(false); })
+      .catch(() => { setOccupiedSeats([]); setLoading(false); });
   }, [event]);
 
-  const generateSeats = () => {
-    const list = [];
-    const spacing = 28;
-
-    // LEFT INNER
-    for (let col = 1; col <= 2; col++) {
-      const x = 238 + (col - 1) * spacing;
-      for (let i = 1; i <= 20; i++) {
-        list.push({ id: `L-Gold-Col${col}-${i}`, label: `${language === 'vi' ? 'Trái - Vàng' : 'L-Gold'} C${col} R${i}`, num: i, type: 'Gold', price: goldPrice, color: '#ffb800', x, y: 180 + (i - 1) * spacing });
-      }
-    }
-    for (let col = 1; col <= 2; col++) {
-      const x = 294 + (col - 1) * spacing;
-      for (let i = 1; i <= 20; i++) {
-        list.push({ id: `L-VIP-Col${col}-${i}`, label: `${language === 'vi' ? 'Trái - VIP' : 'L-VIP'} C${col} R${i}`, num: i, type: 'VIP', price: vipPrice, color: '#ff2a8d', x, y: 180 + (i - 1) * spacing });
-      }
-    }
-
-    // RIGHT INNER
-    for (let col = 1; col <= 2; col++) {
-      const x = 473 + (col - 1) * spacing;
-      for (let i = 1; i <= 20; i++) {
-        list.push({ id: `R-VIP-Col${col}-${i}`, label: `${language === 'vi' ? 'Phải - VIP' : 'R-VIP'} C${col} R${i}`, num: i, type: 'VIP', price: vipPrice, color: '#ff2a8d', x, y: 180 + (i - 1) * spacing });
-      }
-    }
-    for (let col = 1; col <= 2; col++) {
-      const x = 529 + (col - 1) * spacing;
-      for (let i = 1; i <= 20; i++) {
-        list.push({ id: `R-Gold-Col${col}-${i}`, label: `${language === 'vi' ? 'Phải - Vàng' : 'R-Gold'} C${col} R${i}`, num: i, type: 'Gold', price: goldPrice, color: '#ffb800', x, y: 180 + (i - 1) * spacing });
-      }
-    }
-
-    // MIDDLE U (Silver)
-    for (let col = 1; col <= 3; col++) {
-      const x = 126 + (col - 1) * spacing;
-      for (let i = 1; i <= 25; i++) {
-        list.push({ id: `L-Silver-Col${col}-${i}`, label: `${language === 'vi' ? 'Trái - Bạc' : 'L-Silver'} C${col} R${i}`, num: i, type: 'Silver', price: silverPrice, color: '#00f0ff', x, y: 150 + (i - 1) * spacing });
-      }
-    }
-    for (let col = 1; col <= 3; col++) {
-      const x = 613 + (col - 1) * spacing;
-      for (let i = 1; i <= 25; i++) {
-        list.push({ id: `R-Silver-Col${col}-${i}`, label: `${language === 'vi' ? 'Phải - Bạc' : 'R-Silver'} C${col} R${i}`, num: i, type: 'Silver', price: silverPrice, color: '#00f0ff', x, y: 150 + (i - 1) * spacing });
-      }
-    }
-    for (let r = 1; r <= 3; r++) {
-      const y = 766 + (r - 1) * spacing;
-      for (let i = 0; i < 15; i++) {
-        const x = Math.round(210 + i * (375 / 14));
-        list.push({ id: `B-Silver-Row${r}-${i + 1}`, label: `${language === 'vi' ? 'Dưới - Bạc' : 'B-Silver'} R${r} S${i + 1}`, num: i + 1, type: 'Silver', price: silverPrice, color: '#00f0ff', x, y });
-      }
-    }
-
-    // OUTER U (Standard)
-    for (let col = 1; col <= 2; col++) {
-      const x = 42 + (col - 1) * spacing;
-      for (let i = 1; i <= 27; i++) {
-        list.push({ id: `L-Std-Col${col}-${i}`, label: `${language === 'vi' ? 'Trái - PT' : 'L-Std'} C${col} R${i}`, num: i, type: 'Standard', price: standardPrice, color: '#d946ef', x, y: 150 + (i - 1) * spacing });
-      }
-    }
-    for (let col = 1; col <= 2; col++) {
-      const x = 725 + (col - 1) * spacing;
-      for (let i = 1; i <= 27; i++) {
-        list.push({ id: `R-Std-Col${col}-${i}`, label: `${language === 'vi' ? 'Phải - PT' : 'R-Std'} C${col} R${i}`, num: i, type: 'Standard', price: standardPrice, color: '#d946ef', x, y: 150 + (i - 1) * spacing });
-      }
-    }
-    for (let r = 1; r <= 2; r++) {
-      const y = 850 + (r - 1) * spacing;
-      for (let i = 0; i < 23; i++) {
-        const x = Math.round(98 + i * (599 / 22));
-        list.push({ id: `B-Std-Row${r}-${i + 1}`, label: `${language === 'vi' ? 'Dưới - PT' : 'B-Std'} R${r} S${i + 1}`, num: i + 1, type: 'Standard', price: standardPrice, color: '#d946ef', x, y });
-      }
-    }
-    return list;
-  };
-
-  const seats = generateSeats();
+  const seats = buildSeats(vi, vipPrice, silverPrice, standardPrice);
 
   const handleSeatClick = (seat) => {
     if (occupiedSeats.includes(seat.id)) return;
-    const isSelected = selectedSeats.some(s => s.id === seat.id);
-    if (isSelected) setSelectedSeats(selectedSeats.filter(s => s.id !== seat.id));
-    else {
-      if (selectedSeats.length >= 6) { alert('Limit 6 seats.'); return; }
+    const already = selectedSeats.some(s => s.id === seat.id);
+    if (already) {
+      setSelectedSeats(selectedSeats.filter(s => s.id !== seat.id));
+    } else {
+      if (selectedSeats.length >= 6) { alert(vi ? 'Tối đa 6 ghế mỗi lần đặt.' : 'Maximum 6 seats per booking.'); return; }
       setSelectedSeats([...selectedSeats, seat]);
     }
   };
 
+  const handleClearAll = () => setSelectedSeats([]);
+
   const handleProceed = () => {
-    if (selectedSeats.length === 0) return;
+    if (!selectedSeats.length) return;
     setBookingDetails({
       selectedSeats: selectedSeats.map(s => ({ seatId: s.id, type: s.type, price: s.price })),
-      subtotal: selectedSeats.reduce((sum, s) => sum + s.price, 0)
+      subtotal: selectedSeats.reduce((sum, s) => sum + s.price, 0),
     });
     navigate('/checkout');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
+  const svcFee = Math.round(total * 0.05);
+
+  /* Unique zones of selected seats */
+  const selectedZones = [...new Set(selectedSeats.map(s => s.zoneName))];
+
+  const LEGEND_ITEMS = [
+    { color: '#b026d9', label: vi ? 'VIP A' : 'VIP A', price: formatPrice(vipPrice) },
+    { color: '#2563eb', label: vi ? 'VIP B' : 'VIP B', price: formatPrice(silverPrice) },
+    { color: '#4b5169', label: vi ? 'Tiêu chuẩn' : 'Standard', price: formatPrice(standardPrice) },
+    { color: '#00e8c8', label: vi ? 'Đang chọn' : 'Selected', price: null },
+    { color: '#1e1e2f', label: vi ? 'Đã bán' : 'Taken', price: null, bordered: true },
+  ];
+
   if (!event) return null;
 
+  const CANVAS_W = 820;
+  const CANVAS_H = 560;
+
   return (
-    <div className="w-full flex-grow flex flex-col pt-[100px] pb-24 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto relative z-10">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 select-none">
-        <div>
-          <button onClick={() => { navigate('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex items-center gap-2 font-label-sm text-[13px] text-on-surface-variant hover:text-primary transition-colors uppercase tracking-widest mb-4">
-            <span className="material-symbols-outlined text-[18px]">keyboard_backspace</span> {t('returnShowcase')}
-          </button>
-          <h1 className="font-headline-lg-mobile text-on-surface uppercase leading-none font-bold tracking-tight">{t('runwaySeating')}</h1>
-          <p className="font-body-md text-on-surface-variant text-[14px] mt-1">
-            {language === 'vi' ? 'Toạ độ chỗ ngồi chính xác được ánh xạ theo ánh đèn sân khấu.' : 'Exact coordinates mapped to the spotlighting.'}
-          </p>
-        </div>
-        
-        {/* LOCALIZED LEGEND */}
-        <div className="flex flex-wrap gap-4 text-[11px] font-label-sm uppercase tracking-wider bg-surface-container/20 border border-outline-variant/15 px-6 py-3 rounded-lg shadow-xl">
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-[#ff2a8d]"></span>
-            <span>{l(event.pricingTiers?.vip?.label) || 'VIP'} (${vipPrice})</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-[#ffb800]"></span>
-            <span>{l(event.pricingTiers?.gold?.label) || 'Gold'} (${goldPrice})</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-[#00f0ff]"></span>
-            <span>{l(event.pricingTiers?.silver?.label) || 'Silver'} (${silverPrice})</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-[#d946ef]"></span>
-            <span>{l(event.pricingTiers?.standard?.label) || 'Standard'} (${standardPrice})</span>
-          </div>
-          <div className="flex items-center gap-2 border-l border-outline-variant/30 pl-4">
-            <span className="w-3 h-3 rounded bg-[#322d37] opacity-60"></span>
-            <span>{t('occupied')}</span>
-          </div>
-        </div>
-      </div>
+    <div style={{ paddingTop: 96, paddingBottom: 64 }} className="animate-fade-in">
+      <div className="container">
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-        <div ref={containerRef} className="xl:col-span-8 w-full glass-panel p-4 md:p-6 rounded-2xl flex flex-col items-center justify-start overflow-hidden relative select-none shadow-[0_30px_70px_rgba(0,0,0,0.5)]">
-          {loading ? (
-            <div className="flex flex-col justify-center items-center py-40 gap-4 w-full"><span className="material-symbols-outlined text-4xl text-primary animate-spin">sync</span><p className="font-label-sm text-on-surface-variant uppercase tracking-widest">Recalibrating...</p></div>
-          ) : (
-            <div style={{ width: '820px', height: `${980 * scale}px`, position: 'relative', overflow: 'hidden' }} className="flex justify-center items-start transition-all duration-300">
-              <div style={{ width: '820px', height: '980px', transform: `scale(${scale})`, transformOrigin: 'top center', position: 'absolute', left: 0, top: 0 }} className="relative">
-                <div className="absolute top-[20px] left-[50%] -translate-x-[50%] w-[480px] h-[80px] bg-[#29252c] border border-outline-variant/20 rounded shadow-xl flex items-center justify-center z-20">
-                  <span className="font-display-xl text-[16px] text-primary tracking-[0.6em] font-extrabold uppercase">{t('stage')}</span>
+        {/* Steps */}
+        <div className="steps" style={{ marginBottom: 28 }}>
+          <div className="step-item active">
+            <div className="step-num">1</div>
+            <span>{vi ? 'Chọn ghế' : 'Select Seats'}</span>
+          </div>
+          <div className="step-connector" />
+          <div className="step-item">
+            <div className="step-num">2</div>
+            <span>{vi ? 'Thông tin' : 'Your Info'}</span>
+          </div>
+          <div className="step-connector" />
+          <div className="step-item">
+            <div className="step-num">3</div>
+            <span>{vi ? 'Thanh toán' : 'Payment'}</span>
+          </div>
+        </div>
+
+        {/* Page title */}
+        <h1 className="gradient-title" style={{ fontSize: 'clamp(22px, 3.5vw, 34px)', margin: '0 0 6px' }}>
+          {vi ? 'Chọn vị trí ngồi' : 'Seat Selection'}
+        </h1>
+        <p style={{ color: 'var(--muted)', fontSize: 13, margin: '0 0 24px' }}>
+          {vi ? 'Tối đa 6 ghế mỗi lần đặt. Nhấp vào ghế trống để chọn.' : 'Up to 6 seats per booking. Click an available seat to select.'}
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'start' }}>
+
+          {/* ── SEAT MAP ─────────────────────────────────────────── */}
+          <div ref={containerRef} className="mfc-card" style={{ padding: '20px', userSelect: 'none' }}>
+
+            {/* Legend */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginBottom: 20, justifyContent: 'center' }}>
+              {LEGEND_ITEMS.map(({ color, label, price, bordered }) => (
+                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12 }}>
+                  <span style={{
+                    width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
+                    background: color,
+                    border: bordered ? '1px solid #44405a' : `1px solid ${color}88`,
+                    boxShadow: bordered ? 'none' : `0 0 8px ${color}55`,
+                  }} />
+                  <span style={{ color: 'var(--muted)' }}>{label}</span>
+                  {price && <span style={{ color, fontWeight: 600 }}>{price}</span>}
                 </div>
-                <div className="absolute top-[114px] left-[50%] -translate-x-[50%] w-[104px] h-[610px] bg-[#1d1a1f] border border-outline-variant/15 rounded flex flex-col justify-between items-center py-10 z-10">
-                  <div className="absolute inset-y-0 left-0 w-[1px] bg-gradient-to-b from-primary/10 via-primary/50 to-primary/10 shadow-[0_0_15px_#ff7ebb]"></div>
-                  <span className="material-symbols-outlined text-primary text-[20px] animate-pulse">model_training</span>
-                  <span className="font-display-xl text-[10px] text-primary tracking-[0.4em] uppercase rotate-90 my-20 whitespace-nowrap opacity-80">{t('runway')}</span>
-                  <span className="material-symbols-outlined text-primary text-[20px] animate-pulse">model_training</span>
-                </div>
-                {seats.map(seat => {
-                  const isOccupied = occupiedSeats.includes(seat.id);
-                  const isSelected = selectedSeats.some(s => s.id === seat.id);
-                  return (
-                    <button key={seat.id} onClick={() => handleSeatClick(seat)} disabled={isOccupied} style={{ position: 'absolute', left: `${seat.x}px`, top: `${seat.y}px`, width: '25px', height: '25px', backgroundColor: isOccupied ? '#322d37' : isSelected ? '#ffffff' : seat.color }}
-                      className={`rounded flex items-center justify-center text-[8.5px] font-black transition-all z-20 ${isOccupied ? 'opacity-25 cursor-not-allowed border border-outline-variant/20 text-on-surface-variant/30 font-light' : isSelected ? 'text-black shadow-[0_0_20px_rgba(255,255,255,0.8)] scale-110 border-2 border-white' : 'text-black hover:scale-115 shadow-lg border border-white/15'}`}>
-                      {isOccupied ? '×' : seat.num}
-                    </button>
-                  );
-                })}
-              </div>
+              ))}
             </div>
-          )}
-        </div>
 
-        <div className="xl:col-span-4 flex flex-col gap-6">
-          <div className="glass-panel p-8 rounded-2xl flex flex-col shadow-xl border border-outline-variant/10">      
-            <h3 className="font-title-md text-[20px] text-on-surface border-b border-outline-variant/15 pb-4 mb-6 uppercase tracking-tight italic">{t('reservations')}</h3>
-            {selectedSeats.length === 0 ? (
-              <div className="flex flex-col justify-center items-center py-16 text-center opacity-50"><span className="material-symbols-outlined text-4xl mb-4 text-outline-variant">event_seat</span><p className="font-body-md text-[14px] text-on-surface-variant">
-                {language === 'vi' ? 'Chọn vị trí trên sơ đồ để bắt đầu đặt chỗ.' : 'Select seat nodes on the map to begin your reservation portfolio.'}
-              </p></div>
-            ) : (
-              <div className="flex flex-col gap-6">
-                <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
-                  {selectedSeats.map(seat => (
-                    <div key={seat.id} className="flex justify-between items-center bg-surface-container/40 border border-outline-variant/15 p-4 rounded-xl group hover:border-primary/40 transition-all">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg flex items-center justify-center text-[12px] font-black text-black shadow-lg" style={{ backgroundColor: seat.color }}>
-                          {seat.num}
-                        </div>
-                        <div>
-                          <p className="font-bold text-on-surface text-[14px] leading-tight uppercase tracking-tight">{seat.label}</p>      
-                          <span className="text-[10px] font-label-sm uppercase tracking-[0.1em] opacity-60">
-                            {l(event.pricingTiers?.[seat.type.toLowerCase()]?.label) || seat.type}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-bold text-primary text-[16px]">${seat.price}</span>
-                        <button onClick={() => handleSeatClick(seat)} className="text-on-surface-variant hover:text-error transition-colors p-1">
-                          <span className="material-symbols-outlined text-[18px]">delete</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="pt-6 border-t border-outline-variant/20 flex justify-between items-end select-none">
-                  <span className="font-label-sm uppercase tracking-[0.2em] text-on-surface-variant text-[11px]">{t('consolidatedTotal')}</span>
-                  <span className="font-display-xl text-[30px] text-primary font-bold leading-none">${selectedSeats.reduce((sum, s) => sum + s.price, 0)}</span>
-                </div>
-                <button onClick={handleProceed} className="w-full mt-2 bg-primary text-on-primary py-6 rounded-xl font-label-sm text-[15px] uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-[0_15px_35px_rgba(221,186,238,0.25)] hover:scale-102 duration-300 font-bold">{t('confirmCheckout')}</button>
+            {loading ? (
+              <div style={{ padding: '80px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+                <span className="material-symbols-outlined animate-spin" style={{ fontSize: 40, color: 'var(--purple)' }}>sync</span>
+                <span style={{ color: 'var(--muted)', fontSize: 13, letterSpacing: '.1em', textTransform: 'uppercase' }}>
+                  {vi ? 'Đang tải sơ đồ...' : 'Loading map...'}
+                </span>
               </div>
+            ) : (
+              <div style={{ width: `${CANVAS_W}px`, height: `${CANVAS_H * scale}px`, position: 'relative', overflow: 'hidden' }}>
+                <div style={{
+                  width: `${CANVAS_W}px`, height: `${CANVAS_H}px`,
+                  transform: `scale(${scale})`, transformOrigin: 'top center',
+                  position: 'absolute', left: 0, top: 0,
+                }}>
+
+                  {/* Stage */}
+                  <div style={{
+                    position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
+                    width: 280, height: 62,
+                    background: 'linear-gradient(135deg, rgba(14,16,44,.9), rgba(70,69,215,.2))',
+                    border: '1px solid rgba(168,150,246,.35)',
+                    borderRadius: 10,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    zIndex: 20,
+                    clipPath: 'polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%)',
+                  }}>
+                    <span className="serif" style={{ color: 'var(--purple)', letterSpacing: '.6em', fontWeight: 800, fontSize: 13, textTransform: 'uppercase' }}>
+                      {vi ? 'SÂN KHẤU' : 'STAGE'}
+                    </span>
+                  </div>
+
+                  {/* Zone labels (SVG overlay) */}
+                  <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 15 }}>
+                    {ZONE_LABELS.map(zl => (
+                      <text
+                        key={zl.key}
+                        x={zl.x}
+                        y={zl.y}
+                        textAnchor="middle"
+                        style={{ fontSize: 9, fill: 'rgba(200,190,255,.55)', fontFamily: 'Inter, sans-serif', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600 }}
+                      >
+                        {zl.text}
+                      </text>
+                    ))}
+                  </svg>
+
+                  {/* Seats */}
+                  {seats.map(seat => {
+                    const isOccupied = occupiedSeats.includes(seat.id);
+                    const isSelected = selectedSeats.some(s => s.id === seat.id);
+                    const seatColor = isOccupied
+                      ? '#1c1c30'
+                      : isSelected
+                        ? '#00e8c8'
+                        : seat.color;
+                    return (
+                      <button
+                        key={seat.id}
+                        onClick={() => handleSeatClick(seat)}
+                        disabled={isOccupied}
+                        title={seat.num}
+                        style={{
+                          position: 'absolute',
+                          left: seat.x, top: seat.y,
+                          width: 20, height: 20,
+                          borderRadius: '50%',
+                          background: seatColor,
+                          border: isOccupied
+                            ? '1px solid #2e2e44'
+                            : isSelected
+                              ? '2px solid #00e8c8'
+                              : `1px solid ${seat.color}99`,
+                          opacity: isOccupied ? .45 : 1,
+                          cursor: isOccupied ? 'not-allowed' : 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 6, fontWeight: 900,
+                          color: isOccupied ? '#3a3a58' : isSelected ? '#000' : 'rgba(0,0,0,.5)',
+                          transform: isSelected ? 'scale(1.15)' : undefined,
+                          boxShadow: isSelected
+                            ? '0 0 14px rgba(0,232,200,.8)'
+                            : isOccupied
+                              ? 'none'
+                              : `0 0 6px ${seat.color}55`,
+                          zIndex: 20,
+                          transition: 'transform .1s, box-shadow .1s',
+                        }}
+                      >
+                        {isOccupied ? '×' : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <p style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 12, marginTop: 14 }}>
+              {vi ? '🔒 Vui lòng chọn tối đa 6 ghế trong một lần đặt.' : '🔒 Please select up to 6 seats per booking.'}
+            </p>
+          </div>
+
+          {/* ── SIDEBAR ──────────────────────────────────────────── */}
+          <div className="mfc-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 18, position: 'sticky', top: 96 }}>
+            <h3 className="serif" style={{ color: '#fff', fontSize: 19, margin: 0 }}>
+              {vi ? 'Thông tin đặt vé' : 'Booking Info'}
+            </h3>
+
+            {selectedSeats.length === 0 ? (
+              <div style={{ padding: '36px 0', textAlign: 'center' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 44, color: 'rgba(168,150,246,.25)', display: 'block', marginBottom: 10 }}>event_seat</span>
+                <p style={{ color: 'var(--muted)', fontSize: 13, margin: 0 }}>
+                  {vi ? 'Chưa có ghế nào được chọn' : 'No seats selected yet'}
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Zone badges */}
+                <div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>
+                    {vi ? 'Khu vực' : 'Zone'}
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {selectedZones.map(z => (
+                      <span key={z} style={{
+                        padding: '4px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700,
+                        background: 'linear-gradient(135deg, var(--ultra), var(--purple))',
+                        color: '#fff', letterSpacing: '.04em',
+                      }}>{z}</span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Selected seat chips */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <span style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em' }}>
+                      {vi ? `Ghế đã chọn (${selectedSeats.length})` : `Selected (${selectedSeats.length})`}
+                    </span>
+                    <button
+                      onClick={handleClearAll}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--muted)', transition: 'color .15s' }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#ff6b6b'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
+                    >
+                      {vi ? 'Xóa tất cả' : 'Clear all'}
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {selectedSeats.map(seat => (
+                      <button
+                        key={seat.id}
+                        onClick={() => handleSeatClick(seat)}
+                        style={{
+                          padding: '5px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700,
+                          border: '1px solid rgba(168,150,246,.45)',
+                          background: 'rgba(168,150,246,.1)',
+                          color: '#fff', cursor: 'pointer',
+                          transition: 'background .15s, border-color .15s',
+                        }}
+                        title={vi ? 'Nhấn để bỏ chọn' : 'Click to deselect'}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,107,107,.1)'; e.currentTarget.style.borderColor = 'rgba(255,107,107,.5)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(168,150,246,.1)'; e.currentTarget.style.borderColor = 'rgba(168,150,246,.45)'; }}
+                      >
+                        {seat.num}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Price breakdown */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 9, fontSize: 13 }}>
+                  {[...new Set(selectedSeats.map(s => s.type))].map(type => {
+                    const sameType = selectedSeats.filter(s => s.type === type);
+                    const priceEach = sameType[0].price;
+                    return (
+                      <div key={type} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--muted)' }}>
+                          {sameType[0].zoneName} × {sameType.length}
+                        </span>
+                        <span style={{ color: '#e0dcff' }}>{formatPrice(priceEach * sameType.length)}</span>
+                      </div>
+                    );
+                  })}
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--muted)' }}>{vi ? 'Phí dịch vụ (5%)' : 'Service fee (5%)'}</span>
+                    <span style={{ color: '#e0dcff' }}>{formatPrice(svcFee)}</span>
+                  </div>
+                </div>
+
+                {/* Total */}
+                <div style={{ borderTop: '1px solid rgba(168,150,246,.2)', paddingTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                  <span style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.12em' }}>
+                    {vi ? 'Tổng cộng' : 'Total'}
+                  </span>
+                  <span className="serif" style={{ fontSize: 28, color: 'var(--purple)', fontWeight: 700 }}>
+                    {formatPrice(total + svcFee)}
+                  </span>
+                </div>
+
+                {/* Proceed button */}
+                <button onClick={handleProceed} className="btn-pill" style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '14px 20px' }}>
+                  {vi ? 'Tiếp tục →' : 'Continue →'}
+                </button>
+
+                {/* Back link */}
+                <button
+                  onClick={() => { navigate('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  className="btn-outline-pill"
+                  style={{ width: '100%', justifyContent: 'center', fontSize: 13 }}
+                >
+                  {vi ? '← Quay lại chọn loại vé' : '← Back to Ticket Types'}
+                </button>
+
+                <p style={{ fontSize: 11, color: 'rgba(168,150,246,.45)', textAlign: 'center', margin: 0 }}>
+                  🔒 {vi ? 'Thông tin và giao dịch được bảo mật.' : 'Your info and payment are secured.'}
+                </p>
+              </>
             )}
           </div>
         </div>
       </div>
+
+      <style>{`@media(max-width:900px){
+        .seat-page-grid{grid-template-columns:1fr!important}
+        .seat-sidebar{position:static!important}
+      }`}</style>
     </div>
   );
 };

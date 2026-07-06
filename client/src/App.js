@@ -6,37 +6,41 @@ import LanguageModal from './components/LanguageModal';
 import { LanguageProvider } from './context/LanguageContext';
 import { API_URL } from './apiConfig';
 
-// Page components
-import LandingPage from './pages/LandingPage';
-import SeatSelectionPage from './pages/SeatSelectionPage';
-import CheckoutPage from './pages/CheckoutPage';
-import DigitalTicketPage from './pages/DigitalTicketPage';
-import UserDashboardPage from './pages/UserDashboardPage';
-import AdminPanelPage from './pages/AdminPanelPage';
-import EventDetailsPage from './pages/EventDetailsPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+import LandingPage        from './pages/LandingPage';
+import SeatSelectionPage  from './pages/SeatSelectionPage';
+import CheckoutPage       from './pages/CheckoutPage';
+import DigitalTicketPage  from './pages/DigitalTicketPage';
+import UserDashboardPage  from './pages/UserDashboardPage';
+import AdminPanelPage     from './pages/AdminPanelPage';
+import EventDetailsPage   from './pages/EventDetailsPage';
+import AboutPage          from './pages/AboutPage';
+import RecruitPage        from './pages/RecruitPage';
+import LoginPage          from './pages/LoginPage';
+import RegisterPage       from './pages/RegisterPage';
 
 const FALLBACK_EVENTS = [
   {
     _id: "6649f82d001a1c11eef2bb01",
-    title: { en: "HAUTE ETHER GALA", vi: "ĐÊM TIỆC HAUTE ETHER" },
-    description: { 
-      en: "An ethereal projection of digital fabrics and floating crystal-infused meshwear, exploring space elegance.",
-      vi: "Một buổi tối của thời trang cao cấp siêu thực, khám phá giác quan và không gian nghệ thuật kỹ thuật số."
+    title: { en: "ĐỘC", vi: "ĐỘC" },
+    description: {
+      en: "ĐỘC is a journey celebrating individual identity, where fashion, art and emotion intertwine to create unforgettable marks.",
+      vi: "ĐỘC là hành trình tôn vinh bản sắc riêng, nơi thời trang, nghệ thuật và cảm xúc giao thoa để tạo nên những dấu ấn không trộn lẫn."
     },
-    date: "2026-10-24T20:00:00.000Z",
-    location: { en: "Paris, France", vi: "Paris, Pháp" },
-    venueName: { en: "The Grand Palais Loft", vi: "Triển lãm Grand Palais" },
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuA2zp9mt2s9NMz6BrgnUb3YY0d3kiA9TzIVf4oyRBB2ymI0h5zeo2N5P4xW-knR51jcjeIMPZZNSEIFT0ot4qZWsIRN55IV9IPz5N8DZo6Q4ioSJq3VN4pjnrTmo8vJARrCRXMEucFOSHN71XsjuZLnPcKkezdb0-FJKrhDclMOSVQjYWKyzCTHOV_kWp-bD48iKKRPJj2OyA1Ld7hcgEQBfwVz_EIxKyo2_sAI0bqf6_QT1at8d0AynzxEFd7Ft5kzjRW-Ta1wdFI",
+    date: "2026-08-22T19:30:00.000Z",
+    location: { en: "Hanoi, Vietnam", vi: "Hà Nội, Việt Nam" },
+    venueName: { en: "Trong Dong Palace, Lang Yen", vi: "Trống Đồng Palace, cơ sở Lãng Yên" },
+    image: "/kv-doc.jpeg",
     schedule: [
-      { time: "19:00", title: { en: "Arrival", vi: "Đón khách" }, description: { en: "Red Carpet", vi: "Thảm đỏ" } }
+      { time: "19:00", title: { en: "Doors Open",       vi: "Mở cửa đón khách" }, description: { en: "Red Carpet",             vi: "Thảm đỏ" } },
+      { time: "19:30", title: { en: "Opening Ceremony", vi: "Khai mạc" },           description: { en: "Welcome & Introduction", vi: "Chào đón & Giới thiệu" } },
+      { time: "20:00", title: { en: "Main Show",        vi: "Chương trình chính" }, description: { en: "Fashion Showcase",       vi: "Trình diễn thời trang" } },
+      { time: "22:00", title: { en: "Closing",          vi: "Bế mạc" },             description: { en: "Awards & Finale",        vi: "Trao giải & Kết thúc" } },
     ],
     pricingTiers: {
-      standard: { price: 100, label: { en: "Standard", vi: "Phổ thông" }, description: { en: "Basic", vi: "Cơ bản" } },
-      silver: { price: 150, label: { en: "Silver", vi: "Bạc" }, description: { en: "Premium", vi: "Cao cấp" } },
-      gold: { price: 250, label: { en: "Gold", vi: "Vàng" }, description: { en: "Luxury", vi: "Đẳng cấp" } },
-      vip: { price: 450, label: { en: "VIP", vi: "VIP" }, description: { en: "Elite", vi: "Thượng lưu" } }
+      standard: { price: 199000, label: { en: "Standard",        vi: "Vé Tiêu chuẩn" },   description: { en: "Standard seating area",         vi: "Khu vực khán đài tiêu chuẩn" } },
+      silver:   { price: 299000, label: { en: "Near Stage",      vi: "Vận sân khấu" },     description: { en: "Near-stage premium seats",       vi: "Ghế gần sân khấu, tầm nhìn rõ nét" } },
+      gold:     { price: 299000, label: { en: "Near Stage Plus",  vi: "Vận sân khấu +" },  description: { en: "Enhanced near-stage experience", vi: "Trải nghiệm cận sân khấu nâng cao" } },
+      vip:      { price: 499000, label: { en: "VIP",             vi: "Vé VIP" },            description: { en: "Center VIP with exclusive perks", vi: "Vị trí trung tâm và đặc quyền riêng" } },
     }
   }
 ];
@@ -49,7 +53,7 @@ function AppContent() {
   const [completedBookingId, setCompletedBookingId] = useState(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [events, setEvents] = useState(FALLBACK_EVENTS);
-  const [settings, setSettings] = useState({ siteName: 'EVENT PRO' });
+  const [settings, setSettings] = useState({ siteName: 'MFC & FASHION CLUB' });
 
   useEffect(() => {
     setIsAdminMode(location.pathname.startsWith('/admin'));
@@ -65,15 +69,15 @@ function AppContent() {
         if (data && data.length > 0) {
           setEvents(data);
           setSelectedEvent(data[0]);
+        } else {
+          setSelectedEvent(FALLBACK_EVENTS[0]);
         }
       })
       .catch(() => setSelectedEvent(FALLBACK_EVENTS[0]));
 
     fetch(`${API_URL}/api/settings`)
       .then(res => res.json())
-      .then(data => {
-        if (data) setSettings(data);
-      })
+      .then(data => { if (data) setSettings(data); })
       .catch(() => {});
   }, []);
 
@@ -83,43 +87,48 @@ function AppContent() {
     setUser(null);
   };
 
+  const hideNav = location.pathname === '/login' || location.pathname === '/register';
+
   return (
     <>
       <LanguageModal />
-      <Navbar isAdminMode={isAdminMode} user={user} onLogout={handleLogout} setEvent={setSelectedEvent} settings={settings} />
-      <main className="flex-grow flex flex-col relative z-10 w-full">
+      {!hideNav && (
+        <Navbar
+          isAdminMode={isAdminMode}
+          user={user}
+          onLogout={handleLogout}
+          setEvent={setSelectedEvent}
+          settings={settings}
+          selectedEvent={selectedEvent}
+        />
+      )}
+      <main style={{ minHeight: '100vh' }}>
         <Routes>
-          <Route path="/" element={<LandingPage events={events} setEvent={setSelectedEvent} settings={settings} />} />
-          <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage setUser={setUser} />} />
-          <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <RegisterPage setUser={setUser} />} />
+          <Route path="/"          element={<LandingPage events={events} setEvent={setSelectedEvent} settings={settings} />} />
+          <Route path="/about"     element={<AboutPage />} />
+          <Route path="/recruit"   element={<RecruitPage />} />
+          <Route path="/login"     element={user ? <Navigate to="/dashboard" /> : <LoginPage setUser={setUser} />} />
+          <Route path="/register"  element={user ? <Navigate to="/dashboard" /> : <RegisterPage setUser={setUser} />} />
           <Route path="/event/:id" element={<EventDetailsPage event={selectedEvent} setEvent={setSelectedEvent} />} />
-          <Route path="/seating" element={selectedEvent ? <SeatSelectionPage event={selectedEvent} setBookingDetails={setBookingDetails} /> : <Navigate to="/" />} />
-          <Route path="/checkout" element={selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} user={user} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />} />
-          <Route path="/ticket" element={<DigitalTicketPage completedBookingId={completedBookingId} settings={settings} />} />
+          <Route path="/seating"   element={selectedEvent ? <SeatSelectionPage event={selectedEvent} setBookingDetails={setBookingDetails} /> : <Navigate to="/" />} />
+          <Route path="/checkout"  element={selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} user={user} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />} />
+          <Route path="/ticket"    element={<DigitalTicketPage completedBookingId={completedBookingId} settings={settings} />} />
           <Route path="/dashboard" element={user ? <UserDashboardPage userEmail={user.email} setCompletedBookingId={setCompletedBookingId} settings={settings} /> : <Navigate to="/login" />} />
-          <Route path="/admin" element={user?.role === 'admin' ? <AdminPanelPage events={events} setEvents={setEvents} settings={settings} setSettings={setSettings} /> : <Navigate to="/login" />} />
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="/admin"     element={user?.role === 'admin' ? <AdminPanelPage events={events} setEvents={setEvents} settings={settings} setSettings={setSettings} /> : <Navigate to="/login" />} />
+          <Route path="*"          element={<Navigate to="/" />} />
         </Routes>
       </main>
-      <Footer settings={settings} setIsAdminMode={setIsAdminMode} />
+      {!hideNav && <Footer settings={settings} setIsAdminMode={setIsAdminMode} />}
     </>
   );
 }
 
-function App() {
+export default function App() {
   return (
     <LanguageProvider>
       <Router>
-        <div className="min-h-screen flex flex-col bg-background text-on-surface relative overflow-x-hidden">
-          <div className="absolute top-0 inset-x-0 h-screen pointer-events-none select-none z-0">
-            <div className="absolute top-[-20%] left-[-15%] w-[60vw] h-[60vw] rounded-full bg-[radial-gradient(circle,rgba(72,45,88,0.3)_0%,transparent_70%)] blur-[90px] bg-atmosphere"></div>
-            <div className="absolute top-[30%] right-[-15%] w-[50vw] h-[50vw] rounded-full bg-[radial-gradient(circle,rgba(82,61,109,0.25)_0%,transparent_70%)] blur-[80px] bg-atmosphere"></div>
-          </div>
-          <AppContent />
-        </div>
+        <AppContent />
       </Router>
     </LanguageProvider>
   );
 }
-
-export default App;

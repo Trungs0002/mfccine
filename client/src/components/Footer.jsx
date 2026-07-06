@@ -5,43 +5,102 @@ import { useLanguage } from '../context/LanguageContext';
 const Footer = ({ setIsAdminMode, settings }) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
+  const vi = language === 'vi';
+
+  const quickLinks = [
+    { label: vi ? 'Trang chủ'     : 'Home',        path: '/' },
+    { label: vi ? 'Giới thiệu'    : 'About',       path: '/about' },
+    { label: vi ? 'Mua vé'        : 'Tickets',     path: '/seating' },
+    { label: vi ? 'Sơ đồ ghế'    : 'Seat Map',    path: '/seating' },
+    { label: vi ? 'Cộng tác viên' : 'Collaborate', path: '/recruit' },
+    { label: vi ? 'Liên hệ'       : 'Contact',     path: null },
+  ];
 
   return (
-    <footer className="bg-surface-container-lowest w-full border-t border-outline-variant/15 relative z-10">
-      <div className="flex flex-col gap-12 px-margin-mobile md:px-margin-desktop py-16 max-w-container-max mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-          {/* Headline brand label */}
-          <div 
-            onClick={() => {
-              setIsAdminMode(false);
-              navigate('/');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className="font-display-xl text-display-xl text-on-surface italic tracking-tight cursor-pointer hover:opacity-85 select-none transition-opacity"
-          >
-            {settings?.siteName || 'EVENT PRO'}
+    <footer className="site-footer" id="contact">
+      <div className="container">
+        <div className="footer-grid">
+          {/* Brand column */}
+          <div>
+            <div className="footer-brand">
+              <img src="/logo-mfc.jpeg" alt="MFC logo" />
+              <div>
+                <h4 style={{ fontFamily: 'Georgia, serif', fontSize: 16, color: '#fff', margin: '0 0 4px' }}>
+                  {settings?.siteName || 'MFC & FASHION CLUB'}
+                </h4>
+                <span style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '.06em' }}>
+                  FOREIGN TRADE UNIVERSITY
+                </span>
+              </div>
+            </div>
+            <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.8, marginTop: 16 }}>
+              {vi
+                ? 'MFC & Fashion Club – Trường Đại học Ngoại thương.\nKết nối đam mê – Lan tỏa giá trị – Tỏa sáng bản thân.'
+                : 'MFC & Fashion Club – Foreign Trade University.\nConnect passion – Spread value – Shine your way.'}
+            </p>
           </div>
 
-          {/* Links navigation columns */}
-          <nav className="flex flex-wrap gap-x-8 gap-y-4">
-            <span className="text-on-surface-variant hover:text-primary transition-colors duration-300 font-label-sm text-label-sm uppercase tracking-widest cursor-pointer select-none">
-              {language === 'vi' ? 'Sứ mệnh' : 'Club Mission'}
+          {/* Quick links */}
+          <div className="footer-col">
+            <h4>{vi ? 'Liên kết nhanh' : 'Quick Links'}</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
+              {quickLinks.map(l => (
+                <button key={l.label}
+                  onClick={() => {
+                    if (l.path === null) {
+                      document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      navigate(l.path);
+                      window.scrollTo(0, 0);
+                    }
+                  }}
+                  style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14, lineHeight: 1.9, textAlign: 'left', padding: 0, transition: 'color .2s' }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Contact */}
+          <div className="footer-col">
+            <h4>{vi ? 'Liên hệ' : 'Contact'}</h4>
+            <a href="mailto:mfc.ftu@ftu.edu.vn" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--purple)' }}>mail</span>
+              mfc.ftu@ftu.edu.vn
+            </a>
+            <a href="tel:02437547865" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--purple)' }}>phone</span>
+              024 3754 7865
+            </a>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--muted)', fontSize: 14 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--purple)' }}>location_on</span>
+              91 Chùa Láng, Đống Đa, Hà Nội
             </span>
-            <span className="text-on-surface-variant hover:text-primary transition-colors duration-300 font-label-sm text-label-sm uppercase tracking-widest cursor-pointer select-none">
-              {language === 'vi' ? 'Báo chí' : 'Press'}
-            </span>
-            <span className="text-on-surface-variant hover:text-primary transition-colors duration-300 font-label-sm text-label-sm uppercase tracking-widest cursor-pointer select-none">
-              {language === 'vi' ? 'Bền vững' : 'Sustainability'}
-            </span>
-            <span className="text-on-surface-variant hover:text-primary transition-colors duration-300 font-label-sm text-label-sm uppercase tracking-widest cursor-pointer select-none">
-              {language === 'vi' ? 'Điều khoản' : 'Terms of Service'}
-            </span>
-          </nav>
+          </div>
+
+          {/* Social */}
+          <div className="footer-col">
+            <h4>{vi ? 'Theo dõi chúng tôi' : 'Follow Us'}</h4>
+            <div className="footer-social">
+              {[
+                { icon: 'f', label: 'Facebook' },
+                { icon: '◎', label: 'Instagram' },
+                { icon: '♪', label: 'TikTok' },
+                { icon: '▶', label: 'YouTube' },
+              ].map(s => (
+                <div key={s.label} className="footer-social-icon" title={s.label}>
+                  {s.icon}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <div className="text-tertiary-fixed-dim font-body-md text-[14px] pt-8 border-t border-outline-variant/10 flex flex-col md:flex-row justify-between gap-4">
-          <span>© 2026 {settings?.siteName || 'EVENT PRO'}. {language === 'vi' ? 'Nâng tầm trải nghiệm đẳng cấp.' : 'Elevating experiences through excellence.'}</span>
-          <span className="text-[12px] opacity-60">{language === 'vi' ? 'Thiết kế bởi Stitch Editorial.' : 'Handcrafted utilizing luxury dark presets.'}</span>
+        <div className="footer-copyright">
+          © 2026 MFC & Fashion Club – Trường Đại học Ngoại thương. All rights reserved.
         </div>
       </div>
     </footer>

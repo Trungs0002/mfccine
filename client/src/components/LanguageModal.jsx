@@ -3,34 +3,55 @@ import { useLanguage } from '../context/LanguageContext';
 
 const LanguageModal = () => {
   const { language, setLanguage } = useLanguage();
-
   if (language) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/90 backdrop-blur-xl animate-fade-in">
-      <div className="glass-panel p-10 md:p-16 rounded-3xl border border-outline-variant/20 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] flex flex-col items-center gap-12 max-w-[500px] w-[90%] text-center">
-        <div className="space-y-4">
-          <h2 className="font-display-xl text-[32px] text-on-surface italic tracking-tight">Welcome to Editorial Ticketing</h2>
-          <p className="font-body-md text-on-surface-variant">Please select your preferred language to continue.</p>
-          <div className="w-12 h-[1px] bg-primary/30 mx-auto mt-6"></div>
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 200,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'rgba(1,1,10,.92)', backdropFilter: 'blur(20px)',
+    }} className="animate-fade-in">
+      <div className="mfc-card" style={{
+        padding: '48px 40px', maxWidth: 480, width: '90%',
+        textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 32, alignItems: 'center',
+      }}>
+        <div>
+          <img src="/logo-mfc.jpeg" alt="MFC" style={{ width: 64, height: 64, borderRadius: '50%', margin: '0 auto 20px', boxShadow: '0 0 30px rgba(168,150,246,.4)' }} />
+          <h2 className="gradient-title" style={{ fontSize: 28, margin: '0 0 10px' }}>
+            MFC Fashion Show 2026
+          </h2>
+          <p style={{ color: 'var(--muted)', fontSize: 14, margin: 0 }}>
+            Chọn ngôn ngữ / Select language
+          </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-6 w-full">
-          <button 
-            onClick={() => setLanguage('en')}
-            className="flex-1 bg-surface-container-high hover:bg-white hover:text-black text-on-surface p-6 rounded-2xl border border-outline-variant/30 transition-all group flex flex-col items-center gap-2"
-          >
-            <span className="text-[24px]">🇬🇧</span>
-            <span className="font-label-sm text-[13px] uppercase tracking-widest font-bold">English</span>
-          </button>
-          
-          <button 
-            onClick={() => setLanguage('vi')}
-            className="flex-1 bg-surface-container-high hover:bg-white hover:text-black text-on-surface p-6 rounded-2xl border border-outline-variant/30 transition-all group flex flex-col items-center gap-2"
-          >
-            <span className="text-[24px]">🇻🇳</span>
-            <span className="font-label-sm text-[13px] uppercase tracking-widest font-bold">Tiếng Việt</span>
-          </button>
+        <div style={{ display: 'flex', gap: 16, width: '100%' }}>
+          {[
+            { lang: 'vi', flag: '🇻🇳', label: 'Tiếng Việt' },
+            { lang: 'en', flag: '🇬🇧', label: 'English' },
+          ].map(({ lang, flag, label }) => (
+            <button
+              key={lang}
+              onClick={() => setLanguage(lang)}
+              style={{
+                flex: 1, padding: '20px 16px',
+                borderRadius: 16,
+                border: '1px solid var(--line)',
+                background: 'rgba(14,16,44,.6)',
+                color: '#fff',
+                cursor: 'pointer',
+                fontSize: 14, fontWeight: 700,
+                letterSpacing: '.04em',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+                transition: 'border-color .2s, background .2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(70,69,215,.15)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.background = 'rgba(14,16,44,.6)'; }}
+            >
+              <span style={{ fontSize: 28 }}>{flag}</span>
+              <span>{label}</span>
+            </button>
+          ))}
         </div>
       </div>
     </div>
