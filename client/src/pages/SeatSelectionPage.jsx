@@ -79,7 +79,6 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
   const [occupiedSeats, setOccupiedSeats] = useState([]);
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [scale, setScale] = useState(1);
   const containerRef = React.useRef(null);
 
   const vipPrice      = event?.pricingTiers?.vip?.price      || 499000;
@@ -87,19 +86,6 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
   const standardPrice = event?.pricingTiers?.standard?.price || 199000;
 
   const formatPrice = (p) => vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + p;
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (containerRef.current) {
-        const avail = containerRef.current.clientWidth - 32;
-        setScale(Math.min(1, avail / 820));
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    handleResize();
-    const t = setTimeout(handleResize, 100);
-    return () => { window.removeEventListener('resize', handleResize); clearTimeout(t); };
-  }, [loading]);
 
   useEffect(() => {
     if (!event) return;
@@ -155,8 +141,19 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
   const CANVAS_H = 560;
 
   return (
-    <div style={{ paddingTop: 96, paddingBottom: 64 }} className="animate-fade-in">
+    <div style={{ paddingTop: 120, paddingBottom: 64 }} className="animate-fade-in">
       <div className="container">
+
+        {/* Back */}
+        <button
+          onClick={() => { navigate('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--muted)', fontSize: 13, letterSpacing: '.1em', textTransform: 'uppercase', background: 'none', border: 'none', cursor: 'pointer', marginBottom: 24, transition: 'color .2s' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+          onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>keyboard_backspace</span>
+          {vi ? 'Quay lại' : 'Back'}
+        </button>
 
         {/* Steps */}
         <div className="steps" style={{ marginBottom: 28 }}>
@@ -184,7 +181,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
           {vi ? 'Tối đa 6 ghế mỗi lần đặt. Nhấp vào ghế trống để chọn.' : 'Up to 6 seats per booking. Click an available seat to select.'}
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'start' }}>
+        <div className="seat-page-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'start' }}>
 
           {/* ── SEAT MAP ─────────────────────────────────────────── */}
           <div ref={containerRef} className="mfc-card" style={{ padding: '20px', userSelect: 'none' }}>
@@ -213,11 +210,10 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                 </span>
               </div>
             ) : (
-              <div style={{ width: `${CANVAS_W}px`, height: `${CANVAS_H * scale}px`, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ overflowX: 'auto', margin: '0 -20px', padding: '0 20px 20px' }}>
                 <div style={{
                   width: `${CANVAS_W}px`, height: `${CANVAS_H}px`,
-                  transform: `scale(${scale})`, transformOrigin: 'top center',
-                  position: 'absolute', left: 0, top: 0,
+                  position: 'relative', margin: '0 auto',
                 }}>
 
                   {/* Stage */}
@@ -306,7 +302,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
           </div>
 
           {/* ── SIDEBAR ──────────────────────────────────────────── */}
-          <div className="mfc-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 18, position: 'sticky', top: 96 }}>
+          <div className="mfc-card seat-sidebar" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 18, position: 'sticky', top: 96 }}>
             <h3 className="serif" style={{ color: '#fff', fontSize: 19, margin: 0 }}>
               {vi ? 'Thông tin đặt vé' : 'Booking Info'}
             </h3>
@@ -427,8 +423,8 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
       </div>
 
       <style>{`@media(max-width:900px){
-        .seat-page-grid{grid-template-columns:1fr!important}
-        .seat-sidebar{position:static!important}
+        .seat-page-grid{grid-template-columns:1fr!important; gap: 16px!important;}
+        .seat-sidebar{position:static!important; margin-bottom: 24px;}
       }`}</style>
     </div>
   );

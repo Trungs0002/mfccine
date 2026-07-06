@@ -198,13 +198,9 @@ const AboutPage = () => {
           </div>
 
           {/* Timeline bar */}
-          <div style={{ position: 'relative', overflowX: 'auto', paddingBottom: 8 }}>
+          <div style={{ position: 'relative', overflowX: 'auto', paddingBottom: 8, zIndex: 1 }}>
             {/* Connector line */}
-            <div className="about-timeline-connector" style={{
-              position: 'absolute', left: '4%', right: '4%', top: 36, height: 2,
-              background: 'linear-gradient(90deg, transparent, var(--purple), var(--mint), var(--purple), transparent)',
-              boxShadow: '0 0 16px var(--purple)',
-            }} />
+            <div className="about-timeline-connector" />
 
             <div className="about-timeline" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '84px 16px', position: 'relative', paddingTop: 76 }}>
               {TIMELINE.map((t, i) => (
@@ -284,18 +280,29 @@ const AboutPage = () => {
       </section>
 
       <style>{`
+        .about-timeline-connector {
+          position: absolute; left: 4%; right: 4%; top: 36px; height: 2px;
+          background: linear-gradient(90deg, transparent, var(--purple), var(--mint), var(--purple), transparent);
+          box-shadow: 0 0 16px var(--purple);
+        }
         @media (max-width: 900px) {
           .about-hero-grid { grid-template-columns: 1fr !important; }
           .about-special { grid-template-columns: 1fr 1fr !important; }
-          .about-timeline { grid-template-columns: 1fr 1fr !important; }
+          .about-timeline { grid-template-columns: 1fr !important; }
           .about-values { grid-template-columns: 1fr 1fr !important; }
           .about-highlights { grid-template-columns: 1fr !important; }
-          .about-timeline-connector { display: none !important; }
+          .about-timeline-connector { 
+             top: 40px; bottom: 0; height: auto;
+             left: 50%; right: auto;
+             transform: translateX(-50%);
+             width: 2px;
+             background: var(--purple);
+             box-shadow: 0 0 16px var(--purple);
+          }
         }
         @media (max-width: 600px) {
           .about-special { grid-template-columns: 1fr !important; }
           .about-values { grid-template-columns: 1fr !important; }
-          .about-timeline { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>

@@ -61,13 +61,13 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
   };
 
   const PAYMENT_METHODS = [
-    { id: 'MoMo',          icon: '💜', label: 'MoMo' },
-    { id: 'VNPay',         icon: '🔵', label: 'VNPay' },
-    { id: 'Bank Transfer', icon: '🏦', label: vi ? 'Chuyển khoản' : 'Bank Transfer' },
+    { id: 'MoMo',          icon: <img src="https://img.mservice.com.vn/app/img/portal_documents/mini-app_design-guideline_branding-guide-2-2.png" alt="MoMo" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'cover' }} />, label: 'MoMo' },
+    { id: 'VNPay',         icon: <div style={{ background: '#fff', padding: '4px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', height: 28 }}><img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR.png" alt="VNPay" style={{ height: 16, width: 'auto', objectFit: 'contain' }} /></div>, label: 'VNPay' },
+    { id: 'Bank Transfer', icon: <span className="material-symbols-outlined" style={{ fontSize: 28, color: '#a896f6' }}>account_balance</span>, label: vi ? 'Chuyển khoản' : 'Bank Transfer' },
   ];
 
   return (
-    <div style={{ paddingTop: 96, paddingBottom: 64 }} className="animate-fade-in">
+    <div style={{ paddingTop: 120, paddingBottom: 64 }} className="animate-fade-in">
       <div className="container">
         {/* Header + Steps */}
         <div style={{ marginBottom: 32 }}>
@@ -103,7 +103,7 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
           </h1>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 24, alignItems: 'start' }}>
+        <div className="checkout-page-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 24, alignItems: 'start' }}>
           {/* Form */}
           <form onSubmit={handleSubmit} className="mfc-card" style={{ padding: '32px' }}>
             {/* Personal info */}
@@ -111,7 +111,7 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
               <div style={{ fontSize: 11, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 18, paddingBottom: 10, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
                 {vi ? 'Thông tin cá nhân' : 'Personal Information'}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+              <div className="checkout-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
                 <div>
                   <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
                     {vi ? 'Họ và tên' : 'Full Name'}
@@ -157,7 +157,7 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
               <div style={{ fontSize: 11, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 18, paddingBottom: 10, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
                 {vi ? 'Phương thức thanh toán' : 'Payment Method'}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              <div className="checkout-payment-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
                 {PAYMENT_METHODS.map(({ id, icon, label }) => (
                   <button
                     key={id}
@@ -171,13 +171,13 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
                       color: paymentMethod === id ? '#fff' : 'var(--muted)',
                       cursor: 'pointer',
                       textAlign: 'center',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
                       fontSize: 13, fontWeight: paymentMethod === id ? 700 : 500,
                       boxShadow: paymentMethod === id ? '0 0 18px rgba(168,150,246,.2)' : 'none',
                       transition: 'all .2s',
                     }}
                   >
-                    <span style={{ fontSize: 22 }}>{icon}</span>
+                    <div style={{ height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
                     {label}
                   </button>
                 ))}
@@ -270,6 +270,11 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
           </div>
         </div>
       </div>
+      <style>{`@media(max-width:900px){
+        .checkout-page-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+        .checkout-form-grid { grid-template-columns: 1fr !important; }
+        .checkout-payment-grid { grid-template-columns: 1fr !important; }
+      }`}</style>
     </div>
   );
 };

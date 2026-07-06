@@ -60,7 +60,7 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
   const formatPrice = (p) => vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + p;
 
   return (
-    <div className="animate-fade-in" style={{ paddingTop: 96, paddingBottom: 64, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div className="animate-fade-in" style={{ paddingTop: 120, paddingBottom: 64, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <div style={{ width: '100%', maxWidth: 460, padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center' }}>
 
         {/* Success badge */}
@@ -84,6 +84,37 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
             </div>
           </div>
 
+          {/* QR section */}
+          <div style={{ padding: '28px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <div style={{ background: '#fff', padding: 12, borderRadius: 16, boxShadow: '0 0 40px rgba(168,150,246,.3)' }}>
+              <QRCodeSVG value={ticketCode} size={180} bgColor="#ffffff" fgColor="#01010A" level="H" includeMargin={false} />
+            </div>
+
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ fontSize: 9, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.18em', marginBottom: 10 }}>
+                {vi ? 'MÃ VÉ' : 'TICKET CODE'}
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(168,150,246,.08)', border: '1px solid rgba(168,150,246,.3)', borderRadius: 12, padding: '12px 20px' }}>
+                <span style={{ fontFamily: 'monospace', fontSize: 20, color: 'var(--purple)', fontWeight: 700, letterSpacing: '.15em' }}>{ticketCode}</span>
+                <button onClick={() => handleCopy(ticketCode)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? 'var(--mint)' : 'var(--muted)', transition: 'color .2s' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{copied ? 'check' : 'content_copy'}</span>
+                </button>
+              </div>
+              <p style={{ fontSize: 9, color: 'rgba(168,150,246,.5)', marginTop: 8, letterSpacing: '.1em', textTransform: 'uppercase' }}>REF: {refId}</p>
+            </div>
+
+            <p style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'center', letterSpacing: '.08em', textTransform: 'uppercase', maxWidth: 240 }}>
+              {vi ? 'Xuất trình mã QR tại cửa vào sự kiện' : 'Present QR code at the event entrance'}
+            </p>
+          </div>
+
+          {/* Tear line */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--black)', position: 'absolute', left: -11, boxShadow: 'inset -3px 0 5px rgba(0,0,0,.4)' }} />
+            <div style={{ flex: 1, margin: '0 12px', borderTop: '2px dashed rgba(168,150,246,.25)' }} />
+            <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--black)', position: 'absolute', right: -11, boxShadow: 'inset 3px 0 5px rgba(0,0,0,.4)' }} />
+          </div>
+
           {/* Info grid */}
           <div style={{ padding: '20px 24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
             {[
@@ -103,42 +134,11 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
           </div>
 
           {/* Total */}
-          <div style={{ padding: '14px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(70,69,215,.08)', borderBottom: '1px solid rgba(168,150,246,.18)' }}>
+          <div style={{ padding: '14px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(70,69,215,.08)' }}>
             <span style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.12em' }}>
               {vi ? 'Tổng thanh toán' : 'Total Paid'}
             </span>
             <span className="serif" style={{ fontSize: 24, color: 'var(--purple)', fontWeight: 700 }}>{formatPrice(booking.subtotal)}</span>
-          </div>
-
-          {/* Tear line */}
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--black)', position: 'absolute', left: -11, boxShadow: 'inset -3px 0 5px rgba(0,0,0,.4)' }} />
-            <div style={{ flex: 1, margin: '0 12px', borderTop: '2px dashed rgba(168,150,246,.25)' }} />
-            <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--black)', position: 'absolute', right: -11, boxShadow: 'inset 3px 0 5px rgba(0,0,0,.4)' }} />
-          </div>
-
-          {/* QR section */}
-          <div style={{ padding: '28px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-            <div style={{ background: '#fff', padding: 12, borderRadius: 16, boxShadow: '0 0 40px rgba(168,150,246,.3)' }}>
-              <QRCodeSVG value={ticketCode} size={140} bgColor="#ffffff" fgColor="#01010A" level="H" includeMargin={false} />
-            </div>
-
-            <div style={{ textAlign: 'center' }}>
-              <p style={{ fontSize: 9, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.18em', marginBottom: 10 }}>
-                {vi ? 'MÃ VÉ' : 'TICKET CODE'}
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(168,150,246,.08)', border: '1px solid rgba(168,150,246,.3)', borderRadius: 12, padding: '12px 20px' }}>
-                <span style={{ fontFamily: 'monospace', fontSize: 20, color: 'var(--purple)', fontWeight: 700, letterSpacing: '.15em' }}>{ticketCode}</span>
-                <button onClick={() => handleCopy(ticketCode)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? 'var(--mint)' : 'var(--muted)', transition: 'color .2s' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{copied ? 'check' : 'content_copy'}</span>
-                </button>
-              </div>
-              <p style={{ fontSize: 9, color: 'rgba(168,150,246,.5)', marginTop: 8, letterSpacing: '.1em', textTransform: 'uppercase' }}>REF: {refId}</p>
-            </div>
-
-            <p style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'center', letterSpacing: '.08em', textTransform: 'uppercase', maxWidth: 240 }}>
-              {vi ? 'Xuất trình mã QR tại cửa vào sự kiện' : 'Present QR code at the event entrance'}
-            </p>
           </div>
         </div>
 

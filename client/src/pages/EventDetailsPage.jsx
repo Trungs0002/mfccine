@@ -19,21 +19,12 @@ const EventDetailsPage = ({ event, setEvent }) => {
   const formatPrice = (p) => vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + p;
 
   return (
-    <div style={{ paddingTop: 96, paddingBottom: 64 }} className="animate-fade-in">
+    <div style={{ paddingTop: 120, paddingBottom: 64 }} className="animate-fade-in">
       <div className="container">
-        {/* Back */}
-        <button
-          onClick={() => { navigate('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--muted)', fontSize: 13, letterSpacing: '.1em', textTransform: 'uppercase', background: 'none', border: 'none', cursor: 'pointer', marginBottom: 28, transition: 'color .2s' }}
-          onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>keyboard_backspace</span>
-          {vi ? 'Quay lại' : 'Back'}
-        </button>
+
 
         {/* Hero */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'start', marginBottom: 48 }}>
+        <div className="event-hero-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'start', marginBottom: 48 }}>
           <div className="mfc-card" style={{ overflow: 'hidden', padding: 0 }}>
             <img src={event.image} alt="Event" style={{ width: '100%', height: 400, objectFit: 'cover', opacity: .85, display: 'block' }} />
           </div>
@@ -73,7 +64,7 @@ const EventDetailsPage = ({ event, setEvent }) => {
         </div>
 
         {/* Schedule + Tiers */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32 }}>
+        <div className="event-info-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32 }}>
           {/* Schedule */}
           <div>
             <h2 className="gradient-title" style={{ fontSize: 22, marginBottom: 20 }}>
@@ -125,6 +116,10 @@ const EventDetailsPage = ({ event, setEvent }) => {
           </div>
         </div>
       </div>
+      <style>{`@media(max-width:900px){
+        .event-hero-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+        .event-info-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+      }`}</style>
     </div>
   );
 };

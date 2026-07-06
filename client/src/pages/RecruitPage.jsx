@@ -209,11 +209,7 @@ const RecruitPage = () => {
           </div>
           <div style={{ position: 'relative' }}>
             {/* Connector */}
-            <div className="recruit-connector" style={{
-              position: 'absolute', left: '12%', right: '12%', top: 28, height: 2,
-              background: 'linear-gradient(90deg, transparent, var(--purple), var(--mint), var(--purple), transparent)',
-              boxShadow: '0 0 12px var(--purple)',
-            }} />
+            <div className="recruit-connector" />
             <div className="recruit-milestones" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '80px 16px', position: 'relative', paddingTop: 72 }}>
               {MILESTONES.map((m, i) => (
                 <div key={i} style={{ position: 'relative' }}>
@@ -242,16 +238,31 @@ const RecruitPage = () => {
       </section>
 
       <style>{`
+        .recruit-connector {
+          position: absolute; left: 12%; right: 12%; top: 28px; height: 2px;
+          background: linear-gradient(90deg, transparent, var(--purple), var(--mint), var(--purple), transparent);
+          box-shadow: 0 0 12px var(--purple);
+        }
         @media (max-width: 960px) {
           .recruit-hero { grid-template-columns: 1fr !important; }
           .recruit-teams { grid-template-columns: repeat(3, 1fr) !important; }
           .recruit-main { grid-template-columns: 1fr !important; }
           .recruit-milestones { grid-template-columns: 1fr 1fr !important; }
-          .recruit-connector { display: none !important; }
+          .recruit-connector { display: none; }
         }
         @media (max-width: 600px) {
           .recruit-teams { grid-template-columns: 1fr 1fr !important; }
           .recruit-milestones { grid-template-columns: 1fr !important; }
+          .recruit-connector { 
+             display: block !important;
+             top: 40px; bottom: 80px; height: auto;
+             left: 50%; right: auto;
+             transform: translateX(-50%);
+             width: 2px;
+             background: var(--purple);
+             box-shadow: 0 0 16px var(--purple);
+             z-index: -1;
+          }
         }
       `}</style>
     </div>
