@@ -478,6 +478,13 @@ img { display: block; max-width: 100%; }
 /* ─── Responsive helpers ─────────────────────────────────────── */
 .container { width: min(1220px, calc(100% - 44px)); margin: auto; }
 
+@media (max-width: 1024px) {
+  .nav-links-desktop { display: none !important; }
+}
+@media (min-width: 1025px) {
+  .mobile-only { display: none !important; }
+}
+
 @media (max-width: 1050px) {
   .site-nav { padding: 0 18px; }
   .nav-links { gap: 18px; font-size: 14px; }
