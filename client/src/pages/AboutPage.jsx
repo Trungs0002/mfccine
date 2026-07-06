@@ -52,11 +52,11 @@ const SPECIAL = [
 
 const TIMELINE = [
   {
-    year: '2018',
+    year: '2009',
     vi: 'Khởi nguồn',
     en: 'Founded',
-    descVi: 'MFC được thành lập bởi các sinh viên đam mê thời trang, với mong muốn tạo ra một sân chơi sáng tạo và kết nối cộng đồng.',
-    descEn: 'MFC was founded by fashion-passionate students to create a creative playground and community.',
+    descVi: 'MFC được thành lập vào ngày 21/10/2009, là bệ phóng đầu tiên cho những sinh viên đam mê nghệ thuật và thời trang.',
+    descEn: 'Founded on Oct 21, 2009, MFC was the first launching pad for students passionate about arts and fashion.',
   },
   {
     year: '2020',
@@ -96,9 +96,9 @@ const CORE_VALUES = [
 ];
 
 const HIGHLIGHTS = [
-  { label: 'WORKSHOP',     descVi: 'Kết nối tri thức – Khơi nguồn cảm hứng',    descEn: 'Connect knowledge – Inspire creativity',   pos: 'left center' },
-  { label: 'TRAINING',     descVi: 'Trang bị kỹ năng – Tự tin tỏa sáng',        descEn: 'Build skills – Shine with confidence',     pos: 'center center' },
-  { label: 'FASHION SHOW', descVi: 'Sân khấu tỏa sáng – Dấu ấn khác biệt',     descEn: 'Shine on stage – Leave your mark',         pos: 'right center' },
+  { label: 'FTU FASHION SHOW', descVi: 'Sự kiện trình diễn thời trang thường niên, bệ phóng cho người mẫu sinh viên.', descEn: 'Annual fashion show, a launchpad for student models.', pos: 'left center', img: '/sk3.jpg', link: 'https://www.facebook.com/ftufashionshow.mfc' },
+  { label: 'MC FIRE',          descVi: 'Cuộc thi tìm kiếm tài năng MC chuyên nghiệp dành cho giới trẻ.', descEn: 'Professional MC talent search contest for the youth.', pos: 'center center', img: '/sk1.jpg', link: 'https://www.facebook.com/mcfire.mfc.ftu' },
+  { label: 'JUST ART EXHIBITION', descVi: 'Triển lãm nghệ thuật nơi giao thoa giữa thời trang và sáng tạo.', descEn: 'Art exhibition where fashion and creativity intersect.', pos: 'right center', img: '/sk2.jpg', link: 'https://www.facebook.com/media/set/?set=a.683672377197844&type=3&rdid=cxILwUfkmIZvz9OR&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1FFDxkAgr2%2F#' },
 ];
 
 const AboutPage = () => {
@@ -115,14 +115,14 @@ const AboutPage = () => {
           {/* KV image left */}
           <div style={{ position: 'relative', borderRadius: 28, overflow: 'hidden', border: '1px solid var(--line)', minHeight: 420 }}>
             <img
-              src="/kv-doc.jpeg"
-              alt="ĐỘC key visual"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: .75, display: 'block', minHeight: 420 }}
+              src="/clbne.jpg"
+              alt="MFC Family"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: .8, display: 'block', minHeight: 420 }}
             />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(70,69,215,.35), rgba(1,1,10,.5))' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(70,69,215,.15), rgba(1,1,10,.5))' }} />
             <div style={{ position: 'absolute', bottom: 28, left: 28 }}>
-              <div style={{ fontFamily: 'Georgia, serif', fontSize: 72, color: '#fff', lineHeight: 1, textShadow: '0 0 32px rgba(168,150,246,.7)', opacity: .9 }}>ĐỘC</div>
-              <div style={{ fontSize: 12, letterSpacing: '.2em', color: 'var(--mint)', textTransform: 'uppercase', marginTop: 6 }}>FTU Fashion Show 2026</div>
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: 64, color: '#fff', lineHeight: 1, textShadow: '0 0 32px rgba(168,150,246,.7)', opacity: .95 }}>MFC</div>
+              <div style={{ fontSize: 12, letterSpacing: '.2em', color: 'var(--mint)', textTransform: 'uppercase', marginTop: 6 }}>Est. 2009</div>
             </div>
           </div>
 
@@ -131,18 +131,18 @@ const AboutPage = () => {
             <div style={{ fontSize: 12, color: 'var(--mint)', letterSpacing: '.18em', textTransform: 'uppercase', marginBottom: 10 }}>
               {vi ? 'Giới thiệu' : 'About'}
             </div>
-            <h1 className="gradient-title-hero" style={{ fontSize: 'clamp(40px, 5vw, 64px)', lineHeight: 1.05, margin: '0 0 20px', fontWeight: 700 }}>
-              {vi ? 'MFC là gì?' : 'What is MFC?'}
+            <h1 className="gradient-title-hero" style={{ fontSize: 'clamp(32px, 4vw, 56px)', lineHeight: 1.15, margin: '0 0 20px', fontWeight: 700, fontFamily: "'Cormorant Garamond', Georgia, serif" }}>
+              "WE ARE MFC - WE ARE FAMILY"
             </h1>
             <div style={{ width: 48, height: 2, background: 'linear-gradient(90deg, var(--purple), var(--mint))', marginBottom: 20 }} />
-            <p style={{ color: '#e0dbff', fontSize: 16, lineHeight: 1.85, margin: '0 0 32px' }}>
+            <p style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: 'var(--muted)', lineHeight: 1.8, marginBottom: 40, maxWidth: 480 }}>
               {vi
-                ? 'MFC – MC & Fashion Club là câu lạc bộ sinh viên trực thuộc Trường Đại học Ngoại thương, nơi hội tụ những bạn trẻ đam mê Ngôn ngữ, MC, Thời trang, Truyền thông và Sáng tạo. Chúng tôi tin rằng mỗi cá nhân đều có một bản sắc riêng và MFC chính là nơi giúp bạn khám phá, phát triển bản thân và tỏa sáng theo cách của riêng mình.'
-                : 'MFC – MC & Fashion Club is a student club affiliated with Foreign Trade University, a gathering place for young people passionate about Languages, MC, Fashion, Media and Creativity. We believe every individual has a unique identity, and MFC is the place to help you explore, develop and shine in your own way.'}
+                ? 'Được thành lập ngày 21/10/2009, trải qua hơn 16 năm hình thành và phát triển. Luôn vượt qua mọi giới hạn, vượt qua mọi khuôn phép. Tập thể CLB hướng tới sự chuyên nghiệp, mang đậm tinh thần sức sống sinh viên trẻ với những dấu ấn trong lĩnh vực thời trang, nghệ thuật và dẫn chương trình.'
+                : 'MFC is a dynamic hub for students passionate about MCing, modeling, and media. Here, every individual is empowered to step into the spotlight and express their unique identity.'}
             </p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <button className="btn-pill" onClick={() => { navigate('/seating'); window.scrollTo(0, 0); }}>
-                {vi ? 'Mua vé ngay ✦' : 'Get Tickets ✦'}
+              <button className="btn-pill" onClick={() => window.open('https://www.facebook.com/mfc.ftu', '_blank')}>
+                {vi ? 'Ghé thăm Fanpage ↗' : 'Visit Fanpage ↗'}
               </button>
               <button className="btn-outline-pill" onClick={() => { navigate('/recruit'); window.scrollTo(0, 0); }}>
                 {vi ? 'Tham gia MFC →' : 'Join MFC →'}
@@ -260,10 +260,10 @@ const AboutPage = () => {
                 key={card.label}
                 className="mfc-card"
                 style={{ minHeight: 240, position: 'relative', overflow: 'hidden', borderRadius: 20, cursor: 'pointer' }}
-                onClick={() => { navigate('/seating'); window.scrollTo(0, 0); }}
+                onClick={() => window.open(card.link, '_blank')}
               >
                 <img
-                  src="/kv-doc.jpeg"
+                  src={card.img}
                   alt={card.label}
                   style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: card.pos, opacity: .6 }}
                 />

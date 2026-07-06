@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
 const TEAMS = [
-  { vi: 'Truyền thông',   en: 'Media',       descVi: 'Lên ý tưởng, xây dựng nội dung và lan tỏa hình ảnh chương trình.',             descEn: 'Develop ideas, create content and spread the program\'s image.' },
-  { vi: 'Hậu cần',        en: 'Logistics',    descVi: 'Đảm bảo vận hành sự kiện trơn tru, từ hậu cần đến logistics.',                descEn: 'Ensure smooth event operations from backstage logistics to delivery.' },
-  { vi: 'Đối ngoại',      en: 'Partnership',  descVi: 'Kết nối nhà tài trợ, đối tác và mở rộng hợp tác.',                            descEn: 'Connect sponsors, partners and expand collaborations.' },
-  { vi: 'Sân khấu',       en: 'Stage',        descVi: 'Phụ trách dàn dựng, kỹ thuật và không gian sân khấu.',                        descEn: 'Responsible for staging, technical setup and stage space.' },
-  { vi: 'Nội dung',       en: 'Content',      descVi: 'Sáng tạo concept, lịch bản và nội dung chương trình.',                        descEn: 'Create concepts, scripts and program content.' },
-  { vi: 'Thiết kế',       en: 'Design',       descVi: 'Thiết kế ấn phẩm, nhận diện và visual cho sự kiện.',                          descEn: 'Design publications, branding and visuals for the event.' },
+  { vi: 'Ban Thời Trang',   en: 'Fashion',          descVi: 'Lên ý tưởng, định hình phong cách và tổ chức các hoạt động liên quan đến thời trang.', descEn: 'Develop ideas, shape styles and organize fashion-related activities.' },
+  { vi: 'Ban MC',           en: 'MC',               descVi: 'Rèn luyện kỹ năng dẫn chương trình, tự tin tỏa sáng trên sân khấu và trước ống kính.',  descEn: 'Train hosting skills, shine confidently on stage and in front of the camera.' },
+  { vi: 'Ban Sáng Tạo',     en: 'Creative',         descVi: 'Thiết kế ấn phẩm, nhận diện hình ảnh và sáng tạo nội dung visual cho các sự kiện.',    descEn: 'Design publications, brand identity and visual content for events.' },
+  { vi: 'Ban Tổ Chức',      en: 'Event Management', descVi: 'Đảm bảo vận hành sự kiện trơn tru, lên kế hoạch và quản lý rủi ro chuyên nghiệp.',      descEn: 'Ensure smooth event operations, plan and manage risks professionally.' },
+  { vi: 'Ban Đối Ngoại',    en: 'External',         descVi: 'Kết nối nhà tài trợ, mở rộng mạng lưới đối tác và duy trì hình ảnh chuyên nghiệp.',    descEn: 'Connect sponsors, expand partner networks and maintain a professional image.' },
+  { vi: 'Ban Truyền Thông', en: 'Media',            descVi: 'Xây dựng chiến lược truyền thông, lan tỏa thông điệp và hình ảnh của CLB đến cộng đồng.', descEn: 'Build media strategies, spread the club\'s messages and images to the community.' },
 ];
 
 const BENEFITS = [

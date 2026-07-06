@@ -261,7 +261,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
             </div>
             <button
               className="btn-outline-pill"
-              onClick={() => document.getElementById('mfc-features')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => { navigate('/about'); window.scrollTo(0, 0); }}
               style={{ whiteSpace: 'nowrap' }}
             >
               {vi ? 'Tìm hiểu thêm ↗' : 'Learn More ↗'}
@@ -318,17 +318,16 @@ const LandingPage = ({ events, setEvent, settings }) => {
               {vi ? 'Xem thêm ↗' : 'See More ↗'}
             </button>
           </div>
-          <div className="lp-highlights-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+          <div className="lp-highlights-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
             {[
-              { label: 'BACKSTAGE',      sub: vi ? 'Những khoảnh khắc phía sau ánh đèn sân khấu.' : 'Behind-the-scenes magic.', pos: 'left top' },
-              { label: 'REHEARSAL',      sub: vi ? 'Nơi sự nỗ lực được mài giũa để tỏa sáng.' : 'Where hard work meets the spotlight.', pos: 'center top' },
-              { label: 'RUNWAY MOMENT',  sub: vi ? 'Khoảnh khắc thăng hoa, khắc dấu cảm xúc.' : 'The moment it all comes alive.', pos: 'right top' },
-              { label: 'WORKSHOP',       sub: vi ? 'Chuỗi workshop về thời trang & kỹ năng mềm.' : 'In-depth fashion & skill workshops.', pos: 'left bottom' },
+              { label: 'FTU FASHION SHOW', sub: vi ? 'Sự kiện trình diễn thời trang thường niên, bệ phóng cho người mẫu sinh viên.' : 'Annual fashion show, a launchpad for student models.', pos: 'left top', img: '/sk3.jpg', link: 'https://www.facebook.com/ftufashionshow.mfc' },
+              { label: 'MC FIRE',          sub: vi ? 'Cuộc thi tìm kiếm tài năng MC chuyên nghiệp dành cho giới trẻ.' : 'Professional MC talent search contest for the youth.', pos: 'center top', img: '/sk1.jpg', link: 'https://www.facebook.com/mcfire.mfc.ftu' },
+              { label: 'JUST ART EXHIBITION', sub: vi ? 'Triển lãm nghệ thuật nơi giao thoa giữa thời trang và sáng tạo.' : 'Art exhibition where fashion and creativity intersect.', pos: 'right top', img: '/sk2.jpg', link: 'https://www.facebook.com/media/set/?set=a.683672377197844&type=3&rdid=cxILwUfkmIZvz9OR&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1FFDxkAgr2%2F#' },
             ].map(card => (
               <div key={card.label} className="mfc-card" style={{ height: 218, position: 'relative', overflow: 'hidden', cursor: 'pointer', borderRadius: 18 }}
-                onClick={handleBook}>
+                onClick={() => window.open(card.link, '_blank')}>
                 <img
-                  src={activeEvent.image}
+                  src={card.img}
                   alt={card.label}
                   style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: card.pos, opacity: .55, transition: 'opacity .3s' }}
                 />
@@ -412,7 +411,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
         @media (max-width: 768px) {
           .lp-hero-grid { grid-template-columns: 1fr !important; }
           .lp-tiers-grid { grid-template-columns: 1fr !important; }
-          .lp-highlights-grid { grid-template-columns: 1fr 1fr !important; }
+          .lp-highlights-grid { grid-template-columns: 1fr !important; }
           .lp-why-grid { grid-template-columns: 1fr 1fr !important; }
           .lp-policy-grid { grid-template-columns: 1fr !important; }
           .lp-mfc-strip { grid-template-columns: 1fr !important; }
