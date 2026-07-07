@@ -305,22 +305,17 @@ const EventsSection = ({ vi }) => {
                 href={activeEventData.href}
                 target="_blank" 
                 rel="noopener noreferrer"
+                className="btn-pill"
                 style={{
-                  display: 'inline-block',
-                  background: 'linear-gradient(135deg, var(--purple), var(--mint))',
-                  color: '#fff',
-                  padding: '12px 36px',
-                  borderRadius: '100px',
-                  fontWeight: 600,
-                  fontSize: '16px',
-                  textDecoration: 'none',
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                  transition: 'transform 0.2s'
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '14px 28px',
+                  textDecoration: 'none'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
               >
                 {vi ? 'Xem Chi Tiết' : 'View Details'}
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_outward</span>
               </a>
             </motion.div>
           </AnimatePresence>
