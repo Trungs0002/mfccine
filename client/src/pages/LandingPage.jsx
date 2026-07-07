@@ -8,7 +8,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 /* Reusable centered section heading */
 const SectionHeading = ({ children }) => (
   <div style={{ textAlign: 'center', marginBottom: 40 }}>
-    <div className="section-eyebrow"><span>{children}</span></div>
+    <div className="section-eyebrow" style={{ margin: '0 auto', width: '100%', padding: '0 16px' }}>
+      <span className="gradient-title-hero" style={{ fontSize: 'clamp(28px, 7vw, 48px)', fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'transparent', WebkitTextFillColor: 'transparent' }}>
+        {children}
+      </span>
+    </div>
   </div>
 );
 
@@ -135,7 +139,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
     vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + Number(p).toLocaleString('en-US');
 
   const tiers = activeEvent ? [
-    { key: 'standard', accentColor: '#7c6fe0', featured: false },
+    { key: 'standard', accentColor: '#10b981', featured: false },
     { key: 'silver', accentColor: '#5aaddc', featured: false },
     { key: 'vip', accentColor: '#a896f6', featured: true },
   ] : [];
@@ -255,36 +259,78 @@ const LandingPage = ({ events, setEvent, settings }) => {
               const tier = activeEvent.pricingTiers?.[key];
               if (!tier) return null;
               return (
-                <div
+                <motion.div
                   key={key}
-                  className={`mfc-card${featured ? ' mfc-card-vip' : ''}`}
-                  style={{ padding: '24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative' }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    position: 'relative',
+                    background: 'linear-gradient(135deg, rgba(40,40,55,0.85), rgba(20,20,30,0.95))',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: featured ? `4px solid ${accentColor}` : `3px solid ${accentColor}`,
+                    borderRadius: 24,
+                    WebkitMaskImage: 'radial-gradient(circle at 0px calc(100% - 100px), transparent 14px, black 15px), radial-gradient(circle at 100% calc(100% - 100px), transparent 14px, black 15px)',
+                    WebkitMaskSize: '51% 100%',
+                    WebkitMaskPosition: '0 0, 100% 0',
+                    WebkitMaskRepeat: 'no-repeat',
+                    overflow: 'hidden',
+                    boxShadow: featured ? `0 20px 80px ${accentColor}60, 0 0 30px ${accentColor}40` : `0 15px 40px ${accentColor}40`,
+                    zIndex: featured ? 2 : 1,
+                  }}
                 >
+                  {/* Glowing Highlight */}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0, left: 0, right: 0, height: '100%',
+                    background: featured ? `radial-gradient(circle at 50% 0%, ${accentColor}70 0%, transparent 80%)` : `radial-gradient(circle at 50% 0%, ${accentColor}35 0%, transparent 60%)`,
+                    pointerEvents: 'none',
+                  }} />
                   {featured && (
                     <div style={{
-                      background: 'linear-gradient(135deg, var(--ultra), var(--purple))',
-                      color: '#fff', fontSize: 10, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase',
-                      padding: '5px 16px', borderRadius: 999, marginBottom: 10
-                    }}>
-                      {vi ? 'Được ưa chuộng' : 'Most Popular'}
-                    </div>
+                      position: 'absolute',
+                      bottom: 0, left: 0, right: 0, height: '50%',
+                      background: `radial-gradient(circle at 50% 100%, ${accentColor}40 0%, transparent 70%)`,
+                      pointerEvents: 'none',
+                    }} />
                   )}
-                  {!featured && <div style={{ height: 25, marginBottom: 10 }} />}
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 8 }}>
-                    <div style={{ height: 1, width: 30, background: `linear-gradient(to right, transparent, ${accentColor})` }} />
-                    <h3 className="serif" style={{ color: accentColor, fontSize: 'clamp(24px, 4vw, 32px)', margin: 0, fontWeight: 700, textShadow: `0 0 15px ${accentColor}40` }}>
+                  {/* Top Section */}
+                  <div style={{ padding: '16px 20px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', flex: 1, position: 'relative' }}>
+                    <h3 className="serif" style={{ color: accentColor, fontSize: 'clamp(26px, 5vw, 32px)', margin: '0 0 8px', fontWeight: 700, textShadow: `0 0 25px ${accentColor}60` }}>
                       {l(tier.label)}
                     </h3>
-                    <div style={{ height: 1, width: 30, background: `linear-gradient(to left, transparent, ${accentColor})` }} />
+
+                    <p style={{ color: 'var(--muted)', fontSize: 12, lineHeight: 1.4, margin: '0' }}>{l(tier.description)}</p>
                   </div>
 
-                  <p style={{ color: 'var(--muted)', fontSize: 13, lineHeight: 1.5, margin: '0 0 12px', flex: 1 }}>{l(tier.description)}</p>
-                  
-                  <div className="serif" style={{ fontSize: 40, color: accentColor, margin: '0', fontWeight: 700 }}>
-                    {formatPrice(tier.price)}
+                  {/* Dashed Line separator */}
+                  <div style={{ position: 'relative', width: '100%', height: 0 }}>
+                    <div style={{ position: 'absolute', top: -1, left: 20, right: 20, borderTop: `3px dashed ${accentColor}80` }} />
                   </div>
-                </div>
+
+                  {/* Bottom Section (Stub) */}
+                  <div style={{ height: 100, padding: '20px 24px', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,0,0,0.4)' }}>
+                    {/* Price */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4 }}>
+                        {vi ? 'Giá vé' : 'Price'}
+                      </span>
+                      <div className="serif" style={{ fontSize: 32, color: '#fff', margin: '0', fontWeight: 700 }}>
+                        {formatPrice(tier.price)}
+                      </div>
+                    </div>
+                    
+                    {/* Barcode */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', opacity: 0.8 }}>
+                      <div style={{ display: 'flex', gap: 3, height: 44, alignItems: 'center' }}>
+                        {[2, 5, 2, 7, 3, 2, 8, 4, 2, 2, 5, 6].map((w, i) => (
+                          <div key={i} style={{ width: w, height: '100%', background: accentColor }} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
               );
             })}
           </div>
