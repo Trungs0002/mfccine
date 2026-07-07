@@ -3,104 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 
-const VISION = [
-  {
-    vi: 'Kết nối',
-    en: 'Connect',
-    descVi: 'Xây dựng cộng đồng sinh viên năng động, cởi mở và gắn kết, nơi mọi ý tưởng đều được lắng nghe và trân trọng.',
-    descEn: 'Build a dynamic, open and bonded student community where every idea is heard and valued.',
-  },
-  {
-    vi: 'Sáng tạo',
-    en: 'Create',
-    descVi: 'Khơi nguồn cảm hứng và khuyến khích sự sáng tạo trong lĩnh vực MC, thời trang, truyền thông và nghệ thuật.',
-    descEn: 'Inspire and encourage creativity in MC, fashion, media and the arts.',
-  },
-  {
-    vi: 'Phát triển',
-    en: 'Grow',
-    descVi: 'Trang bị kiến thức, kỹ năng và trải nghiệm thực tế để sinh viên tự tin phát triển và sẵn sàng bứt phá trong tương lai.',
-    descEn: 'Equip students with knowledge, skills and real experience to grow and break through.',
-  },
-];
 
-const SPECIAL = [
-  {
-    vi: 'Đào tạo bài bản',
-    en: 'Structured Training',
-    descVi: 'Các khóa học chuyên sâu về MC, Thời trang, Truyền thông và kỹ năng mềm do đội ngũ giàu kinh nghiệm trực tiếp giảng dạy.',
-    descEn: 'In-depth courses on MC, Fashion, Media and soft skills taught by experienced practitioners.',
-  },
-  {
-    vi: 'Sự kiện chất lượng',
-    en: 'Quality Events',
-    descVi: 'Tổ chức nhiều sự kiện, talkshow, workshop và cuộc thi sáng tạo, quy mô bài bản và chuyên nghiệp.',
-    descEn: 'Organise events, talkshows, workshops and creative contests at a professional scale.',
-  },
-  {
-    vi: 'Fashion Show đẳng cấp',
-    en: 'Premium Fashion Show',
-    descVi: 'Tổ chức các fashion show ấn tượng, là sân chơi để sinh viên thể hiện cá tính và khẳng định chất riêng.',
-    descEn: 'Stage impressive fashion shows — the playground for students to express their identity.',
-  },
-  {
-    vi: 'Cộng đồng truyền cảm hứng',
-    en: 'Inspiring Community',
-    descVi: 'Môi trường cởi mở, thân thiện, luôn sẵn sàng đồng hành và truyền cảm hứng để bạn trở thành phiên bản tốt nhất của chính mình.',
-    descEn: 'An open, friendly environment that accompanies and inspires you to become your best self.',
-  },
-];
-
-const TIMELINE = [
-  {
-    year: '2009',
-    vi: 'Khởi nguồn',
-    en: 'Founded',
-    descVi: 'MFC được thành lập vào ngày 21/10/2009, là bệ phóng đầu tiên cho những sinh viên đam mê nghệ thuật và thời trang.',
-    descEn: 'Founded on Oct 21, 2009, MFC was the first launching pad for students passionate about arts and fashion.',
-  },
-  {
-    year: '2020',
-    vi: 'Những bước đầu',
-    en: 'First Steps',
-    descVi: 'Tổ chức các workshop, talkshow và mini show đầu tiên, thu hút sự quan tâm của đông đảo sinh viên trong và ngoài trường.',
-    descEn: 'Organised first workshops, talkshows and mini shows, attracting wide student interest.',
-  },
-  {
-    year: '2022',
-    vi: 'Mở rộng hoạt động',
-    en: 'Expansion',
-    descVi: 'MFC mở rộng quy mô, đa dạng hóa các hoạt động chuyên môn, đồng hành cùng nhiều đối tác và thương hiệu uy tín.',
-    descEn: 'MFC scaled up, diversified professional activities and partnered with reputable brands.',
-  },
-  {
-    year: '2024',
-    vi: 'Khẳng định dấu ấn',
-    en: 'Established',
-    descVi: 'Tổ chức thành công các sự kiện lớn, để lại dấu ấn mạnh mẽ trong cộng đồng thời trang sinh viên khu vực phía Bắc.',
-    descEn: 'Successfully hosted major events, making a strong mark in the northern student fashion scene.',
-  },
-  {
-    year: '2026',
-    vi: 'Hướng tới tương lai',
-    en: 'The Future',
-    descVi: 'Tiếp tục đổi mới, nâng tầm trải nghiệm và khẳng định vị thế của MFC trong bản đồ thời trang sinh viên dẫn đầu trong sinh viên.',
-    descEn: 'Continue innovating, elevating the experience and solidifying MFC as a leading student fashion force.',
-  },
-];
-
-const CORE_VALUES = [
-  { vi: 'Bản sắc', en: 'Identity', descVi: 'Tôn vinh cá tính riêng và bản sắc thời trang độc đáo của mỗi thành viên.', descEn: 'Celebrate the unique identity and fashion style of every member.' },
-  { vi: 'Kỷ luật', en: 'Discipline', descVi: 'Đề cao tinh thần trách nhiệm, chuyên nghiệp và cam kết trong mọi hoạt động.', descEn: 'Uphold responsibility, professionalism and commitment in all activities.' },
-  { vi: 'Sáng tạo', en: 'Creativity', descVi: 'Không ngừng đổi mới, khuyến khích tư duy sáng tạo và dám khác biệt trong thời trang.', descEn: 'Never stop innovating, encouraging creative thinking and bold differentiation.' },
-  { vi: 'Kết nối', en: 'Connection', descVi: 'Xây dựng cộng đồng gắn kết, lan tỏa giá trị tích cực và tạo nên những mối liên kết bền vững.', descEn: 'Build a cohesive community, spread positive values and forge lasting bonds.' },
-];
-
-const HIGHLIGHTS = [
-  { label: 'FTU FASHION SHOW', descVi: 'Sự kiện trình diễn thời trang thường niên, bệ phóng cho người mẫu sinh viên.', descEn: 'Annual fashion show, a launchpad for student models.', pos: 'left center', img: '/sk3.jpg', link: 'https://www.facebook.com/ftufashionshow.mfc' },
-  { label: 'MC FIRE',          descVi: 'Cuộc thi tìm kiếm tài năng MC chuyên nghiệp dành cho giới trẻ.', descEn: 'Professional MC talent search contest for the youth.', pos: 'center center', img: '/sk1.jpg', link: 'https://www.facebook.com/mcfire.mfc.ftu' },
-  { label: 'JUST ART EXHIBITION', descVi: 'Triển lãm nghệ thuật nơi giao thoa giữa thời trang và sáng tạo.', descEn: 'Art exhibition where fashion and creativity intersect.', pos: 'right center', img: '/sk2.jpg', link: 'https://www.facebook.com/media/set/?set=a.683672377197844&type=3&rdid=cxILwUfkmIZvz9OR&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1FFDxkAgr2%2F#' },
-];
 
 const FACES = [
   { name: 'PHAN PHƯƠNG OANH', desc: 'Top 10 Hoa hậu Việt Nam 2022<br/>Miss World Vietnam 2026', img: '/phanphuongoanh.jpg' },
@@ -496,6 +399,7 @@ const FacesCarousel = () => {
     }, 850);
 
     return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, controls]);
 
   // 2. Auto-scroll logic
