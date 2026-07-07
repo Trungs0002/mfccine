@@ -109,37 +109,47 @@ const AboutPage = () => {
   return (
     <div className="animate-fade-in" style={{ paddingTop: 96, paddingBottom: 64 }}>
 
+      {/* ── TOP HORIZONTAL TITLE ─────────────────────────────────────────────── */}
+      <div className="container" style={{ paddingBottom: 'clamp(4px, 1.5vw, 12px)', marginBottom: 'clamp(8px, 2vw, 24px)', overflow: 'hidden' }}>
+        <div className="section-eyebrow" style={{ marginBottom: 0 }}>
+          <span className="gradient-title-hero" style={{ fontSize: 'clamp(11px, 2.2vw, 24px)', letterSpacing: '.05em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'transparent', WebkitTextFillColor: 'transparent' }}>
+            {vi ? 'CLB MC & Thời Trang Trường Đại Học Ngoại Thương' : 'MC & Fashion Club of Foreign Trade University'}
+          </span>
+        </div>
+      </div>
+
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <section style={{ padding: '48px 0 40px' }}>
-        <div className="container about-hero-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center' }}>
+      <section style={{ padding: '0 0 60px' }}>
+        <div className="about-hero-grid" style={{ maxWidth: 1536, margin: '0 auto', padding: '0 clamp(20px, 4vw, 64px)', display: 'grid', gridTemplateColumns: '1.05fr 1fr', gap: 'clamp(40px, 6vw, 100px)', alignItems: 'center' }}>
           {/* KV image left */}
-          <div style={{ position: 'relative', borderRadius: 28, overflow: 'hidden', border: '1px solid var(--line)', minHeight: 420 }}>
+          <div style={{ position: 'relative', borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(168,150,246,0.2)', boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(168,150,246,0.1)' }}>
             <img
-              src="/clbne.jpg"
+              src="/mfcanhchinh.jpg"
               alt="MFC Family"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: .8, display: 'block', minHeight: 420 }}
+              style={{ width: '100%', height: 'auto', display: 'block' }}
             />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(70,69,215,.15), rgba(1,1,10,.5))' }} />
-            <div style={{ position: 'absolute', bottom: 28, left: 28 }}>
-              <div style={{ fontFamily: 'Georgia, serif', fontSize: 64, color: '#fff', lineHeight: 1, textShadow: '0 0 32px rgba(168,150,246,.7)', opacity: .95 }}>MFC</div>
-              <div style={{ fontSize: 12, letterSpacing: '.2em', color: 'var(--mint)', textTransform: 'uppercase', marginTop: 6 }}>Est. 2009</div>
-            </div>
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(70,69,215,.05), rgba(1,1,10,.2))', pointerEvents: 'none' }} />
           </div>
 
           {/* Text right */}
-          <div>
-            <div style={{ fontSize: 12, color: 'var(--mint)', letterSpacing: '.18em', textTransform: 'uppercase', marginBottom: 10 }}>
-              {vi ? 'Giới thiệu' : 'About'}
+          <div style={{ paddingRight: 'clamp(0px, 3vw, 32px)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+              <div style={{ height: 1, width: 32, background: 'var(--mint)' }} />
+              <div style={{ fontSize: 12, color: 'var(--mint)', letterSpacing: '.2em', textTransform: 'uppercase', fontWeight: 600 }}>
+                {vi ? 'Giới thiệu' : 'About'}
+              </div>
             </div>
-            <h1 className="gradient-title-hero" style={{ fontSize: 'clamp(32px, 4vw, 56px)', lineHeight: 1.15, margin: '0 0 20px', fontWeight: 700, fontFamily: "'Cormorant Garamond', Georgia, serif" }}>
+            <h1 className="gradient-title-hero" style={{ fontSize: 'clamp(32px, 3.8vw, 48px)', lineHeight: 1.15, margin: '0 0 24px', fontWeight: 700, fontFamily: "'Cormorant Garamond', Georgia, serif" }}>
               "WE ARE MFC - WE ARE FAMILY"
             </h1>
-            <div style={{ width: 48, height: 2, background: 'linear-gradient(90deg, var(--purple), var(--mint))', marginBottom: 20 }} />
-            <p style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: 'var(--muted)', lineHeight: 1.8, marginBottom: 40, maxWidth: 480 }}>
-              {vi
-                ? 'Được thành lập ngày 21/10/2009, trải qua hơn 16 năm hình thành và phát triển. Luôn vượt qua mọi giới hạn, vượt qua mọi khuôn phép. Tập thể CLB hướng tới sự chuyên nghiệp, mang đậm tinh thần sức sống sinh viên trẻ với những dấu ấn trong lĩnh vực thời trang, nghệ thuật và dẫn chương trình.'
-                : 'MFC is a dynamic hub for students passionate about MCing, modeling, and media. Here, every individual is empowered to step into the spotlight and express their unique identity.'}
+            <p style={{ fontSize: 'clamp(15px, 1.8vw, 17px)', color: 'rgba(255,255,255,0.75)', lineHeight: 1.9, marginBottom: 24, textAlign: 'justify', fontWeight: 300 }}>
+              {vi ? 'CLB MC & Thời trang Trường ĐH Ngoại thương - MFC FTU thuộc khối CLB sở thích trực thuộc Đoàn sinh viên Trường ĐH Ngoại Thương. Được thành lập ngày 21/10/2009, trải qua 16 năm hình thành và phát triển.' : 'MFC is a dynamic hub for students passionate about MCing, modeling, and media. Here, every individual is empowered to step into the spotlight and express their unique identity.'}
             </p>
+            {vi && (
+              <p style={{ fontSize: 'clamp(15px, 1.8vw, 17px)', color: 'rgba(255,255,255,0.75)', lineHeight: 1.9, marginBottom: 40, textAlign: 'justify', fontWeight: 300 }}>
+                Luôn vượt qua mọi giới hạn, vượt qua mọi khuôn phép. Tập thể CLB hướng tới sự chuyên nghiệp, mang đậm tinh thần sức sống sinh viên trẻ với những dấu ấn trong lĩnh vực thời trang, nghệ thuật và dẫn chương trình.
+              </p>
+            )}
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <button
                 className="btn-pill"

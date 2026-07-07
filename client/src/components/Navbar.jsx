@@ -18,9 +18,9 @@ const Navbar = ({ isAdminMode, user, onLogout, settings, selectedEvent }) => {
         { label: language === 'vi' ? 'Trang chủ'      : 'Home',         path: '/' },
         { label: language === 'vi' ? 'Giới thiệu'     : 'About',        path: '/about' },
         { label: language === 'vi' ? 'Mua vé'         : 'Tickets',      path: ticketsPath },
-        { label: language === 'vi' ? 'Sơ đồ ghế'     : 'Seat Map',     path: '/seating' },
         { label: language === 'vi' ? 'Cộng tác viên'  : 'Collaborate',  path: '/recruit' },
-        { label: language === 'vi' ? 'Liên hệ'        : 'Contact',      path: null },
+        { label: language === 'vi' ? '"Nhất"'         : '"Nhất"',       path: '#' },
+        { label: language === 'vi' ? 'Casting Call'   : 'Casting Call', path: '#' },
       ];
 
   return (
