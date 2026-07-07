@@ -315,9 +315,7 @@ const DepartmentsSection = ({ vi }) => {
                 
                 {/* Text Content */}
                 <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                  <span style={{ color: dept.color, fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px', opacity: 0.9 }}>
-                    {dept.role}
-                  </span>
+
                   <h3 style={{ fontSize: '28px', fontWeight: 800, color: '#fff' }}>
                     {dept.name}
                   </h3>
@@ -328,15 +326,7 @@ const DepartmentsSection = ({ vi }) => {
                       {dept.description}
                     </p>
                     
-                    {/* Members */}
-                    <div className="flex flex-col gap-2">
-                      {dept.members.map((member, i) => (
-                        <div key={i} className="flex justify-between items-center border-b border-white/10 pb-2">
-                          <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{member.position}</span>
-                          <span style={{ fontSize: '14px', color: '#fff', fontWeight: 600 }}>{member.name}</span>
-                        </div>
-                      ))}
-                    </div>
+
                   </div>
                 </div>
               </motion.div>
