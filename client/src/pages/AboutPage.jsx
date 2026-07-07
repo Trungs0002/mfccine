@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { motion, useAnimation } from 'framer-motion';
+import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 
 const VISION = [
   {
@@ -122,6 +122,162 @@ const FACES = [
   { name: 'CHỊ QUỲNH HOA', desc: 'MC/ BTV VTV', img: '/quynhhoa.jpg' },
   { name: 'CHỊ MINH PHƯƠNG', desc: 'MC/ BTV VTV', img: '/minhphuong.jpg' }
 ];
+
+const EVENTS = [
+  {
+    id: "fashion-week",
+    name: "FTU Fashion Show", 
+    description: "FTU Fashion Show là sự kiện trình diễn thời trang thường niên do CLB MFC tổ chức, nhằm tôn vinh vẻ đẹp, phong cách và cá tính riêng của sinh viên thông qua ngôn ngữ thời trang. Đây là cơ hội để các bạn người mẫu trẻ đam mê sàn diễn được thể hiện bản lĩnh, đồng thời khẳng định tinh thần sáng tạo và chuyên nghiệp của sinh viên Ngoại thương trong lĩnh vực nghệ thuật trình diễn.",
+    image: "/sk3.jpg",
+    href: "https://www.facebook.com/ftufashionshow.mfc"
+  },
+  {
+    id: "talent-show",
+    name: "MC Fire", 
+    description: "MC Fire là cuộc thi tìm kiếm người dẫn chương trình tài năng, hướng tới việc tạo dựng một sân chơi chuyên nghiệp dành cho các bạn sinh viên trên địa bàn Hà Nội có niềm đam mê với lĩnh vực dẫn chương trình. Thông qua các vòng thi được thiết kế bài bản, MC Fire không chỉ giúp thí sinh rèn luyện kỹ năng, phong thái sân khấu mà còn góp phần lan tỏa hình ảnh người dẫn chương trình trẻ trung, tự tin và sáng tạo trong cộng đồng sinh viên.",
+    image: "/sk1.jpg",
+    href: "https://www.facebook.com/mcfire.mfc.ftu"
+  },
+  {
+    id: "charity-gala",
+    name: "Just Art Exhibition", 
+    description: "Just Art Exhibition là triển lãm nghệ thuật do CLB tổ chức, nhằm tạo không gian cho sinh viên thể hiện tư duy sáng tạo và cảm xúc nghệ thuật thông qua nhiều hình thức như hội họa, nhiếp ảnh và sắp đặt. Sự kiện góp phần lan tỏa tinh thần nghệ thuật, khơi dậy cảm hứng sáng tạo và xây dựng cộng đồng yêu nghệ thuật trong sinh viên Ngoại thương.",
+    image: "/sk2.jpg",
+    href: "https://www.facebook.com/media/set/?set=a.683672377197844&type=3&rdid=cxILwUfkmIZvz9OR&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1FFDxkAgr2%2F#"
+  },
+];
+
+const EventsSection = ({ vi }) => {
+  const [activeEvent, setActiveEvent] = useState(EVENTS[0].id);
+  const activeEventData = EVENTS.find((e) => e.id === activeEvent) || EVENTS[0];
+
+  return (
+    <section className="relative overflow-hidden" style={{ minHeight: '90vh', padding: '80px 0', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+        {EVENTS.map((event) => (
+          <motion.div
+            key={event.id}
+            style={{ position: 'absolute', inset: 0 }}
+            initial={{ opacity: event.id === activeEvent ? 1 : 0 }}
+            animate={{ opacity: event.id === activeEvent ? 1 : 0 }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+          >
+            <img
+              src={event.image}
+              alt={event.name}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </motion.div>
+        ))}
+        {/* Overlay to match project theme but lighter */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(14,16,44,0.9) 0%, rgba(7,8,24,0.3) 40%, rgba(14,16,44,0.7) 100%)' }} />
+      </div>
+
+      <div className="container relative z-10" style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center' }}>
+        
+        {/* Section Eyebrow */}
+        <div className="section-eyebrow" style={{ margin: '0 auto 40px', width: '100%', padding: '0 16px' }}>
+          <span className="gradient-title-hero" style={{ fontSize: 'clamp(20px, 4.5vw, 48px)', fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'transparent', WebkitTextFillColor: 'transparent' }}>
+            {vi ? 'Các sự kiện chính' : 'Major Events'}
+          </span>
+        </div>
+
+        {/* Content Wrapper */}
+        <div style={{ textAlign: 'center', maxWidth: 800, margin: '0 auto', minHeight: 220, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <AnimatePresence mode="wait">
+            <motion.h2
+              key={activeEvent}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              style={{ fontSize: 'clamp(32px, 6vw, 64px)', fontWeight: 700, color: '#fff', marginBottom: 24, letterSpacing: '-0.02em', textShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
+            >
+              {activeEventData.name}
+            </motion.h2>
+          </AnimatePresence>
+
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={activeEvent + "-desc"}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.5, ease: "easeInOut", delay: 0.1 }}
+              style={{ color: 'rgba(255,255,255,0.9)', fontSize: 'clamp(16px, 1.8vw, 20px)', lineHeight: 1.8, textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}
+            >
+              {activeEventData.description}
+            </motion.p>
+          </AnimatePresence>
+
+          {/* Nút Xem Chi Tiết */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeEvent + "-btn"}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.5, ease: "easeInOut", delay: 0.2 }}
+              style={{ marginTop: '32px' }}
+            >
+              <a 
+                href={activeEventData.href}
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-block',
+                  background: 'linear-gradient(135deg, var(--purple), var(--mint))',
+                  color: '#fff',
+                  padding: '12px 36px',
+                  borderRadius: '100px',
+                  fontWeight: 600,
+                  fontSize: '16px',
+                  textDecoration: 'none',
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                  transition: 'transform 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                {vi ? 'Xem Chi Tiết' : 'View Details'}
+              </a>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Navigation Buttons */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '48px', flexWrap: 'wrap' }}>
+          {EVENTS.map((event) => (
+            <button
+              key={event.id}
+              onClick={() => setActiveEvent(event.id)}
+              style={{
+                padding: '12px 28px',
+                borderRadius: '100px',
+                background: activeEvent === event.id ? 'var(--mint)' : 'rgba(255,255,255,0.1)',
+                color: activeEvent === event.id ? '#000' : '#fff',
+                border: activeEvent === event.id ? '1px solid var(--mint)' : '1px solid rgba(255,255,255,0.2)',
+                fontWeight: 600,
+                fontSize: '15px',
+                transition: 'all 0.3s ease',
+                backdropFilter: 'blur(10px)',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                if (activeEvent !== event.id) e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+              }}
+              onMouseLeave={(e) => {
+                if (activeEvent !== event.id) e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+              }}
+            >
+              {event.name}
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 const FacesCarousel = () => {
   const itemWidth = 320;
@@ -341,7 +497,10 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* ── VISION ───────────────────────────────────────────── */}
+      {/* ── CÁC SỰ KIỆN CHÍNH (Từ mfc-main) ────────────────────────── */}
+      <EventsSection vi={vi} />
+
+      {/* ── GIÁ TRỊ VĂN HÓA ──────────────────────────────────── */}
       <section style={{ padding: '56px 0' }}>
         <div className="container">
           <div className="section-eyebrow" style={{ marginBottom: 32 }}>
