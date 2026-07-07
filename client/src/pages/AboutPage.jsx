@@ -167,61 +167,52 @@ const EventsSection = ({ vi }) => {
         </div>
 
         {/* Content Wrapper */}
-        <div style={{ textAlign: 'center', maxWidth: 800, margin: '0 auto', minHeight: 220, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <AnimatePresence mode="wait">
-            <motion.h2
-              key={activeEvent}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              style={{ fontSize: 'clamp(32px, 6vw, 64px)', fontWeight: 700, color: '#fff', marginBottom: 24, letterSpacing: '-0.02em', textShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
-            >
-              {activeEventData.name}
-            </motion.h2>
-          </AnimatePresence>
+        <div style={{ textAlign: 'center', maxWidth: 800, margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <motion.h2
+            key={activeEvent + "-title"}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            style={{ fontSize: 'clamp(32px, 6vw, 64px)', fontWeight: 700, color: '#fff', marginBottom: 24, letterSpacing: '-0.02em', textShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
+          >
+            {activeEventData.name}
+          </motion.h2>
 
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={activeEvent + "-desc"}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.5, ease: "easeInOut", delay: 0.1 }}
-              style={{ color: 'rgba(255,255,255,0.9)', fontSize: 'clamp(16px, 1.8vw, 20px)', lineHeight: 1.8, textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}
-            >
-              {activeEventData.description}
-            </motion.p>
-          </AnimatePresence>
+          <motion.p
+            key={activeEvent + "-desc"}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+            style={{ color: 'rgba(255,255,255,0.9)', fontSize: 'clamp(16px, 1.8vw, 20px)', lineHeight: 1.8, textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}
+          >
+            {activeEventData.description}
+          </motion.p>
 
           {/* Nút Xem Chi Tiết */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeEvent + "-btn"}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.5, ease: "easeInOut", delay: 0.2 }}
-              style={{ marginTop: '32px' }}
+          <motion.div
+            key={activeEvent + "-btn"}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
+            style={{ marginTop: '32px' }}
+          >
+            <a 
+              href={activeEventData.href}
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="btn-pill"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '14px 28px',
+                textDecoration: 'none'
+              }}
             >
-              <a 
-                href={activeEventData.href}
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="btn-pill"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '14px 28px',
-                  textDecoration: 'none'
-                }}
-              >
-                {vi ? 'Xem Chi Tiết' : 'View Details'}
-                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_outward</span>
-              </a>
-            </motion.div>
-          </AnimatePresence>
+              {vi ? 'Xem Chi Tiết' : 'View Details'}
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_outward</span>
+            </a>
+          </motion.div>
         </div>
 
         {/* Navigation Buttons */}
@@ -292,9 +283,21 @@ const DepartmentsSection = ({ vi }) => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                onClick={() => setActiveCard(isActive ? null : dept.id)}
-                onMouseEnter={() => setActiveCard(dept.id)}
-                onMouseLeave={() => setActiveCard(null)}
+                onClick={() => {
+                  if (!window.matchMedia('(hover: hover)').matches) {
+                    setActiveCard(isActive ? null : dept.id);
+                  }
+                }}
+                onMouseEnter={() => {
+                  if (window.matchMedia('(hover: hover)').matches) {
+                    setActiveCard(dept.id);
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (window.matchMedia('(hover: hover)').matches) {
+                    setActiveCard(null);
+                  }
+                }}
               >
                 <img 
                   src={dept.image} 
