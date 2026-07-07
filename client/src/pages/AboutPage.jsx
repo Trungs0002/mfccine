@@ -147,6 +147,87 @@ const EVENTS = [
   },
 ];
 
+const CLUB_DEPARTMENTS = [
+  {
+    id: "ban-su-kien",
+    name: "Ban Thời Trang",
+    role: "Fashion",
+    image: "/ban-su-kien.jpg", 
+    members: [
+      { position: "Trưởng ban", name: "Phạm Quỳnh Anh" },
+      { position: "Phó ban", name: "Hoàng Thị Mai" },
+      { position: "Model trưởng", name: "Vũ Thanh Hà" }
+    ],
+    color: "#a78bfa",
+    description: "Là nơi quy tụ những bạn trẻ đam mê thời trang và sàn diễn, ban Thời trang mang đến môi trường để các thành viên được rèn luyện kỹ năng catwalk, phong thái biểu diễn và khả năng thể hiện cá tính trên sân khấu. Không chỉ dừng lại ở việc trình diễn, Ban còn góp phần xây dựng hình ảnh chỉn chu, chuyên nghiệp cho các sự kiện của CLB, đồng thời lan tỏa tinh thần tự tin, sáng tạo và bản lĩnh của sinh viên Ngoại thương"
+  },
+  {
+    id: "ban-truyen-thong",
+    name: "Ban MC",
+    role: "MC",
+    image: "/ban-truyen-thong.jpg",
+    members: [
+      { position: "Trưởng ban", name: "Đỗ Văn Khánh" },
+      { position: "Phó ban", name: "Bùi Thị Linh" },
+      { position: "MC chính", name: "Ngô Minh Tuấn" }
+    ],
+    color: "#f472b6",
+    description: "Ban MC là môi trường năng động dành cho những bạn yêu thích lĩnh vực dẫn chương trình và mong muốn phát triển kỹ năng giao tiếp, ứng biến cùng phong thái sân khấu chuyên nghiệp. Tại đây, các thành viên được tham gia đào tạo, thực hành qua các sự kiện nội bộ, từ đó không ngừng hoàn thiện bản thân và lan tỏa hình ảnh người dẫn chương trình tự tin, bản lĩnh và truyền cảm hứng."
+  },
+  {
+    id: "ban-dao-tao",
+    name: "Ban Sáng Tạo",
+    role: "Creative",
+    image: "/ban-dao-tao.jpg",
+    members: [
+      { position: "Trưởng ban", name: "Lý Thùy Dung" },
+      { position: "Phó ban", name: "Phan Minh Khôi" },
+      { position: "Art Director", name: "Mai Thảo Nguyên" }
+    ],
+    color: "#38bdf8",
+    description: "Tập hợp những cá nhân có tư duy thẩm mỹ và khả năng sáng tạo vượt giới hạn, Ban Sáng tạo đảm nhận vai trò định hình hình ảnh và phong cách đặc trưng cho CLB. Các thành viên của ban là \"linh hồn nghệ thuật\" đứng sau những sản phẩm truyền thông, visual và ý tưởng sân khấu độc đáo, góp phần tạo nên bản sắc riêng, đậm chất MFC trong mọi hoạt động"
+  },
+  {
+    id: "ban-chu-nhiem",
+    name: "Ban Tổ Chức",
+    role: "Leader",
+    image: "/ban-chu-nhiem.jpg",
+    members: [
+      { position: "Trưởng ban", name: "Nguyễn Minh Anh" },
+      { position: "Phó ban", name: "Trần Thu Hường" },
+      { position: "Thành viên", name: "Lê Hoàng Nam" }
+    ],
+    color: "#34d399",
+    description: "Giữ vai trò \"bộ não điều hành\" của CLB, Ban Tổ chức chịu trách nhiệm lập kế hoạch, phân công và giám sát tiến độ để đảm bảo mọi hoạt động diễn ra đúng định hướng và hiệu quả. Với tinh thần tỉ mỉ, chủ động và trách nhiệm cao, các thành viên Ban Tổ chức là những người đứng sau góp phần tạo nên sự thành công, chuyên nghiệp và chỉn chu cho từng sự kiện của MFC"
+  },
+  {
+    id: "ban-noi-vu",
+    name: "Ban Đối Ngoại",
+    role: "External",
+    image: "/ban-noi-vu.jpg",
+    members: [
+      { position: "Trưởng ban", name: "Trần Quốc Việt" },
+      { position: "Phó ban", name: "Nguyễn Thủy Tiên" },
+      { position: "Partnership", name: "Lê Gia Bảo" }
+    ],
+    color: "#fbbf24",
+    description: "Đóng vai trò cầu nối giữa CLB và các đơn vị đối tác, ban Đối ngoại phụ trách tìm kiếm, duy trì và mở rộng các mối quan hệ hợp tác chiến lược. Với tinh thần linh hoạt và khả năng giao tiếp khéo léo, các thành viên Ban Đối ngoại góp phần xây dựng hình ảnh CLB uy tín, chuyên nghiệp, đồng thời mang đến nhiều cơ hội phát triển và hợp tác cho các dự án của MFC"
+  },
+  {
+    id: "ban-tai-chinh",
+    name: "Ban Truyền Thông",
+    role: "Media",
+    image: "/ban-tai-chinh.jpg",
+    members: [
+      { position: "Trưởng ban", name: "Phạm Thu Trang" },
+      { position: "Phó ban", name: "Hoàng Minh Quân" },
+      { position: "Content Creator", name: "Vũ Hương Giang" }
+    ],
+    color: "#f87171",
+    description: "Là gương mặt đại diện trong việc lan tỏa hình ảnh của CLB đến với cộng đồng, Ban Truyền thông phụ trách xây dựng nội dung, hình ảnh và chiến lược truyền thông cho các dự án, sự kiện. Mỗi sản phẩm không chỉ thể hiện tinh thần sáng tạo mà còn góp phần khẳng định thương hiệu MFC chuyên nghiệp, năng động và truyền cảm hứng đến sinh viên Ngoại thương cũng như các bạn trẻ yêu thích lĩnh vực MC và thời trang"
+  }
+];
+
 const EventsSection = ({ vi }) => {
   const [activeEvent, setActiveEvent] = useState(EVENTS[0].id);
   const activeEventData = EVENTS.find((e) => e.id === activeEvent) || EVENTS[0];
@@ -272,6 +353,85 @@ const EventsSection = ({ vi }) => {
             >
               {event.name}
             </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const DepartmentsSection = ({ vi }) => {
+  return (
+    <section className="relative z-10" style={{ padding: '80px 0', overflow: 'hidden' }}>
+      <div className="container">
+        
+        {/* Section Eyebrow */}
+        <div className="section-eyebrow" style={{ margin: '0 auto 24px', width: '100%', padding: '0 16px', display: 'flex', justifyContent: 'center' }}>
+          <span className="gradient-title-hero" style={{ fontSize: 'clamp(20px, 4.5vw, 40px)', fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'transparent', WebkitTextFillColor: 'transparent' }}>
+            {vi ? 'Cơ cấu tổ chức' : 'Club Structure'}
+          </span>
+        </div>
+        
+        {/* Description */}
+        <div style={{ textAlign: 'center', maxWidth: 800, margin: '0 auto 64px' }}>
+          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 'clamp(16px, 1.5vw, 18px)', lineHeight: 1.6 }}>
+            {vi ? 'CLB MC & Thời trang Trường ĐH Ngoại thương hiện đang hoạt động với cơ cấu 06 ban, chia thành 02 khối ban cơ bản. Mỗi ban đều là một mảnh ghép không thể tách rời, gắn kết, hỗ trợ lẫn nhau, tạo nên MFC năng động, chuyên nghiệp, sáng tạo.' : 'The MC & Fashion Club of FTU operates with 6 departments, divided into 2 basic blocks. Each department is an inseparable piece, supporting each other to create a dynamic, professional, and creative MFC.'}
+          </p>
+        </div>
+
+        {/* Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {CLUB_DEPARTMENTS.map((dept, index) => (
+            <motion.div
+              key={dept.id}
+              className="group relative rounded-3xl overflow-hidden cursor-pointer"
+              style={{ aspectRatio: '3/4', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+            >
+              <img 
+                src={dept.image} 
+                alt={dept.name} 
+                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" 
+              />
+              <div 
+                className="absolute inset-0 transition-opacity duration-500" 
+                style={{ background: 'linear-gradient(to top, rgba(9,0,12,0.98) 0%, rgba(9,0,12,0.6) 50%, transparent 100%)' }} 
+              />
+              <div 
+                className="absolute inset-0 transition-opacity duration-500 opacity-0 group-hover:opacity-100" 
+                style={{ background: 'linear-gradient(to top, rgba(9,0,12,1) 0%, rgba(9,0,12,0.9) 70%, transparent 100%)' }} 
+              />
+              
+              {/* Text Content */}
+              <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                <span style={{ color: dept.color, fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px', opacity: 0.9 }}>
+                  {dept.role}
+                </span>
+                <h3 style={{ fontSize: '28px', fontWeight: 800, color: '#fff' }}>
+                  {dept.name}
+                </h3>
+                
+                {/* Expandable Description */}
+                <div className="overflow-hidden transition-all duration-500 ease-in-out opacity-0 max-h-0 group-hover:max-h-[500px] group-hover:opacity-100 group-hover:mt-4">
+                  <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, marginBottom: '20px' }}>
+                    {dept.description}
+                  </p>
+                  
+                  {/* Members */}
+                  <div className="flex flex-col gap-2">
+                    {dept.members.map((member, i) => (
+                      <div key={i} className="flex justify-between items-center border-b border-white/10 pb-2">
+                        <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{member.position}</span>
+                        <span style={{ fontSize: '14px', color: '#fff', fontWeight: 600 }}>{member.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -499,6 +659,9 @@ const AboutPage = () => {
 
       {/* ── CÁC SỰ KIỆN CHÍNH (Từ mfc-main) ────────────────────────── */}
       <EventsSection vi={vi} />
+
+      {/* ── CƠ CẤU CLB ────────────────────────────────────────────── */}
+      <DepartmentsSection vi={vi} />
 
       {/* ── GIÁ TRỊ VĂN HÓA ──────────────────────────────────── */}
       <section style={{ padding: '56px 0' }}>
