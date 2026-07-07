@@ -15,20 +15,20 @@ const Navbar = ({ isAdminMode, user, onLogout, settings, selectedEvent }) => {
   const navLinks = isAdminMode
     ? null
     : [
-        { label: language === 'vi' ? 'Trang chủ'      : 'Home',         path: '/' },
-        { label: language === 'vi' ? 'Giới thiệu'     : 'About',        path: '/about' },
-        { label: language === 'vi' ? 'Mua vé'         : 'Tickets',      path: ticketsPath },
-        { label: language === 'vi' ? 'Cộng tác viên'  : 'Collaborate',  path: '/recruit' },
-        { label: language === 'vi' ? '"Nhất"'         : '"Nhất"',       path: '#' },
-        { label: language === 'vi' ? 'Casting Call'   : 'Casting Call', path: '#' },
-      ];
+      { label: language === 'vi' ? 'Trang chủ' : 'Home', path: '/' },
+      { label: language === 'vi' ? 'Giới thiệu' : 'About', path: '/about' },
+      { label: language === 'vi' ? 'Mua vé' : 'Tickets', path: ticketsPath },
+      { label: language === 'vi' ? 'Cộng tác viên' : 'Collaborate', path: '/recruit' },
+      { label: language === 'vi' ? '"Nhất"' : '"Nhất"', path: '#' },
+      { label: language === 'vi' ? 'Casting Call' : 'Casting Call', path: '#' },
+    ];
 
   return (
     <header className="site-header">
       <nav className="site-nav">
         {/* Brand */}
         <div className="nav-brand" onClick={() => navigate('/')}>
-          <img src="/logo-mfc.jpeg" alt="MFC logo" />
+          <img src="/logo-mfc.png" alt="MFC logo" />
           <div className="nav-brand-text">
             <strong>{settings?.siteName || 'MFC & FASHION CLUB'}</strong>
             <span>FOREIGN TRADE UNIVERSITY</span>

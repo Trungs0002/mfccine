@@ -16,7 +16,7 @@ const LanguageModal = () => {
         textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 32, alignItems: 'center',
       }}>
         <div>
-          <img src="/logo-mfc.jpeg" alt="MFC" style={{ width: 64, height: 64, borderRadius: '50%', margin: '0 auto 20px', boxShadow: '0 0 30px rgba(168,150,246,.4)' }} />
+          <img src="/logo-mfc.png" alt="MFC" style={{ width: 64, height: 64, borderRadius: '50%', margin: '0 auto 20px', boxShadow: '0 0 30px rgba(168,150,246,.4)' }} />
           <h2 className="gradient-title" style={{ fontSize: 28, margin: '0 0 10px' }}>
             MFC Fashion Show 2026
           </h2>

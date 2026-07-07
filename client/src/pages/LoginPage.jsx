@@ -8,10 +8,10 @@ const LoginPage = ({ setUser }) => {
   const { language } = useLanguage();
   const vi = language === 'vi';
 
-  const [email, setEmail]     = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState('');
+  const [error, setError] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -46,7 +46,7 @@ const LoginPage = ({ setUser }) => {
         <div className="mfc-card animate-fade-in" style={{ padding: '40px 36px' }}>
           {/* Logo */}
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <img src="/logo-mfc.jpeg" alt="MFC" style={{ width: 64, height: 64, borderRadius: '50%', margin: '0 auto 16px', boxShadow: '0 0 30px rgba(168,150,246,.4)', display: 'block' }} />
+            <img src="/logo-mfc.png" alt="MFC" style={{ width: 64, height: 64, borderRadius: '50%', margin: '0 auto 16px', boxShadow: '0 0 30px rgba(168,150,246,.4)', display: 'block' }} />
             <h1 className="gradient-title" style={{ fontSize: 28, margin: '0 0 6px' }}>
               {vi ? 'Đăng nhập' : 'Sign In'}
             </h1>

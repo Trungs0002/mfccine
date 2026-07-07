@@ -514,11 +514,11 @@ const AboutPage = () => {
               "WE ARE MFC - WE ARE FAMILY"
             </h1>
             <p style={{ fontSize: 'clamp(15px, 1.8vw, 17px)', color: 'rgba(255,255,255,0.75)', lineHeight: 1.9, marginBottom: 24, textAlign: 'justify', fontWeight: 300 }}>
-              {vi ? 'CLB MC & Thời trang Trường ĐH Ngoại thương - MFC FTU thuộc khối CLB sở thích trực thuộc Đoàn sinh viên Trường ĐH Ngoại Thương. Được thành lập ngày 21/10/2009, trải qua 16 năm hình thành và phát triển.' : 'MFC is a dynamic hub for students passionate about MCing, modeling, and media. Here, every individual is empowered to step into the spotlight and express their unique identity.'}
+              {vi ? 'CLB MC & Thời trang Trường Đại học Ngoại thương - MFC FTU là câu lạc bộ sở thích trực thuộc Đoàn Thanh niên Trường Đại học Ngoại thương. Được thành lập vào ngày 21/10/2009, MFC FTU đã trải qua 16 năm hình thành, phát triển và không ngừng khẳng định dấu ấn riêng trong lĩnh vực thời trang, nghệ thuật và dẫn chương trình.' : 'MFC is a dynamic hub for students passionate about MCing, modeling, and media. Here, every individual is empowered to step into the spotlight and express their unique identity.'}
             </p>
             {vi && (
               <p style={{ fontSize: 'clamp(15px, 1.8vw, 17px)', color: 'rgba(255,255,255,0.75)', lineHeight: 1.9, marginBottom: 40, textAlign: 'justify', fontWeight: 300 }}>
-                Luôn vượt qua mọi giới hạn, vượt qua mọi khuôn phép. Tập thể CLB hướng tới sự chuyên nghiệp, mang đậm tinh thần sức sống sinh viên trẻ với những dấu ấn trong lĩnh vực thời trang, nghệ thuật và dẫn chương trình.
+                Với tinh thần luôn vượt qua giới hạn và phá bỏ những khuôn mẫu sẵn có, MFC FTU hướng tới xây dựng một tập thể chuyên nghiệp, sáng tạo và giàu sức sống sinh viên. Trên hành trình ấy, câu lạc bộ không chỉ là nơi nuôi dưỡng đam mê mà còn là không gian để các bạn trẻ tự tin thể hiện cá tính, bản lĩnh và màu sắc riêng của mình.
               </p>
             )}
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
