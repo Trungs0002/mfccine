@@ -140,7 +140,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
 
   const tiers = activeEvent ? [
     { key: 'standard', accentColor: '#10b981', featured: false },
-    { key: 'silver', accentColor: '#5aaddc', featured: false },
+    { key: 'premium', accentColor: '#5aaddc', featured: false },
     { key: 'vip', accentColor: '#a896f6', featured: true },
   ] : [];
 
@@ -320,7 +320,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
                         {formatPrice(tier.price)}
                       </div>
                     </div>
-                    
+
                     {/* Barcode */}
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', opacity: 0.8 }}>
                       <div style={{ display: 'flex', gap: 3, height: 44, alignItems: 'center' }}>
@@ -337,8 +337,89 @@ const LandingPage = ({ events, setEvent, settings }) => {
         </div>
       </section>
 
+      {/* ── CTA VẪN CÒN PHÂN VÂN ─────────────────────────────── */}
+      <section className="relative z-10" style={{ padding: '20px 0 100px' }}>
+        <div className="container">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            className="cta-grid"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              background: 'linear-gradient(135deg, rgba(20,20,30,0.8), rgba(30,30,45,0.9))',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 32,
+              overflow: 'hidden',
+              boxShadow: '0 30px 60px rgba(0,0,0,0.4), inset 0 0 20px rgba(255,255,255,0.05)',
+              position: 'relative'
+            }}
+          >
+            {/* Background Glow */}
+            <div style={{
+              position: 'absolute', top: '50%', left: '25%', transform: 'translate(-50%, -50%)',
+              width: '400px', height: '400px',
+              background: 'radial-gradient(circle, var(--purple) 0%, transparent 60%)',
+              opacity: 0.15, pointerEvents: 'none', zIndex: 0
+            }} />
 
+            {/* Content Side */}
+            <div className="cta-content" style={{ padding: '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 1 }}>
+              <div>
 
+                <h2 className="gradient-title-hero" style={{ fontSize: 'clamp(32px, 4vw, 42px)', fontWeight: 800, margin: '0 0 16px', lineHeight: 1.2 }}>
+                  {vi ? 'Vẫn còn phân vân?' : 'Discover the story behind the show'}
+                </h2>
+
+                <p style={{ color: 'var(--muted)', fontSize: 'clamp(15px, 1.5vw, 16px)', lineHeight: 1.6, margin: '0 0 32px' }}>
+                  {vi
+                    ? 'Khám phá thêm về MFC FTU và hành trình đứng sau những sân khấu thời trang, nghệ thuật và dẫn chương trình trước khi chọn tấm vé đồng hành cùng đêm diễn.'
+                    : 'Want to know more about the Organizing Committee and the silent efforts to create a grand stage? Discover our journey and dedication.'}
+                </p>
+
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => { navigate('/about'); window.scrollTo(0, 0); }}
+                  className="btn-pill"
+                  style={{
+                    padding: '14px 32px',
+                    fontSize: 15,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: 'var(--purple)',
+                    color: '#fff',
+                    border: 'none',
+                    boxShadow: '0 10px 20px rgba(168,150,246,0.3)'
+                  }}
+                >
+                  {vi ? 'Khám phá MFC' : 'About the Organizers'}
+                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_forward</span>
+                </motion.button>
+              </div>
+            </div>
+
+            {/* Image Side */}
+            <div className="cta-image" style={{ position: 'relative', minHeight: 400 }}>
+              <img
+                src="/Thumbnail pts (1).png"
+                alt="About us"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+              {/* Overlay shadow to blend with the card */}
+              <div style={{
+                position: 'absolute', top: 0, bottom: 0, left: 0, right: 0,
+                background: 'linear-gradient(to right, rgba(20,20,30,1) 0%, rgba(20,20,30,0) 30%)',
+                pointerEvents: 'none'
+              }} className="cta-image-overlay" />
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
       <style>{`
         @media (max-width: 1024px) {
@@ -348,6 +429,10 @@ const LandingPage = ({ events, setEvent, settings }) => {
           .lp-hero-grid { grid-template-columns: 1fr !important; }
           .lp-tiers-grid { grid-template-columns: 1fr !important; }
           .lp-chips-grid { grid-template-columns: 1fr !important; }
+          .cta-grid { grid-template-columns: 1fr !important; }
+          .cta-content { padding: 40px 24px !important; }
+          .cta-image { min-height: 250px !important; }
+          .cta-image-overlay { background: linear-gradient(to bottom, rgba(20,20,30,1) 0%, rgba(20,20,30,0) 40%) !important; }
         }
       `}</style>
     </div>

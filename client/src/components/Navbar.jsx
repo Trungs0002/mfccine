@@ -10,14 +10,11 @@ const Navbar = ({ isAdminMode, user, onLogout, settings, selectedEvent }) => {
 
   const isActive = (path) => location.pathname === path;
 
-  const ticketsPath = selectedEvent ? `/event/${selectedEvent._id}` : '/seating';
-
   const navLinks = isAdminMode
     ? null
     : [
-      { label: language === 'vi' ? 'Trang chủ' : 'Home', path: '/' },
+      { label: language === 'vi' ? 'Mua vé' : 'Tickets', path: '/' },
       { label: language === 'vi' ? 'Giới thiệu' : 'About', path: '/about' },
-      { label: language === 'vi' ? 'Mua vé' : 'Tickets', path: ticketsPath },
       { label: language === 'vi' ? 'Cộng tác viên' : 'Collaborate', path: '/recruit' },
       { label: language === 'vi' ? '"Nhất"' : '"Nhất"', path: '#' },
       { label: language === 'vi' ? 'Casting Call' : 'Casting Call', path: '#' },

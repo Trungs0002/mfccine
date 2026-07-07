@@ -15,7 +15,7 @@ const EventDetailsPage = ({ event, setEvent }) => {
 
   if (!event) return null;
 
-  const TIER_COLORS = { vip: '#ff2a8d', gold: '#ffb800', silver: '#00f0ff', standard: '#d946ef' };
+  const TIER_COLORS = { vip: '#a896f6', premium: '#5aaddc', standard: '#10b981' };
   const formatPrice = (p) => vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + p;
 
   return (
@@ -95,14 +95,14 @@ const EventDetailsPage = ({ event, setEvent }) => {
               {vi ? 'Hạng vé' : 'Ticket Tiers'}
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {['vip', 'gold', 'silver', 'standard'].map(key => {
+              {['vip', 'premium', 'standard'].map(key => {
                 const tier = event.pricingTiers?.[key];
                 if (!tier) return null;
                 const color = TIER_COLORS[key];
                 return (
                   <div key={key} className="mfc-card" style={{ padding: '16px 20px', borderLeft: `3px solid ${color}`, display: 'flex', alignItems: 'center', gap: 16 }}>
                     <span className="material-symbols-outlined" style={{ color, fontSize: 28 }}>
-                      {key === 'vip' ? 'stars' : key === 'gold' ? 'workspace_premium' : key === 'silver' ? 'local_activity' : 'confirmation_number'}
+                      {key === 'vip' ? 'stars' : key === 'premium' ? 'workspace_premium' : 'confirmation_number'}
                     </span>
                     <div style={{ flex: 1 }}>
                       <h4 style={{ color: '#fff', fontSize: 15, fontWeight: 700, margin: '0 0 2px' }}>{l(tier.label)}</h4>

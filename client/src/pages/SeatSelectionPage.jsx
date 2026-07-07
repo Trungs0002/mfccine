@@ -8,7 +8,7 @@ const ROWS_ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const SP = 24;   // seat spacing px
 const X_OFF = 173; // centering offset
 
-const buildSeats = (vi, vipPrice, goldPrice, silverPrice, standardPrice) => {
+const buildSeats = (vi, vipPrice, premiumPrice, standardPrice) => {
   const list = [];
   const ROWS = 20; // A to T
   const COLS = 20; // 1 to 20
@@ -21,23 +21,21 @@ const buildSeats = (vi, vipPrice, goldPrice, silverPrice, standardPrice) => {
       
       if (r < 18) {
         if (c === 10 || c === 11) continue; // Runway gap
-        if (c <= 2 || c >= 19) {
-          type = 'Standard'; price = standardPrice; color = '#7c6fe0'; label = vi ? 'Khu phổ thông' : 'Standard';
-        } else if (c <= 5 || c >= 16) {
-          type = 'Silver'; price = silverPrice; color = '#5aaddc'; label = vi ? 'Khu phổ thông VIP' : 'Standard VIP';
-        } else if (c <= 7 || c >= 14) {
-          type = 'Gold'; price = goldPrice; color = '#a896f6'; label = vi ? 'Khu VIP' : 'VIP';
-        } else if (c <= 9 || c >= 12) {
-          type = 'VIP'; price = vipPrice; color = '#e83e8c'; label = vi ? 'Khu VIP cao cấp' : 'Premium VIP';
+        if (c <= 3 || c >= 18) {
+          type = 'Standard'; price = standardPrice; color = '#10b981'; label = vi ? 'Khu phổ thông' : 'Standard';
+        } else if (c <= 6 || c >= 15) {
+          type = 'Premium'; price = premiumPrice; color = '#5aaddc'; label = vi ? 'Khu Premium' : 'Premium';
+        } else {
+          type = 'VIP'; price = vipPrice; color = '#a896f6'; label = vi ? 'Khu VIP' : 'VIP';
         }
       } else if (r === 18) {
-        if (c <= 2 || c >= 19) {
-          type = 'Standard'; price = standardPrice; color = '#7c6fe0'; label = vi ? 'Khu phổ thông' : 'Standard';
+        if (c <= 3 || c >= 18) {
+          type = 'Standard'; price = standardPrice; color = '#10b981'; label = vi ? 'Khu phổ thông' : 'Standard';
         } else {
-          type = 'Silver'; price = silverPrice; color = '#5aaddc'; label = vi ? 'Khu phổ thông VIP' : 'Standard VIP';
+          type = 'Premium'; price = premiumPrice; color = '#5aaddc'; label = vi ? 'Khu Premium' : 'Premium';
         }
       } else {
-        type = 'Standard'; price = standardPrice; color = '#7c6fe0'; label = vi ? 'Khu phổ thông' : 'Standard';
+        type = 'Standard'; price = standardPrice; color = '#10b981'; label = vi ? 'Khu phổ thông' : 'Standard';
       }
 
       list.push({
@@ -68,8 +66,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
   const containerRef = React.useRef(null);
 
   const vipPrice      = event?.pricingTiers?.vip?.price      || 500000;
-  const goldPrice     = event?.pricingTiers?.gold?.price     || 350000;
-  const silverPrice   = event?.pricingTiers?.silver?.price   || 250000;
+  const premiumPrice  = event?.pricingTiers?.premium?.price  || 250000;
   const standardPrice = event?.pricingTiers?.standard?.price || 150000;
 
   const formatPrice = (p) => vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + p;
@@ -83,7 +80,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
       .catch(() => { setOccupiedSeats([]); setLoading(false); });
   }, [event]);
 
-  const seats = buildSeats(vi, vipPrice, goldPrice, silverPrice, standardPrice);
+  const seats = buildSeats(vi, vipPrice, premiumPrice, standardPrice);
 
   const handleSeatClick = (seat) => {
     if (occupiedSeats.includes(seat.id)) return;
@@ -115,10 +112,9 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
   const selectedZones = [...new Set(selectedSeats.map(s => s.zoneName))];
 
   const LEGEND_ITEMS = [
-    { color: '#e83e8c', label: vi ? 'Khu VIP cao cấp' : 'Premium VIP', price: formatPrice(vipPrice) },
-    { color: '#a896f6', label: vi ? 'Khu VIP' : 'VIP', price: formatPrice(goldPrice) },
-    { color: '#5aaddc', label: vi ? 'Khu phổ thông VIP' : 'Standard VIP', price: formatPrice(silverPrice) },
-    { color: '#7c6fe0', label: vi ? 'Khu phổ thông' : 'Standard', price: formatPrice(standardPrice) },
+    { color: '#a896f6', label: vi ? 'Khu VIP' : 'VIP', price: formatPrice(vipPrice) },
+    { color: '#5aaddc', label: vi ? 'Khu Premium' : 'Premium', price: formatPrice(premiumPrice) },
+    { color: '#10b981', label: vi ? 'Khu phổ thông' : 'Standard', price: formatPrice(standardPrice) },
     { color: '#00e8c8', label: vi ? 'Đang chọn' : 'Selected', price: null },
     { color: '#1e1e2f', label: vi ? 'Đã bán' : 'Taken', price: null, bordered: true },
   ];

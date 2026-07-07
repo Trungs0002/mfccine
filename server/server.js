@@ -85,8 +85,7 @@ const EventSchema = new mongoose.Schema({
   ],
   pricingTiers: {
     standard: TierSchema,
-    silver: TierSchema,
-    gold: TierSchema,
+    premium: TierSchema,
     vip: TierSchema
   },
   active: { type: Boolean, default: true },

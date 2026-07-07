@@ -46,8 +46,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
   // Custom Bilingual Tier states
   const [tiers, setTiers] = useState({
     standard: { labelEn: 'STANDARD ENTRY', labelVi: 'HẠNG PHỔ THÔNG', descEn: 'General admission pass.', descVi: 'Vé vào cửa tiêu chuẩn.', price: 100 },
-    silver: { labelEn: 'SILVER ATTIRE', labelVi: 'HẠNG BẠC CAO CẤP', descEn: 'Premium seating.', descVi: 'Vị trí ngồi cao cấp.', price: 150 },
-    gold: { labelEn: 'GOLD EXPOSURE', labelVi: 'HẠNG VÀNG ĐẲNG CẤP', descEn: 'Luxury panoramic view.', descVi: 'Tầm nhìn toàn cảnh đẳng cấp.', price: 250 },
+    premium: { labelEn: 'SILVER ATTIRE', labelVi: 'HẠNG BẠC CAO CẤP', descEn: 'Premium seating.', descVi: 'Vị trí ngồi cao cấp.', price: 150 },
     vip: { labelEn: 'VIP FRONT ROW', labelVi: 'HẠNG VIP TRỰC DIỆN', descEn: 'Exclusive front row access.', descVi: 'Quyền lợi hàng ghế đầu độc quyền.', price: 450 }
   });
 
@@ -144,7 +143,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
     setVenueVi(getVal(evt.venueName, 'vi'));
     
     const mappedTiers = {};
-    ['standard', 'silver', 'gold', 'vip'].forEach(key => {
+    ['standard', 'premium', 'vip'].forEach(key => {
       const tData = evt.pricingTiers?.[key] || {};
       mappedTiers[key] = {
         labelEn: getVal(tData.label, 'en'),
@@ -187,8 +186,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
     setVenueEn(''); setVenueVi('');
     setTiers({
       standard: { labelEn: 'STANDARD ENTRY', labelVi: 'HẠNG PHỔ THÔNG', descEn: 'General admission pass.', descVi: 'Vé vào cửa tiêu chuẩn.', price: 100 },
-      silver: { labelEn: 'SILVER ATTIRE', labelVi: 'HẠNG BẠC CAO CẤP', descEn: 'Premium seating.', descVi: 'Vị trí ngồi cao cấp.', price: 150 },
-      gold: { labelEn: 'GOLD EXPOSURE', labelVi: 'HẠNG VÀNG ĐẲNG CẤP', descEn: 'Luxury panoramic view.', descVi: 'Tầm nhìn toàn cảnh đẳng cấp.', price: 250 },
+      premium: { labelEn: 'SILVER ATTIRE', labelVi: 'HẠNG BẠC CAO CẤP', descEn: 'Premium seating.', descVi: 'Vị trí ngồi cao cấp.', price: 150 },
       vip: { labelEn: 'VIP FRONT ROW', labelVi: 'HẠNG VIP TRỰC DIỆN', descEn: 'Exclusive front row access.', descVi: 'Quyền lợi hàng ghế đầu độc quyền.', price: 450 }
     });
     setSchedule([{ time: '19:00', titleEn: 'Arrival', titleVi: 'Đón khách', descEn: 'Red Carpet', descVi: 'Thảm đỏ' }]);
@@ -221,13 +219,13 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
     setSubmittingEvent(true);
 
     const formattedTiers = {};
-    ['standard', 'silver', 'gold', 'vip'].forEach(key => {
+    ['standard', 'premium', 'vip'].forEach(key => {
       const t = tiers[key];
       formattedTiers[key] = {
         label: { en: t.labelEn, vi: t.labelVi },
         description: { en: t.descEn, vi: t.descVi },
         price: Number(t.price),
-        capacity: key === 'standard' ? 250 : key === 'silver' ? 150 : key === 'gold' ? 100 : 50
+        capacity: key === 'standard' ? 250 : key === 'premium' ? 150 : 50
       };
     });
 
@@ -620,10 +618,10 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
                           </p>
 
                           <div className="flex flex-wrap gap-x-4 gap-y-2">
-                            {['vip', 'gold', 'silver', 'standard'].map(tKey => (
+                            {['vip', 'premium', 'standard'].map(tKey => (
                               <div key={tKey} className="flex items-center gap-1.5">
                                 <span className={`w-1.5 h-1.5 rounded-full ${
-                                  tKey === 'vip' ? 'bg-[#ff2a8d]' : tKey === 'gold' ? 'bg-[#ffb800]' : tKey === 'silver' ? 'bg-[#00f0ff]' : 'bg-[#d946ef]'
+                                  tKey === 'vip' ? 'bg-[#a896f6]' : tKey === 'premium' ? 'bg-[#5aaddc]' : 'bg-[#10b981]'
                                 }`}></span>
                                 <span className="text-[11px] font-mono text-on-surface/70">${evt.pricingTiers?.[tKey]?.price || 0}</span>
                               </div>
@@ -720,7 +718,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings }) => {
                   <div className="space-y-6">
                     <h4 className="font-label-sm text-[11px] text-primary uppercase tracking-[0.2em] font-bold border-b border-outline-variant/15 pb-2">{t('ticketPricing')}</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      {['standard', 'silver', 'gold', 'vip'].map(tKey => (
+                      {['standard', 'premium', 'vip'].map(tKey => (
                         <div key={tKey} className="glass-panel p-5 rounded-xl border border-outline-variant/15 space-y-4">
                           <p className="font-bold text-[12px] uppercase text-primary">{tKey} Tier</p>
                           <div className="grid grid-cols-2 gap-3">

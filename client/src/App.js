@@ -38,9 +38,8 @@ const FALLBACK_EVENTS = [
     ],
     pricingTiers: {
       standard: { price: 150000, label: { en: "Standard",        vi: "Khu phổ thông" },     description: { en: "Standard seating area",         vi: "Khu vực khán đài tiêu chuẩn" } },
-      silver:   { price: 250000, label: { en: "Standard VIP",    vi: "Khu phổ thông VIP" }, description: { en: "Premium view",                  vi: "Khu vực khán đài VIP" } },
-      gold:     { price: 350000, label: { en: "VIP",             vi: "Khu VIP" },           description: { en: "Enhanced near-stage experience", vi: "Ghế gần sân khấu, tầm nhìn rõ nét" } },
-      vip:      { price: 500000, label: { en: "Premium VIP",     vi: "Khu VIP cao cấp" },   description: { en: "Center VIP with exclusive perks", vi: "Vị trí trung tâm và đặc quyền riêng" } },
+      premium:  { price: 250000, label: { en: "Premium",         vi: "Khu Premium" },       description: { en: "Premium view",                  vi: "Khu vực khán đài cao cấp" } },
+      vip:      { price: 500000, label: { en: "VIP",             vi: "Khu VIP" },           description: { en: "Center VIP with exclusive perks", vi: "Vị trí trung tâm và đặc quyền riêng" } },
     }
   }
 ];
@@ -109,7 +108,7 @@ function AppContent() {
           <Route path="/recruit"   element={<RecruitPage />} />
           <Route path="/login"     element={user ? <Navigate to="/" /> : <LoginPage setUser={setUser} />} />
           <Route path="/register"  element={user ? <Navigate to="/" /> : <RegisterPage setUser={setUser} />} />
-          <Route path="/event/:id" element={<EventDetailsPage event={selectedEvent} setEvent={setSelectedEvent} />} />
+
           <Route path="/seating"   element={user ? (selectedEvent ? <SeatSelectionPage event={selectedEvent} setBookingDetails={setBookingDetails} /> : <Navigate to="/" />) : <Navigate to="/login" />} />
           <Route path="/checkout"  element={user ? (selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} user={user} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />) : <Navigate to="/login" />} />
           <Route path="/ticket"    element={<DigitalTicketPage completedBookingId={completedBookingId} settings={settings} />} />

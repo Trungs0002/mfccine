@@ -12,9 +12,8 @@ const Footer = ({ setIsAdminMode, settings }) => {
   const vi = language === 'vi';
 
   const quickLinks = [
-    { label: vi ? 'Trang chủ' : 'Home', path: '/' },
+    { label: vi ? 'Mua vé' : 'Tickets', path: '/' },
     { label: vi ? 'Giới thiệu' : 'About', path: '/about' },
-    { label: vi ? 'Mua vé' : 'Tickets', path: '/seating' },
     { label: vi ? 'Cộng tác viên' : 'Collaborate', path: '/recruit' },
     { label: '"Nhất"', path: '#' },
     { label: 'Casting Call', path: '#' },
