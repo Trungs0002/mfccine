@@ -160,6 +160,14 @@ img { display: block; max-width: 100%; }
 }
 .btn-pill:hover { transform: translateY(-1px); filter: brightness(1.1); }
 
+.btn-radiate {
+  animation: radiatePulse 2.5s infinite cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes radiatePulse {
+  0% { box-shadow: 0 0 28px rgba(168,150,246,.36), 0 0 0 0 rgba(168,150,246,0.8); }
+  100% { box-shadow: 0 0 28px rgba(168,150,246,.36), 0 0 0 25px rgba(168,150,246,0); }
+}
+
 .btn-pill-sm {
   padding: 9px 18px;
   font-size: 13px;

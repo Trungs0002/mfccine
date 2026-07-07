@@ -164,7 +164,7 @@ const EventsSection = ({ vi }) => {
 
         {/* Section Eyebrow */}
         <div className="section-eyebrow" style={{ margin: '0 auto 40px', width: '100%', padding: '0 16px' }}>
-          <span className="gradient-title-hero" style={{ fontSize: 'clamp(20px, 4.5vw, 48px)', fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'transparent', WebkitTextFillColor: 'transparent' }}>
+          <span className="gradient-title-hero" style={{ fontSize: 'clamp(28px, 7vw, 48px)', fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'transparent', WebkitTextFillColor: 'transparent' }}>
             {vi ? 'Các sự kiện chính' : 'Major Events'}
           </span>
         </div>
@@ -261,7 +261,7 @@ const DepartmentsSection = ({ vi }) => {
 
         {/* Section Eyebrow */}
         <div className="section-eyebrow" style={{ margin: '0 auto 24px', width: '100%', padding: '0 16px', display: 'flex', justifyContent: 'center' }}>
-          <span className="gradient-title-hero" style={{ fontSize: 'clamp(20px, 4.5vw, 40px)', fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'transparent', WebkitTextFillColor: 'transparent' }}>
+          <span className="gradient-title-hero" style={{ fontSize: 'clamp(28px, 7vw, 40px)', fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'transparent', WebkitTextFillColor: 'transparent' }}>
             {vi ? 'Cơ cấu tổ chức' : 'Club Structure'}
           </span>
         </div>
@@ -543,7 +543,7 @@ const AboutPage = () => {
         <div style={{ marginBottom: '64px' }}>
           <div className="container" style={{ textAlign: 'center' }}>
             <div className="section-eyebrow" style={{ margin: '0 auto 24px', width: '100%', padding: '0 16px' }}>
-              <span className="gradient-title-hero" style={{ fontSize: 'clamp(20px, 4.5vw, 48px)', fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'transparent', WebkitTextFillColor: 'transparent' }}>
+              <span className="gradient-title-hero" style={{ fontSize: 'clamp(28px, 7vw, 48px)', fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'transparent', WebkitTextFillColor: 'transparent' }}>
                 {vi ? 'Gương mặt tiêu biểu' : 'Outstanding Faces'}
               </span>
             </div>
@@ -565,6 +565,13 @@ const AboutPage = () => {
 
       {/* ── CƠ CẤU CLB ────────────────────────────────────────────── */}
       <DepartmentsSection vi={vi} />
+
+      {/* ── CTA BANNER ────────────────────────────────────────────── */}
+      <section style={{ padding: '0 0 72px', marginTop: '64px', display: 'flex', justifyContent: 'center' }}>
+        <button className="btn-pill btn-radiate" onClick={() => navigate('/seating')} style={{ fontSize: 16, padding: '16px 44px' }}>
+          {vi ? 'Sở hữu ngay tấm vé của ĐỘC' : 'Secure Your Pass'}
+        </button>
+      </section>
 
       <style>{`
         @media (max-width: 900px) {

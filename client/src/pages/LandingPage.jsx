@@ -384,26 +384,6 @@ const LandingPage = ({ events, setEvent, settings }) => {
         </div>
       </section>
 
-      {/* ── 8. CTA BANNER ────────────────────────────────────────── */}
-      <section style={{ padding: '0 0 72px' }}>
-        <div className="container">
-          <div className="mfc-card" style={{
-            padding: '52px 40px', textAlign: 'center',
-            background: 'linear-gradient(135deg, rgba(70,69,215,.28), rgba(168,150,246,.16))',
-            borderColor: 'rgba(168,150,246,.55)',
-          }}>
-            <h2 className="serif" style={{ fontSize: 'clamp(22px, 4vw, 34px)', color: '#fff', margin: '0 0 12px' }}>
-              {vi ? 'Bạn đã sẵn sàng trải nghiệm chưa?' : 'Ready to witness the experience?'}
-            </h2>
-            <p style={{ color: 'var(--muted)', marginBottom: 28, fontSize: 15 }}>
-              22.08.2026 · {l(activeEvent.venueName)}
-            </p>
-            <button className="btn-pill" onClick={handleBook} style={{ fontSize: 16, padding: '16px 44px' }}>
-              {vi ? 'Sở hữu tấm vé của bạn ✦' : 'Secure Your Pass ✦'}
-            </button>
-          </div>
-        </div>
-      </section>
 
       <style>{`
         @media (max-width: 1024px) {
