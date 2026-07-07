@@ -6,22 +6,25 @@ import { motion, useAnimation } from 'framer-motion';
 
 
 const FACES = [
-  { name: 'PHAN PHƯƠNG OANH', desc: 'Top 10 Hoa hậu Việt Nam 2022<br/>Miss World Vietnam 2026', img: '/phanphuongoanh.jpg' },
+  { name: 'PHAN PHƯƠNG OANH', desc: 'Hoa Hậu Thế Giới Việt Nam 2026<br/>Top 10 Hoa hậu Việt Nam 2022', img: '/phanphuongoanh.jpg' },
   { name: 'LƯƠNG THÙY LINH', desc: 'Hoa Hậu Thế Giới Việt Nam 2019', img: '/luongthuylinh.jpg' },
   { name: 'ĐỖ MỸ LINH', desc: 'Hoa Hậu Việt Nam 2016', img: '/domylinh.jpg' },
   { name: 'NGUYỄN CAO KỲ DUYÊN', desc: 'Hoa hậu Việt Nam 2014', img: '/nguyencaokyduyen.jpg' },
-  { name: 'HOÀNG HƯƠNG GIANG', desc: 'Top 5 Hoa Hậu Việt Nam 2020', img: '/hoanghuonggiang.jpg' },
-  { name: 'PHẠM THÙY DƯƠNG', desc: 'Top 5 Hoa Hậu Việt Nam 2024<br/>Top 15 Hoa Hậu Hòa Bình Vietnam 2024', img: '/phamthuyduong.jpg' },
+  { name: 'ĐỖ NGỌC SƠN', desc: 'Chuyên Gia Đào Tạo Giao Tiếp Thuyết Trình Tại Hoa Hậu Việt Nam <br/>Giảng Viên Tại VinSchool, DAV, FTU<br/>MC, Biên Tập Viên Tại VTV<br/>Giám Đốc ST LightHouse và Công Ty Truyền Thông Sol Do', img: '/dongocson.jpg' },
+  { name: 'PHẠM NGỌC QUỲNH', desc: 'Hoa Hậu Du Lịch Việt Nam 2024', img: '/phamngocquynh.jpg' },
   { name: 'ĐỖ THỊ HƯƠNG GIANG', desc: 'Top 5 Face of Asia 2021<br/>Á Quân 2 The New Mentor 2024', img: '/dothihuonggiang.jpg' },
-  { name: 'LƯƠNG THỊ HOA ĐAN', desc: 'Á Hậu 1 Hoa Hậu Các Dân Tộc Việt Nam 2022<br/>Top 16 Miss Universe Vietnam 2024', img: '/luongthihoadan.jpg' },
-  { name: 'ĐINH NGÂN HÀ', desc: 'Á hậu 1 Hoa hậu Sinh viên Việt Nam 2024', img: '/dinhngansha.jpg' },
-  { name: 'NGUYỄN MINH ANH', desc: 'Hoa Khôi Duyên Dáng Ngoại Thương 2023', img: '/nguyenminhanh.jpg' },
-  { name: 'LÊ PHƯƠNG QUYÊN', desc: 'Á Khôi 1 Duyên Dáng Ngoại Thương 2023<br/>Top 10 Miss World Vietnam 2026', img: '/lephuongquyen.jpg' },
-  { name: 'TIÊU NGỌC LINH', desc: 'Á quân Vietnam Next Top Model 2014<br/>Top 5 Miss Universe Vietnam 2017', img: '/tieungoclinh.jpg' },
-  { name: 'LÊ NGỌC NHƯ QUỲNH', desc: 'Top 6 Miss World Vietnam 2026', img: '/lengocnhuquynh.jpg' },
-  { name: 'ĐINH KHÁNH HOÀ', desc: 'Top 10 Hoa hậu Việt Nam 2022', img: '/dinhkhanhhoa.jpg' },
+  { name: 'LƯƠNG THỊ HOA ĐAN', desc: 'Á Hậu 1 Hoa Hậu Các Dân Tộc Việt Nam 2022<br/>Top 16 Hoa Hậu Hoàn Vũ Việt Nam 2024', img: '/luongthihoadan.jpg' },
   { name: 'TRỊNH HUYỀN MAI', desc: 'Hoa Khôi Duyên Dáng Sinh Viên Việt Nam 2023', img: '/trinhhuyenmai.jpg' },
+  { name: 'ĐINH NGÂN HÀ', desc: 'Á hậu 1 Hoa hậu Sinh viên Việt Nam 2024', img: '/dinhngansha.jpg' },
+  { name: 'TIÊU NGỌC LINH', desc: 'Á quân Vietnam Next Top Model 2014<br/>Top 5 Hoa Hậu Hoàn Vũ Việt Nam 2017', img: '/tieungoclinh.jpg' },
   { name: 'NGUYỄN KHÁNH LINH', desc: 'Á Khôi 1 Duyên Dáng Sinh Viên Việt Nam 2024<br/>Top 10 Hoa Hậu Du Lịch Việt Nam 2024', img: '/nguyenkhanhlinh.jpg' },
+  { name: 'HOÀNG HƯƠNG GIANG', desc: 'Top 5 Hoa Hậu Việt Nam 2020', img: '/hoanghuonggiang.jpg' },
+  { name: 'PHẠM THÙY DƯƠNG', desc: 'Top 5 Hoa Hậu Việt Nam 2024<br/>Top 15 Hoa Hậu Hòa Bình Việt Nam 2024', img: '/phamthuyduong.jpg' },
+  { name: 'LÊ PHƯƠNG QUYÊN', desc: 'Á Khôi 1 Duyên Dáng Ngoại Thương 2023<br/>Top 10 Hoa Hậu Thế Giới Việt Nam 2026', img: '/lephuongquyen.jpg' },
+  { name: 'NGUYỄN MINH ANH', desc: 'Hoa Khôi Duyên Dáng Ngoại Thương 2023', img: '/nguyenminhanh.jpg' },
+  { name: 'NGUYỄN HÀ MỸ ANH', desc: 'Á Khôi 2 Duyên Dáng Ngoại Thương 2025', img: '/nguyenhamyanh.jpg' },
+  { name: 'LÊ NGỌC NHƯ QUỲNH', desc: 'Top 6 Hoa Hậu Thế Giới Việt Nam 2026', img: '/lengocnhuquynh.jpg' },
+  { name: 'ĐINH KHÁNH HOÀ', desc: 'Top 10 Hoa hậu Việt Nam 2022', img: '/dinhkhanhhoa.jpg' },
   { name: 'CHỊ QUỲNH HOA', desc: 'MC/ BTV VTV', img: '/quynhhoa.jpg' },
   { name: 'CHỊ MINH PHƯƠNG', desc: 'MC/ BTV VTV', img: '/minhphuong.jpg' }
 ];
@@ -29,21 +32,21 @@ const FACES = [
 const EVENTS = [
   {
     id: "fashion-week",
-    name: "FTU Fashion Show", 
+    name: "FTU Fashion Show",
     description: "FTU Fashion Show là sự kiện trình diễn thời trang thường niên do CLB MFC tổ chức, nhằm tôn vinh vẻ đẹp, phong cách và cá tính riêng của sinh viên thông qua ngôn ngữ thời trang. Đây là cơ hội để các bạn người mẫu trẻ đam mê sàn diễn được thể hiện bản lĩnh, đồng thời khẳng định tinh thần sáng tạo và chuyên nghiệp của sinh viên Ngoại thương trong lĩnh vực nghệ thuật trình diễn.",
     image: "/sk3.jpg",
     href: "https://www.facebook.com/ftufashionshow.mfc"
   },
   {
     id: "talent-show",
-    name: "MC Fire", 
+    name: "MC Fire",
     description: "MC Fire là cuộc thi tìm kiếm người dẫn chương trình tài năng, hướng tới việc tạo dựng một sân chơi chuyên nghiệp dành cho các bạn sinh viên trên địa bàn Hà Nội có niềm đam mê với lĩnh vực dẫn chương trình. Thông qua các vòng thi được thiết kế bài bản, MC Fire không chỉ giúp thí sinh rèn luyện kỹ năng, phong thái sân khấu mà còn góp phần lan tỏa hình ảnh người dẫn chương trình trẻ trung, tự tin và sáng tạo trong cộng đồng sinh viên.",
     image: "/sk1.jpg",
     href: "https://www.facebook.com/mcfire.mfc.ftu"
   },
   {
     id: "charity-gala",
-    name: "Just Art Exhibition", 
+    name: "Just Art Exhibition",
     description: "Just Art Exhibition là triển lãm nghệ thuật do CLB tổ chức, nhằm tạo không gian cho sinh viên thể hiện tư duy sáng tạo và cảm xúc nghệ thuật thông qua nhiều hình thức như hội họa, nhiếp ảnh và sắp đặt. Sự kiện góp phần lan tỏa tinh thần nghệ thuật, khơi dậy cảm hứng sáng tạo và xây dựng cộng đồng yêu nghệ thuật trong sinh viên Ngoại thương.",
     image: "/sk2.jpg",
     href: "https://www.facebook.com/media/set/?set=a.683672377197844&type=3&rdid=cxILwUfkmIZvz9OR&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1FFDxkAgr2%2F#"
@@ -55,7 +58,7 @@ const CLUB_DEPARTMENTS = [
     id: "ban-su-kien",
     name: "Ban Thời Trang",
     role: "Fashion",
-    image: "/ban-su-kien.jpg", 
+    image: "/ban-su-kien.jpg",
     members: [
       { position: "Trưởng ban", name: "Phạm Quỳnh Anh" },
       { position: "Phó ban", name: "Hoàng Thị Mai" },
@@ -158,7 +161,7 @@ const EventsSection = ({ vi }) => {
       </div>
 
       <div className="container relative z-10" style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center' }}>
-        
+
         {/* Section Eyebrow */}
         <div className="section-eyebrow" style={{ margin: '0 auto 40px', width: '100%', padding: '0 16px' }}>
           <span className="gradient-title-hero" style={{ fontSize: 'clamp(20px, 4.5vw, 48px)', fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'transparent', WebkitTextFillColor: 'transparent' }}>
@@ -196,9 +199,9 @@ const EventsSection = ({ vi }) => {
             transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
             style={{ marginTop: '32px' }}
           >
-            <a 
+            <a
               href={activeEventData.href}
-              target="_blank" 
+              target="_blank"
               rel="noopener noreferrer"
               className="btn-pill"
               style={{
@@ -255,14 +258,14 @@ const DepartmentsSection = ({ vi }) => {
   return (
     <section className="relative z-10" style={{ padding: '80px 0', overflow: 'hidden' }}>
       <div style={{ maxWidth: 1536, margin: '0 auto', padding: '0 clamp(20px, 4vw, 64px)' }}>
-        
+
         {/* Section Eyebrow */}
         <div className="section-eyebrow" style={{ margin: '0 auto 24px', width: '100%', padding: '0 16px', display: 'flex', justifyContent: 'center' }}>
           <span className="gradient-title-hero" style={{ fontSize: 'clamp(20px, 4.5vw, 40px)', fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'transparent', WebkitTextFillColor: 'transparent' }}>
             {vi ? 'Cơ cấu tổ chức' : 'Club Structure'}
           </span>
         </div>
-        
+
         {/* Description */}
         <div style={{ textAlign: 'center', maxWidth: 800, margin: '0 auto 64px' }}>
           <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 'clamp(16px, 1.5vw, 18px)', lineHeight: 1.6 }}>
@@ -299,33 +302,33 @@ const DepartmentsSection = ({ vi }) => {
                   }
                 }}
               >
-                <img 
-                  src={dept.image} 
-                  alt={dept.name} 
-                  className={`absolute -inset-1 w-[calc(100%+8px)] h-[calc(100%+8px)] object-cover transition-transform duration-700 ease-out ${isActive ? 'scale-110' : 'scale-100'}`} 
+                <img
+                  src={dept.image}
+                  alt={dept.name}
+                  className={`absolute -inset-1 w-[calc(100%+8px)] h-[calc(100%+8px)] object-cover transition-transform duration-700 ease-out ${isActive ? 'scale-110' : 'scale-100'}`}
                 />
-                <div 
-                  className="absolute -inset-1 transition-opacity duration-500" 
-                  style={{ background: 'linear-gradient(to top, rgba(9,0,12,0.98) 0%, rgba(9,0,12,0.6) 50%, transparent 100%)' }} 
+                <div
+                  className="absolute -inset-1 transition-opacity duration-500"
+                  style={{ background: 'linear-gradient(to top, rgba(9,0,12,0.98) 0%, rgba(9,0,12,0.6) 50%, transparent 100%)' }}
                 />
-                <div 
-                  className={`absolute -inset-1 transition-opacity duration-500 ${isActive ? 'opacity-100' : 'opacity-0'}`} 
-                  style={{ background: 'linear-gradient(to top, rgba(9,0,12,1) 0%, rgba(9,0,12,0.9) 70%, transparent 100%)' }} 
+                <div
+                  className={`absolute -inset-1 transition-opacity duration-500 ${isActive ? 'opacity-100' : 'opacity-0'}`}
+                  style={{ background: 'linear-gradient(to top, rgba(9,0,12,1) 0%, rgba(9,0,12,0.9) 70%, transparent 100%)' }}
                 />
-                
+
                 {/* Text Content */}
                 <div className="absolute inset-0 p-6 flex flex-col justify-end">
 
                   <h3 style={{ fontSize: '28px', fontWeight: 800, color: '#fff' }}>
                     {dept.name}
                   </h3>
-                  
+
                   {/* Expandable Description */}
                   <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isActive ? 'max-h-[500px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
                     <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, marginBottom: '20px' }}>
                       {dept.description}
                     </p>
-                    
+
 
                   </div>
                 </div>
@@ -441,7 +444,7 @@ const FacesCarousel = () => {
           const baseDraggedX = isMobile ? draggedX - mobileOffset : draggedX;
           let closestIndex = Math.round(Math.abs(baseDraggedX) / itemWithGap);
           closestIndex = Math.max(0, Math.min(closestIndex, EXTENDED_FACES.length - 1));
-          
+
           setCurrentIndex(closestIndex);
           handleInteractionEnd();
         }}
@@ -545,8 +548,8 @@ const AboutPage = () => {
               </span>
             </div>
             <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 'clamp(16px, 1.5vw, 18px)', maxWidth: '650px', margin: '0 auto', lineHeight: 1.6 }}>
-              {vi 
-                ? 'Những gương mặt tài năng của CLB MC & Thời trang, đại diện cho tinh thần và sức sống của tập thể MFC FTU.' 
+              {vi
+                ? 'Những gương mặt tài năng của CLB MC & Thời trang, đại diện cho tinh thần và sức sống của tập thể MFC FTU.'
                 : 'The talented faces of the MC & Fashion Club, representing the spirit and vitality of MFC FTU.'}
             </p>
           </div>
