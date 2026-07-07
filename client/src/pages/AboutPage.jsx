@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { motion, useAnimation } from 'framer-motion';
 
 const VISION = [
   {
@@ -101,6 +102,157 @@ const HIGHLIGHTS = [
   { label: 'JUST ART EXHIBITION', descVi: 'Triển lãm nghệ thuật nơi giao thoa giữa thời trang và sáng tạo.', descEn: 'Art exhibition where fashion and creativity intersect.', pos: 'right center', img: '/sk2.jpg', link: 'https://www.facebook.com/media/set/?set=a.683672377197844&type=3&rdid=cxILwUfkmIZvz9OR&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1FFDxkAgr2%2F#' },
 ];
 
+const FACES = [
+  { name: 'PHAN PHƯƠNG OANH', desc: 'Top 10 Hoa hậu Việt Nam 2022<br/>Miss World Vietnam 2026', img: '/phanphuongoanh.jpg' },
+  { name: 'LƯƠNG THÙY LINH', desc: 'Hoa Hậu Thế Giới Việt Nam 2019', img: '/luongthuylinh.jpg' },
+  { name: 'ĐỖ MỸ LINH', desc: 'Hoa Hậu Việt Nam 2016', img: '/domylinh.jpg' },
+  { name: 'NGUYỄN CAO KỲ DUYÊN', desc: 'Hoa hậu Việt Nam 2014', img: '/nguyencaokyduyen.jpg' },
+  { name: 'HOÀNG HƯƠNG GIANG', desc: 'Top 5 Hoa Hậu Việt Nam 2020', img: '/hoanghuonggiang.jpg' },
+  { name: 'PHẠM THÙY DƯƠNG', desc: 'Top 5 Hoa Hậu Việt Nam 2024<br/>Top 15 Hoa Hậu Hòa Bình Vietnam 2024', img: '/phamthuyduong.jpg' },
+  { name: 'ĐỖ THỊ HƯƠNG GIANG', desc: 'Top 5 Face of Asia 2021<br/>Á Quân 2 The New Mentor 2024', img: '/dothihuonggiang.jpg' },
+  { name: 'LƯƠNG THỊ HOA ĐAN', desc: 'Á Hậu 1 Hoa Hậu Các Dân Tộc Việt Nam 2022<br/>Top 16 Miss Universe Vietnam 2024', img: '/luongthihoadan.jpg' },
+  { name: 'ĐINH NGÂN HÀ', desc: 'Á hậu 1 Hoa hậu Sinh viên Việt Nam 2024', img: '/dinhngansha.jpg' },
+  { name: 'NGUYỄN MINH ANH', desc: 'Hoa Khôi Duyên Dáng Ngoại Thương 2023', img: '/nguyenminhanh.jpg' },
+  { name: 'LÊ PHƯƠNG QUYÊN', desc: 'Á Khôi 1 Duyên Dáng Ngoại Thương 2023<br/>Top 10 Miss World Vietnam 2026', img: '/lephuongquyen.jpg' },
+  { name: 'TIÊU NGỌC LINH', desc: 'Á quân Vietnam Next Top Model 2014<br/>Top 5 Miss Universe Vietnam 2017', img: '/tieungoclinh.jpg' },
+  { name: 'LÊ NGỌC NHƯ QUỲNH', desc: 'Top 6 Miss World Vietnam 2026', img: '/lengocnhuquynh.jpg' },
+  { name: 'ĐINH KHÁNH HOÀ', desc: 'Top 10 Hoa hậu Việt Nam 2022', img: '/dinhkhanhhoa.jpg' },
+  { name: 'TRỊNH HUYỀN MAI', desc: 'Hoa Khôi Duyên Dáng Sinh Viên Việt Nam 2023', img: '/trinhhuyenmai.jpg' },
+  { name: 'NGUYỄN KHÁNH LINH', desc: 'Á Khôi 1 Duyên Dáng Sinh Viên Việt Nam 2024<br/>Top 10 Hoa Hậu Du Lịch Việt Nam 2024', img: '/nguyenkhanhlinh.jpg' },
+  { name: 'CHỊ QUỲNH HOA', desc: 'MC/ BTV VTV', img: '/quynhhoa.jpg' },
+  { name: 'CHỊ MINH PHƯƠNG', desc: 'MC/ BTV VTV', img: '/minhphuong.jpg' }
+];
+
+const FacesCarousel = () => {
+  const itemWidth = 320;
+  const gap = 32;
+  const itemWithGap = itemWidth + gap;
+
+  // Multiply the array to create a wide enough runway for "infinite" scrolling
+  const MULTIPLIER = 10;
+  const EXTENDED_FACES = Array(MULTIPLIER).fill(FACES).flat();
+  const middleIndex = Math.floor(MULTIPLIER / 2) * FACES.length;
+
+  const [containerWidth, setContainerWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
+
+  useEffect(() => {
+    const handleResize = () => setContainerWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const totalWidth = EXTENDED_FACES.length * itemWithGap - gap;
+  const maxDrag = Math.max(0, totalWidth - containerWidth + 48);
+
+  const [currentIndex, setCurrentIndex] = useState(middleIndex);
+  const [isUserInteracting, setIsUserInteracting] = useState(false);
+  const pauseTimeoutRef = useRef(null);
+  const xRef = useRef(0);
+  const controls = useAnimation();
+
+  // Mobile centering logic
+  const isMobile = containerWidth < 768;
+  const centerPadding = (containerWidth - itemWidth) / 2;
+  const mobileOffset = centerPadding - 24; // 24 is the paddingLeft on the motion.div
+
+  const getCurrentX = (index) => {
+    const baseOffset = -(index * itemWithGap);
+    return isMobile ? baseOffset + mobileOffset : baseOffset;
+  };
+
+  // 1. Animate to currentIndex and handle seamless infinite wrap
+  useEffect(() => {
+    controls.start({
+      x: getCurrentX(currentIndex),
+      transition: { duration: 0.8, ease: [0.21, 0.47, 0.32, 0.98] }
+    });
+
+    const timeout = setTimeout(() => {
+      // If user reaches near the ends of our massive array, seamlessly teleport them back to the middle
+      if (currentIndex < FACES.length * 2 || currentIndex > EXTENDED_FACES.length - FACES.length * 2) {
+        const normalizedIndex = (currentIndex % FACES.length) + middleIndex;
+        setCurrentIndex(normalizedIndex);
+        controls.set({ x: getCurrentX(normalizedIndex) });
+      }
+    }, 850);
+
+    return () => clearTimeout(timeout);
+  }, [currentIndex, controls]);
+
+  // 2. Auto-scroll logic
+  useEffect(() => {
+    if (isUserInteracting) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => prev + 1);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [isUserInteracting]);
+
+  // 3. User interaction handlers
+  const handleInteractionStart = () => {
+    setIsUserInteracting(true);
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+  };
+
+  const handleInteractionEnd = () => {
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    pauseTimeoutRef.current = setTimeout(() => {
+      setIsUserInteracting(false);
+      setCurrentIndex((prev) => prev + 1);
+    }, 2000);
+  };
+
+  return (
+    <div style={{ position: 'relative', overflow: 'hidden' }}>
+      <motion.div
+        style={{ display: 'flex', gap: `${gap}px`, paddingLeft: '24px', paddingRight: '24px', cursor: 'grab', width: 'max-content' }}
+        drag="x"
+        dragConstraints={{ left: -maxDrag, right: 0 }}
+        dragElastic={0.1}
+        initial={{ x: getCurrentX(middleIndex) }}
+        animate={controls}
+        onUpdate={(latest) => {
+          xRef.current = latest.x;
+        }}
+        onDragStart={() => {
+          document.body.style.cursor = 'grabbing';
+          handleInteractionStart();
+        }}
+        onDragEnd={(e, info) => {
+          document.body.style.cursor = '';
+          // Snap to the closest card based on where they dropped it
+          const draggedX = xRef.current;
+          const baseDraggedX = isMobile ? draggedX - mobileOffset : draggedX;
+          let closestIndex = Math.round(Math.abs(baseDraggedX) / itemWithGap);
+          closestIndex = Math.max(0, Math.min(closestIndex, EXTENDED_FACES.length - 1));
+          
+          setCurrentIndex(closestIndex);
+          handleInteractionEnd();
+        }}
+        onHoverStart={handleInteractionStart}
+        onHoverEnd={handleInteractionEnd}
+        onTouchStart={handleInteractionStart}
+        onTouchEnd={handleInteractionEnd}
+      >
+        {EXTENDED_FACES.map((face, idx) => (
+          <div key={idx} style={{ flexShrink: 0, width: `${itemWidth}px`, userSelect: 'none' }} className="group">
+            <div style={{ position: 'relative', aspectRatio: '4/6', borderRadius: '16px', overflow: 'hidden', marginBottom: '16px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', pointerEvents: 'none' }}>
+              <img alt={face.name} loading="lazy" decoding="async" src={face.img} style={{ position: 'absolute', height: '100%', width: '100%', inset: 0, objectFit: 'cover', transition: 'transform 0.5s ease' }} className="group-hover:scale-105" draggable={false} />
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.2)', transition: 'background 0.3s ease' }} className="group-hover:bg-black/40"></div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <h3 style={{ fontSize: '24px', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '4px', color: '#fff', textShadow: 'rgba(0, 0, 0, 0.8) 2px 2px 4px', fontFamily: '"Cormorant Garamond", "Cormorant SC", serif' }}>
+                {face.name}
+              </h3>
+              <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.8)', textShadow: 'rgba(0, 0, 0, 0.7) 1px 1px 3px', fontFamily: '"Cormorant Garamond", "Cormorant SC", serif', margin: 0, lineHeight: 1.4 }} dangerouslySetInnerHTML={{ __html: face.desc }} />
+            </div>
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+};
+
 const AboutPage = () => {
   const navigate = useNavigate();
   const { language } = useLanguage();
@@ -167,6 +319,28 @@ const AboutPage = () => {
         </div>
       </section>
 
+      {/* ── GƯƠNG MẶT TIÊU BIỂU ─────────────────────────────── */}
+      <section className="relative z-10" style={{ padding: '0 0 60px', overflow: 'hidden' }}>
+        <div style={{ marginBottom: '64px' }}>
+          <div className="container" style={{ textAlign: 'center' }}>
+            <div className="section-eyebrow" style={{ margin: '0 auto 24px', width: '100%', padding: '0 16px' }}>
+              <span className="gradient-title-hero" style={{ fontSize: 'clamp(20px, 4.5vw, 48px)', fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'transparent', WebkitTextFillColor: 'transparent' }}>
+                {vi ? 'Gương mặt tiêu biểu' : 'Outstanding Faces'}
+              </span>
+            </div>
+            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 'clamp(16px, 1.5vw, 18px)', maxWidth: '650px', margin: '0 auto', lineHeight: 1.6 }}>
+              {vi 
+                ? 'Những gương mặt tài năng của CLB MC & Thời trang, đại diện cho tinh thần và sức sống của tập thể MFC FTU.' 
+                : 'The talented faces of the MC & Fashion Club, representing the spirit and vitality of MFC FTU.'}
+            </p>
+          </div>
+        </div>
+
+        <div style={{ position: 'relative' }}>
+          <FacesCarousel />
+        </div>
+      </section>
+
       {/* ── VISION ───────────────────────────────────────────── */}
       <section style={{ padding: '56px 0' }}>
         <div className="container">
@@ -204,6 +378,8 @@ const AboutPage = () => {
           </div>
         </div>
       </section>
+
+
 
       {/* ── TIMELINE ─────────────────────────────────────────── */}
       <section style={{ padding: '56px 0' }}>
