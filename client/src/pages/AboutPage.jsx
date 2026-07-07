@@ -361,9 +361,11 @@ const EventsSection = ({ vi }) => {
 };
 
 const DepartmentsSection = ({ vi }) => {
+  const [activeCard, setActiveCard] = useState(null);
+
   return (
     <section className="relative z-10" style={{ padding: '80px 0', overflow: 'hidden' }}>
-      <div className="container">
+      <div style={{ maxWidth: 1536, margin: '0 auto', padding: '0 clamp(20px, 4vw, 64px)' }}>
         
         {/* Section Eyebrow */}
         <div className="section-eyebrow" style={{ margin: '0 auto 24px', width: '100%', padding: '0 16px', display: 'flex', justifyContent: 'center' }}>
@@ -381,58 +383,64 @@ const DepartmentsSection = ({ vi }) => {
 
         {/* Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {CLUB_DEPARTMENTS.map((dept, index) => (
-            <motion.div
-              key={dept.id}
-              className="group relative rounded-3xl overflow-hidden cursor-pointer"
-              style={{ aspectRatio: '3/4', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-            >
-              <img 
-                src={dept.image} 
-                alt={dept.name} 
-                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" 
-              />
-              <div 
-                className="absolute inset-0 transition-opacity duration-500" 
-                style={{ background: 'linear-gradient(to top, rgba(9,0,12,0.98) 0%, rgba(9,0,12,0.6) 50%, transparent 100%)' }} 
-              />
-              <div 
-                className="absolute inset-0 transition-opacity duration-500 opacity-0 group-hover:opacity-100" 
-                style={{ background: 'linear-gradient(to top, rgba(9,0,12,1) 0%, rgba(9,0,12,0.9) 70%, transparent 100%)' }} 
-              />
-              
-              {/* Text Content */}
-              <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                <span style={{ color: dept.color, fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px', opacity: 0.9 }}>
-                  {dept.role}
-                </span>
-                <h3 style={{ fontSize: '28px', fontWeight: 800, color: '#fff' }}>
-                  {dept.name}
-                </h3>
+          {CLUB_DEPARTMENTS.map((dept, index) => {
+            const isActive = activeCard === dept.id;
+            return (
+              <motion.div
+                key={dept.id}
+                className="relative rounded-3xl overflow-hidden cursor-pointer"
+                style={{ aspectRatio: '3/4', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                onClick={() => setActiveCard(isActive ? null : dept.id)}
+                onMouseEnter={() => setActiveCard(dept.id)}
+                onMouseLeave={() => setActiveCard(null)}
+              >
+                <img 
+                  src={dept.image} 
+                  alt={dept.name} 
+                  className={`absolute -inset-1 w-[calc(100%+8px)] h-[calc(100%+8px)] object-cover transition-transform duration-700 ease-out ${isActive ? 'scale-110' : 'scale-100'}`} 
+                />
+                <div 
+                  className="absolute -inset-1 transition-opacity duration-500" 
+                  style={{ background: 'linear-gradient(to top, rgba(9,0,12,0.98) 0%, rgba(9,0,12,0.6) 50%, transparent 100%)' }} 
+                />
+                <div 
+                  className={`absolute -inset-1 transition-opacity duration-500 ${isActive ? 'opacity-100' : 'opacity-0'}`} 
+                  style={{ background: 'linear-gradient(to top, rgba(9,0,12,1) 0%, rgba(9,0,12,0.9) 70%, transparent 100%)' }} 
+                />
                 
-                {/* Expandable Description */}
-                <div className="overflow-hidden transition-all duration-500 ease-in-out opacity-0 max-h-0 group-hover:max-h-[500px] group-hover:opacity-100 group-hover:mt-4">
-                  <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, marginBottom: '20px' }}>
-                    {dept.description}
-                  </p>
+                {/* Text Content */}
+                <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                  <span style={{ color: dept.color, fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px', opacity: 0.9 }}>
+                    {dept.role}
+                  </span>
+                  <h3 style={{ fontSize: '28px', fontWeight: 800, color: '#fff' }}>
+                    {dept.name}
+                  </h3>
                   
-                  {/* Members */}
-                  <div className="flex flex-col gap-2">
-                    {dept.members.map((member, i) => (
-                      <div key={i} className="flex justify-between items-center border-b border-white/10 pb-2">
-                        <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{member.position}</span>
-                        <span style={{ fontSize: '14px', color: '#fff', fontWeight: 600 }}>{member.name}</span>
-                      </div>
-                    ))}
+                  {/* Expandable Description */}
+                  <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isActive ? 'max-h-[500px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
+                    <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, marginBottom: '20px' }}>
+                      {dept.description}
+                    </p>
+                    
+                    {/* Members */}
+                    <div className="flex flex-col gap-2">
+                      {dept.members.map((member, i) => (
+                        <div key={i} className="flex justify-between items-center border-b border-white/10 pb-2">
+                          <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{member.position}</span>
+                          <span style={{ fontSize: '14px', color: '#fff', fontWeight: 600 }}>{member.name}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -663,159 +671,9 @@ const AboutPage = () => {
       {/* ── CƠ CẤU CLB ────────────────────────────────────────────── */}
       <DepartmentsSection vi={vi} />
 
-      {/* ── GIÁ TRỊ VĂN HÓA ──────────────────────────────────── */}
-      <section style={{ padding: '56px 0' }}>
-        <div className="container">
-          <div className="section-eyebrow" style={{ marginBottom: 32 }}>
-            <span>{vi ? 'Tầm nhìn và sứ mệnh' : 'Vision & Mission'}</span>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
-            {VISION.map((v, i) => (
-              <div key={v.vi} className="mfc-card" style={{ padding: '28px 26px' }}>
-                <div style={{ width: 32, height: 2, background: 'linear-gradient(90deg, var(--purple), var(--mint))', marginBottom: 18, borderRadius: 2 }} />
-                <h3 className="serif" style={{ color: '#fff', fontSize: 22, margin: '0 0 10px' }}>{vi ? v.vi : v.en}</h3>
-                <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.75, margin: 0 }}>{vi ? v.descVi : v.descEn}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── SPECIAL ──────────────────────────────────────────── */}
-      <section style={{ padding: '56px 0' }}>
-        <div className="container">
-          <div className="section-eyebrow" style={{ marginBottom: 32 }}>
-            <span>{vi ? 'MFC có gì đặc biệt?' : 'What makes MFC special?'}</span>
-          </div>
-          <div className="about-special" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-            {SPECIAL.map((s, i) => (
-              <div key={s.vi} className="mfc-card" style={{ padding: '26px 22px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                <div style={{ fontSize: 11, color: 'var(--purple)', letterSpacing: '.18em', textTransform: 'uppercase', marginBottom: 14, fontWeight: 600 }}>
-                  {String(i + 1).padStart(2, '0')}
-                </div>
-                <h3 className="serif" style={{ color: '#fff', fontSize: 18, margin: '0 0 8px' }}>{vi ? s.vi : s.en}</h3>
-                <p style={{ color: 'var(--muted)', fontSize: 13, lineHeight: 1.65, margin: 0 }}>{vi ? s.descVi : s.descEn}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-
-
-      {/* ── TIMELINE ─────────────────────────────────────────── */}
-      <section style={{ padding: '56px 0' }}>
-        <div className="container">
-          <div className="section-eyebrow" style={{ marginBottom: 40 }}>
-            <span>{vi ? 'Hành trình hình thành MFC' : 'MFC\'s Journey'}</span>
-          </div>
-
-          {/* Timeline bar */}
-          <div style={{ position: 'relative', overflowX: 'auto', paddingBottom: 8, zIndex: 1 }}>
-            {/* Connector line */}
-            <div className="about-timeline-connector" />
-
-            <div className="about-timeline" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '84px 16px', position: 'relative', paddingTop: 76 }}>
-              {TIMELINE.map((t, i) => (
-                <div key={t.year} style={{ position: 'relative' }}>
-                  {/* Dot */}
-                  <div style={{
-                    position: 'absolute', top: -46, left: '50%', transform: 'translateX(-50%)',
-                    width: 14, height: 14, borderRadius: '50%',
-                    background: 'var(--purple)', boxShadow: '0 0 18px var(--purple)',
-                  }} />
-                  {/* Year label */}
-                  <div style={{
-                    position: 'absolute', top: -74, left: '50%', transform: 'translateX(-50%)',
-                    fontFamily: 'Georgia, serif', fontSize: 16, color: '#fff', whiteSpace: 'nowrap',
-                  }}>
-                    {t.year}
-                  </div>
-
-                  <div className="mfc-card" style={{ padding: '22px 18px' }}>
-                    <h4 className="serif" style={{ color: '#fff', fontSize: 16, margin: '0 0 8px' }}>{vi ? t.vi : t.en}</h4>
-                    <p style={{ color: 'var(--muted)', fontSize: 12, lineHeight: 1.65, margin: 0 }}>{vi ? t.descVi : t.descEn}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── CORE VALUES ──────────────────────────────────────── */}
-      <section style={{ padding: '56px 0' }}>
-        <div className="container">
-          <div className="section-eyebrow" style={{ marginBottom: 32 }}>
-            <span>{vi ? 'Giá trị cốt lõi' : 'Core Values'}</span>
-          </div>
-          <div className="about-values" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-            {CORE_VALUES.map((c, i) => (
-              <div key={c.vi} className="mfc-card" style={{ padding: '26px 22px' }}>
-                <div style={{ width: 24, height: 2, background: 'linear-gradient(90deg, var(--mint), var(--purple))', marginBottom: 16, borderRadius: 2 }} />
-                <h3 className="serif" style={{ color: '#fff', fontSize: 18, margin: '0 0 8px' }}>{vi ? c.vi : c.en}</h3>
-                <p style={{ color: 'var(--muted)', fontSize: 13, lineHeight: 1.65, margin: 0 }}>{vi ? c.descVi : c.descEn}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── HIGHLIGHTS ───────────────────────────────────────── */}
-      <section style={{ padding: '56px 0 64px' }}>
-        <div className="container">
-          <div className="section-eyebrow" style={{ marginBottom: 32 }}>
-            <span>{vi ? 'Dấu mốc nổi bật' : 'Highlights'}</span>
-          </div>
-          <div className="about-highlights" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
-            {HIGHLIGHTS.map(card => (
-              <div
-                key={card.label}
-                className="mfc-card"
-                style={{ minHeight: 240, position: 'relative', overflow: 'hidden', borderRadius: 20, cursor: 'pointer' }}
-                onClick={() => window.open(card.link, '_blank')}
-              >
-                <img
-                  src={card.img}
-                  alt={card.label}
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: card.pos, opacity: .6 }}
-                />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(1,1,10,.9) 35%, transparent)' }} />
-                <div style={{ position: 'absolute', bottom: 22, left: 22, right: 22 }}>
-                  <h3 className="serif" style={{ color: '#fff', fontSize: 20, margin: '0 0 5px' }}>{card.label}</h3>
-                  <p style={{ color: 'rgba(255,255,255,.65)', fontSize: 13, margin: '0 0 12px' }}>{vi ? card.descVi : card.descEn}</p>
-                  <span style={{ display: 'inline-flex', width: 30, height: 30, borderRadius: '50%', border: '1px solid rgba(255,255,255,.4)', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 16 }}>→</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <style>{`
-        .about-timeline-connector {
-          position: absolute; left: 4%; right: 4%; top: 36px; height: 2px;
-          background: linear-gradient(90deg, transparent, var(--purple), var(--mint), var(--purple), transparent);
-          box-shadow: 0 0 16px var(--purple);
-        }
         @media (max-width: 900px) {
           .about-hero-grid { grid-template-columns: 1fr !important; }
-          .about-special { grid-template-columns: 1fr 1fr !important; }
-          .about-timeline { grid-template-columns: 1fr !important; }
-          .about-values { grid-template-columns: 1fr 1fr !important; }
-          .about-highlights { grid-template-columns: 1fr !important; }
-          .about-timeline-connector { 
-             top: 40px; bottom: 0; height: auto;
-             left: 50%; right: auto;
-             transform: translateX(-50%);
-             width: 2px;
-             background: var(--purple);
-             box-shadow: 0 0 16px var(--purple);
-          }
-        }
-        @media (max-width: 600px) {
-          .about-special { grid-template-columns: 1fr !important; }
-          .about-values { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>
