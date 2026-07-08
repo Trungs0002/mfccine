@@ -6,27 +6,27 @@ import { motion, useAnimation } from 'framer-motion';
 
 
 const FACES = [
-  { name: 'PHAN PHƯƠNG OANH', desc: 'Hoa Hậu Thế Giới Việt Nam 2026<br/>Top 10 Hoa hậu Việt Nam 2022', img: '/phanphuongoanh.jpg' },
-  { name: 'LƯƠNG THÙY LINH', desc: 'Hoa Hậu Thế Giới Việt Nam 2019', img: '/luongthuylinh.jpg' },
-  { name: 'ĐỖ MỸ LINH', desc: 'Hoa Hậu Việt Nam 2016', img: '/domylinh.jpg' },
-  { name: 'NGUYỄN CAO KỲ DUYÊN', desc: 'Hoa hậu Việt Nam 2014', img: '/nguyencaokyduyen.jpg' },
-  { name: 'ĐỖ NGỌC SƠN', desc: 'Chuyên Gia Đào Tạo Giao Tiếp Thuyết Trình Tại Hoa Hậu Việt Nam <br/>Giảng Viên Tại VinSchool, DAV, FTU<br/>MC, Biên Tập Viên Tại VTV<br/>Giám Đốc ST LightHouse và Công Ty Truyền Thông Sol Do', img: '/dongocson.jpg' },
-  { name: 'PHẠM NGỌC QUỲNH', desc: 'Hoa Hậu Du Lịch Việt Nam 2024', img: '/phamngocquynh.jpg' },
-  { name: 'ĐỖ THỊ HƯƠNG GIANG', desc: 'Top 5 Face of Asia 2021<br/>Á Quân 2 The New Mentor 2024', img: '/dothihuonggiang.jpg' },
-  { name: 'LƯƠNG THỊ HOA ĐAN', desc: 'Á Hậu 1 Hoa Hậu Các Dân Tộc Việt Nam 2022<br/>Top 16 Hoa Hậu Hoàn Vũ Việt Nam 2024', img: '/luongthihoadan.jpg' },
-  { name: 'TRỊNH HUYỀN MAI', desc: 'Hoa Khôi Duyên Dáng Sinh Viên Việt Nam 2023', img: '/trinhhuyenmai.jpg' },
-  { name: 'ĐINH NGÂN HÀ', desc: 'Á hậu 1 Hoa hậu Sinh viên Việt Nam 2024', img: '/dinhngansha.jpg' },
-  { name: 'TIÊU NGỌC LINH', desc: 'Á quân Vietnam Next Top Model 2014<br/>Top 5 Hoa Hậu Hoàn Vũ Việt Nam 2017', img: '/tieungoclinh.jpg' },
-  { name: 'NGUYỄN KHÁNH LINH', desc: 'Á Khôi 1 Duyên Dáng Sinh Viên Việt Nam 2024<br/>Top 10 Hoa Hậu Du Lịch Việt Nam 2024', img: '/nguyenkhanhlinh.jpg' },
-  { name: 'HOÀNG HƯƠNG GIANG', desc: 'Top 5 Hoa Hậu Việt Nam 2020', img: '/hoanghuonggiang.jpg' },
-  { name: 'PHẠM THÙY DƯƠNG', desc: 'Top 5 Hoa Hậu Việt Nam 2024<br/>Top 15 Hoa Hậu Hòa Bình Việt Nam 2024', img: '/phamthuyduong.jpg' },
-  { name: 'LÊ PHƯƠNG QUYÊN', desc: 'Á Khôi 1 Duyên Dáng Ngoại Thương 2023<br/>Top 10 Hoa Hậu Thế Giới Việt Nam 2026', img: '/lephuongquyen.jpg' },
-  { name: 'NGUYỄN MINH ANH', desc: 'Hoa Khôi Duyên Dáng Ngoại Thương 2023', img: '/nguyenminhanh.jpg' },
-  { name: 'NGUYỄN HÀ MỸ ANH', desc: 'Á Khôi 2 Duyên Dáng Ngoại Thương 2025', img: '/nguyenhamyanh.jpg' },
-  { name: 'LÊ NGỌC NHƯ QUỲNH', desc: 'Top 6 Hoa Hậu Thế Giới Việt Nam 2026', img: '/lengocnhuquynh.jpg' },
-  { name: 'ĐINH KHÁNH HOÀ', desc: 'Top 10 Hoa hậu Việt Nam 2022', img: '/dinhkhanhhoa.jpg' },
-  { name: 'CHỊ QUỲNH HOA', desc: 'MC/ BTV VTV', img: '/quynhhoa.jpg' },
-  { name: 'CHỊ MINH PHƯƠNG', desc: 'MC/ BTV VTV', img: '/minhphuong.jpg' }
+  { name: 'PHAN PHƯƠNG OANH', desc: 'Hoa Hậu Thế Giới Việt Nam 2026<br/>Top 10 Hoa hậu Việt Nam 2022', descEn: 'Miss World Vietnam 2026<br/>Top 10 Miss Vietnam 2022', img: '/phanphuongoanh.jpg' },
+  { name: 'LƯƠNG THÙY LINH', desc: 'Hoa Hậu Thế Giới Việt Nam 2019', descEn: 'Miss World Vietnam 2019', img: '/luongthuylinh.jpg' },
+  { name: 'ĐỖ MỸ LINH', desc: 'Hoa Hậu Việt Nam 2016', descEn: 'Miss Vietnam 2016', img: '/domylinh.jpg' },
+  { name: 'NGUYỄN CAO KỲ DUYÊN', desc: 'Hoa hậu Việt Nam 2014', descEn: 'Miss Vietnam 2014', img: '/nguyencaokyduyen.jpg' },
+  { name: 'ĐỖ NGỌC SƠN', desc: 'Chuyên Gia Đào Tạo Giao Tiếp Thuyết Trình Tại Hoa Hậu Việt Nam <br/>Giảng Viên Tại VinSchool, DAV, FTU<br/>MC, Biên Tập Viên Tại VTV<br/>Giám Đốc ST LightHouse và Công Ty Truyền Thông Sol Do', descEn: 'Communication & Public Speaking Trainer for Miss Vietnam<br/>Lecturer at VinSchool, DAV, FTU<br/>MC & Editor at VTV<br/>Director of ST LightHouse and Sol Do Media Company', img: '/dongocson.jpg' },
+  { name: 'PHẠM NGỌC QUỲNH', desc: 'Hoa Hậu Du Lịch Việt Nam 2024', descEn: 'Miss Tourism Vietnam 2024', img: '/phamngocquynh.jpg' },
+  { name: 'ĐỖ THỊ HƯƠNG GIANG', desc: 'Top 5 Face of Asia 2021<br/>Á Quân 2 The New Mentor 2024', descEn: 'Top 5 Face of Asia 2021<br/>2nd Runner-up, The New Mentor 2024', img: '/dothihuonggiang.jpg' },
+  { name: 'LƯƠNG THỊ HOA ĐAN', desc: 'Á Hậu 1 Hoa Hậu Các Dân Tộc Việt Nam 2022<br/>Top 16 Hoa Hậu Hoàn Vũ Việt Nam 2024', descEn: '1st Runner-up, Miss Ethnic Vietnam 2022<br/>Top 16, Miss Universe Vietnam 2024', img: '/luongthihoadan.jpg' },
+  { name: 'TRỊNH HUYỀN MAI', desc: 'Hoa Khôi Duyên Dáng Sinh Viên Việt Nam 2023', descEn: 'Miss Charming Vietnamese Student 2023', img: '/trinhhuyenmai.jpg' },
+  { name: 'ĐINH NGÂN HÀ', desc: 'Á hậu 1 Hoa hậu Sinh viên Việt Nam 2024', descEn: '1st Runner-up, Miss Vietnamese Student 2024', img: '/dinhngansha.jpg' },
+  { name: 'TIÊU NGỌC LINH', desc: 'Á quân Vietnam Next Top Model 2014<br/>Top 5 Hoa Hậu Hoàn Vũ Việt Nam 2017', descEn: "Runner-up, Vietnam's Next Top Model 2014<br/>Top 5, Miss Universe Vietnam 2017", img: '/tieungoclinh.jpg' },
+  { name: 'NGUYỄN KHÁNH LINH', desc: 'Á Khôi 1 Duyên Dáng Sinh Viên Việt Nam 2024<br/>Top 10 Hoa Hậu Du Lịch Việt Nam 2024', descEn: '1st Runner-up, Charming Vietnamese Student 2024<br/>Top 10, Miss Tourism Vietnam 2024', img: '/nguyenkhanhlinh.jpg' },
+  { name: 'HOÀNG HƯƠNG GIANG', desc: 'Top 5 Hoa Hậu Việt Nam 2020', descEn: 'Top 5, Miss Vietnam 2020', img: '/hoanghuonggiang.jpg' },
+  { name: 'PHẠM THÙY DƯƠNG', desc: 'Top 5 Hoa Hậu Việt Nam 2024<br/>Top 15 Hoa Hậu Hòa Bình Việt Nam 2024', descEn: 'Top 5, Miss Vietnam 2024<br/>Top 15, Miss Grand Vietnam 2024', img: '/phamthuyduong.jpg' },
+  { name: 'LÊ PHƯƠNG QUYÊN', desc: 'Á Khôi 1 Duyên Dáng Ngoại Thương 2023<br/>Top 10 Hoa Hậu Thế Giới Việt Nam 2026', descEn: '1st Runner-up, Charming FTU Student 2023<br/>Top 10, Miss World Vietnam 2026', img: '/lephuongquyen.jpg' },
+  { name: 'NGUYỄN MINH ANH', desc: 'Hoa Khôi Duyên Dáng Ngoại Thương 2023', descEn: 'Miss Charming FTU Student 2023', img: '/nguyenminhanh.jpg' },
+  { name: 'NGUYỄN HÀ MỸ ANH', desc: 'Á Khôi 2 Duyên Dáng Ngoại Thương 2025', descEn: '2nd Runner-up, Charming FTU Student 2025', img: '/nguyenhamyanh.jpg' },
+  { name: 'LÊ NGỌC NHƯ QUỲNH', desc: 'Top 6 Hoa Hậu Thế Giới Việt Nam 2026', descEn: 'Top 6, Miss World Vietnam 2026', img: '/lengocnhuquynh.jpg' },
+  { name: 'ĐINH KHÁNH HOÀ', desc: 'Top 10 Hoa hậu Việt Nam 2022', descEn: 'Top 10, Miss Vietnam 2022', img: '/dinhkhanhhoa.jpg' },
+  { name: 'CHỊ QUỲNH HOA', desc: 'MC/ BTV VTV', descEn: 'MC / Anchor at VTV', img: '/quynhhoa.jpg' },
+  { name: 'CHỊ MINH PHƯƠNG', desc: 'MC/ BTV VTV', descEn: 'MC / Anchor at VTV', img: '/minhphuong.jpg' }
 ];
 
 const EVENTS = [
@@ -34,6 +34,7 @@ const EVENTS = [
     id: "fashion-week",
     name: "FTU Fashion Show",
     description: "FTU Fashion Show là sự kiện trình diễn thời trang thường niên do CLB MFC tổ chức, nhằm tôn vinh vẻ đẹp, phong cách và cá tính riêng của sinh viên thông qua ngôn ngữ thời trang. Đây là cơ hội để các bạn người mẫu trẻ đam mê sàn diễn được thể hiện bản lĩnh, đồng thời khẳng định tinh thần sáng tạo và chuyên nghiệp của sinh viên Ngoại thương trong lĩnh vực nghệ thuật trình diễn.",
+    descriptionEn: "FTU Fashion Show is MFC's annual fashion showcase, celebrating students' beauty, style, and individuality through the language of fashion. It's a chance for aspiring young models to show their confidence on the runway, while affirming the creativity and professionalism of FTU students in the performing arts.",
     image: "/sk3.jpg",
     href: "https://www.facebook.com/ftufashionshow.mfc"
   },
@@ -41,6 +42,7 @@ const EVENTS = [
     id: "talent-show",
     name: "MC Fire",
     description: "MC Fire là cuộc thi tìm kiếm người dẫn chương trình tài năng, hướng tới việc tạo dựng một sân chơi chuyên nghiệp dành cho các bạn sinh viên trên địa bàn Hà Nội có niềm đam mê với lĩnh vực dẫn chương trình. Thông qua các vòng thi được thiết kế bài bản, MC Fire không chỉ giúp thí sinh rèn luyện kỹ năng, phong thái sân khấu mà còn góp phần lan tỏa hình ảnh người dẫn chương trình trẻ trung, tự tin và sáng tạo trong cộng đồng sinh viên.",
+    descriptionEn: "MC Fire is a talent competition for aspiring hosts, offering a professional platform for Hanoi students passionate about MCing. Through carefully designed rounds, MC Fire helps contestants sharpen their skills and stage presence, while promoting a youthful, confident, and creative image of student hosts.",
     image: "/sk1.jpg",
     href: "https://www.facebook.com/mcfire.mfc.ftu"
   },
@@ -48,6 +50,7 @@ const EVENTS = [
     id: "charity-gala",
     name: "Just Art Exhibition",
     description: "Just Art Exhibition là triển lãm nghệ thuật do CLB tổ chức, nhằm tạo không gian cho sinh viên thể hiện tư duy sáng tạo và cảm xúc nghệ thuật thông qua nhiều hình thức như hội họa, nhiếp ảnh và sắp đặt. Sự kiện góp phần lan tỏa tinh thần nghệ thuật, khơi dậy cảm hứng sáng tạo và xây dựng cộng đồng yêu nghệ thuật trong sinh viên Ngoại thương.",
+    descriptionEn: "Just Art Exhibition is an art showcase organized by the club, giving students a space to express creative thinking and artistic emotion through painting, photography, and installation art. The event spreads an artistic spirit, sparks creative inspiration, and builds a community of art lovers among FTU students.",
     image: "/sk2.jpg",
     href: "https://www.facebook.com/media/set/?set=a.683672377197844&type=3&rdid=cxILwUfkmIZvz9OR&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1FFDxkAgr2%2F#"
   },
@@ -57,6 +60,7 @@ const CLUB_DEPARTMENTS = [
   {
     id: "ban-su-kien",
     name: "Ban Thời Trang",
+    nameEn: "Fashion Department",
     role: "Fashion",
     image: "/ban-su-kien.jpg",
     members: [
@@ -65,11 +69,13 @@ const CLUB_DEPARTMENTS = [
       { position: "Model trưởng", name: "Vũ Thanh Hà" }
     ],
     color: "#a78bfa",
-    description: "Là nơi quy tụ những bạn trẻ đam mê thời trang và sàn diễn, ban Thời trang mang đến môi trường để các thành viên được rèn luyện kỹ năng catwalk, phong thái biểu diễn và khả năng thể hiện cá tính trên sân khấu. Không chỉ dừng lại ở việc trình diễn, Ban còn góp phần xây dựng hình ảnh chỉn chu, chuyên nghiệp cho các sự kiện của CLB, đồng thời lan tỏa tinh thần tự tin, sáng tạo và bản lĩnh của sinh viên Ngoại thương"
+    description: "Là nơi quy tụ những bạn trẻ đam mê thời trang và sàn diễn, ban Thời trang mang đến môi trường để các thành viên được rèn luyện kỹ năng catwalk, phong thái biểu diễn và khả năng thể hiện cá tính trên sân khấu. Không chỉ dừng lại ở việc trình diễn, Ban còn góp phần xây dựng hình ảnh chỉn chu, chuyên nghiệp cho các sự kiện của CLB, đồng thời lan tỏa tinh thần tự tin, sáng tạo và bản lĩnh của sinh viên Ngoại thương",
+    descriptionEn: "Home to young people passionate about fashion and the runway, the Fashion Department gives members a place to train their catwalk skills, stage presence, and ability to express their individuality. Beyond performing, the department also helps build a polished, professional image for the club's events, while spreading the confidence, creativity, and resolve of FTU students."
   },
   {
     id: "ban-truyen-thong",
     name: "Ban MC",
+    nameEn: "MC Department",
     role: "MC",
     image: "/ban-truyen-thong.jpg",
     members: [
@@ -78,11 +84,13 @@ const CLUB_DEPARTMENTS = [
       { position: "MC chính", name: "Ngô Minh Tuấn" }
     ],
     color: "#f472b6",
-    description: "Ban MC là môi trường năng động dành cho những bạn yêu thích lĩnh vực dẫn chương trình và mong muốn phát triển kỹ năng giao tiếp, ứng biến cùng phong thái sân khấu chuyên nghiệp. Tại đây, các thành viên được tham gia đào tạo, thực hành qua các sự kiện nội bộ, từ đó không ngừng hoàn thiện bản thân và lan tỏa hình ảnh người dẫn chương trình tự tin, bản lĩnh và truyền cảm hứng."
+    description: "Ban MC là môi trường năng động dành cho những bạn yêu thích lĩnh vực dẫn chương trình và mong muốn phát triển kỹ năng giao tiếp, ứng biến cùng phong thái sân khấu chuyên nghiệp. Tại đây, các thành viên được tham gia đào tạo, thực hành qua các sự kiện nội bộ, từ đó không ngừng hoàn thiện bản thân và lan tỏa hình ảnh người dẫn chương trình tự tin, bản lĩnh và truyền cảm hứng.",
+    descriptionEn: "The MC Department is a dynamic environment for those who love hosting and want to develop their communication, improvisation, and professional stage presence. Members receive training and practice through internal events, continuously improving themselves and spreading the image of a confident, resolute, and inspiring host."
   },
   {
     id: "ban-dao-tao",
     name: "Ban Sáng Tạo",
+    nameEn: "Creative Department",
     role: "Creative",
     image: "/ban-dao-tao.jpg",
     members: [
@@ -91,11 +99,13 @@ const CLUB_DEPARTMENTS = [
       { position: "Art Director", name: "Mai Thảo Nguyên" }
     ],
     color: "#38bdf8",
-    description: "Tập hợp những cá nhân có tư duy thẩm mỹ và khả năng sáng tạo vượt giới hạn, Ban Sáng tạo đảm nhận vai trò định hình hình ảnh và phong cách đặc trưng cho CLB. Các thành viên của ban là \"linh hồn nghệ thuật\" đứng sau những sản phẩm truyền thông, visual và ý tưởng sân khấu độc đáo, góp phần tạo nên bản sắc riêng, đậm chất MFC trong mọi hoạt động"
+    description: "Tập hợp những cá nhân có tư duy thẩm mỹ và khả năng sáng tạo vượt giới hạn, Ban Sáng tạo đảm nhận vai trò định hình hình ảnh và phong cách đặc trưng cho CLB. Các thành viên của ban là \"linh hồn nghệ thuật\" đứng sau những sản phẩm truyền thông, visual và ý tưởng sân khấu độc đáo, góp phần tạo nên bản sắc riêng, đậm chất MFC trong mọi hoạt động",
+    descriptionEn: "Bringing together individuals with aesthetic vision and limitless creativity, the Creative Department shapes the club's signature image and style. Its members are the \"artistic soul\" behind every media product, visual, and unique stage concept, helping build a distinct MFC identity across all activities."
   },
   {
     id: "ban-chu-nhiem",
     name: "Ban Tổ Chức",
+    nameEn: "Organizing Department",
     role: "Leader",
     image: "/ban-chu-nhiem.jpg",
     members: [
@@ -104,11 +114,13 @@ const CLUB_DEPARTMENTS = [
       { position: "Thành viên", name: "Lê Hoàng Nam" }
     ],
     color: "#34d399",
-    description: "Giữ vai trò \"bộ não điều hành\" của CLB, Ban Tổ chức chịu trách nhiệm lập kế hoạch, phân công và giám sát tiến độ để đảm bảo mọi hoạt động diễn ra đúng định hướng và hiệu quả. Với tinh thần tỉ mỉ, chủ động và trách nhiệm cao, các thành viên Ban Tổ chức là những người đứng sau góp phần tạo nên sự thành công, chuyên nghiệp và chỉn chu cho từng sự kiện của MFC"
+    description: "Giữ vai trò \"bộ não điều hành\" của CLB, Ban Tổ chức chịu trách nhiệm lập kế hoạch, phân công và giám sát tiến độ để đảm bảo mọi hoạt động diễn ra đúng định hướng và hiệu quả. Với tinh thần tỉ mỉ, chủ động và trách nhiệm cao, các thành viên Ban Tổ chức là những người đứng sau góp phần tạo nên sự thành công, chuyên nghiệp và chỉn chu cho từng sự kiện của MFC",
+    descriptionEn: "Acting as the club's \"operations brain,\" the Organizing Department plans, assigns, and monitors progress to keep every activity on track and effective. With meticulous care, initiative, and a strong sense of responsibility, its members are the ones behind the success, professionalism, and polish of every MFC event."
   },
   {
     id: "ban-noi-vu",
     name: "Ban Đối Ngoại",
+    nameEn: "External Relations Department",
     role: "External",
     image: "/ban-noi-vu.jpg",
     members: [
@@ -117,11 +129,13 @@ const CLUB_DEPARTMENTS = [
       { position: "Partnership", name: "Lê Gia Bảo" }
     ],
     color: "#fbbf24",
-    description: "Đóng vai trò cầu nối giữa CLB và các đơn vị đối tác, ban Đối ngoại phụ trách tìm kiếm, duy trì và mở rộng các mối quan hệ hợp tác chiến lược. Với tinh thần linh hoạt và khả năng giao tiếp khéo léo, các thành viên Ban Đối ngoại góp phần xây dựng hình ảnh CLB uy tín, chuyên nghiệp, đồng thời mang đến nhiều cơ hội phát triển và hợp tác cho các dự án của MFC"
+    description: "Đóng vai trò cầu nối giữa CLB và các đơn vị đối tác, ban Đối ngoại phụ trách tìm kiếm, duy trì và mở rộng các mối quan hệ hợp tác chiến lược. Với tinh thần linh hoạt và khả năng giao tiếp khéo léo, các thành viên Ban Đối ngoại góp phần xây dựng hình ảnh CLB uy tín, chuyên nghiệp, đồng thời mang đến nhiều cơ hội phát triển và hợp tác cho các dự án của MFC",
+    descriptionEn: "Acting as the bridge between the club and its partners, the External Relations Department finds, maintains, and grows strategic partnerships. With flexibility and skillful communication, its members help build a reputable, professional image for the club while bringing new growth and collaboration opportunities to MFC's projects."
   },
   {
     id: "ban-tai-chinh",
     name: "Ban Truyền Thông",
+    nameEn: "Media Department",
     role: "Media",
     image: "/ban-tai-chinh.jpg",
     members: [
@@ -130,7 +144,8 @@ const CLUB_DEPARTMENTS = [
       { position: "Content Creator", name: "Vũ Hương Giang" }
     ],
     color: "#f87171",
-    description: "Là gương mặt đại diện trong việc lan tỏa hình ảnh của CLB đến với cộng đồng, Ban Truyền thông phụ trách xây dựng nội dung, hình ảnh và chiến lược truyền thông cho các dự án, sự kiện. Mỗi sản phẩm không chỉ thể hiện tinh thần sáng tạo mà còn góp phần khẳng định thương hiệu MFC chuyên nghiệp, năng động và truyền cảm hứng đến sinh viên Ngoại thương cũng như các bạn trẻ yêu thích lĩnh vực MC và thời trang"
+    description: "Là gương mặt đại diện trong việc lan tỏa hình ảnh của CLB đến với cộng đồng, Ban Truyền thông phụ trách xây dựng nội dung, hình ảnh và chiến lược truyền thông cho các dự án, sự kiện. Mỗi sản phẩm không chỉ thể hiện tinh thần sáng tạo mà còn góp phần khẳng định thương hiệu MFC chuyên nghiệp, năng động và truyền cảm hứng đến sinh viên Ngoại thương cũng như các bạn trẻ yêu thích lĩnh vực MC và thời trang",
+    descriptionEn: "As the face that spreads the club's image to the community, the Media Department builds the content, visuals, and communication strategy for every project and event. Each product not only reflects creativity but also reinforces MFC's brand as professional, dynamic, and inspiring to FTU students and young people who love MCing and fashion."
   }
 ];
 
@@ -188,7 +203,7 @@ const EventsSection = ({ vi }) => {
             transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
             style={{ color: 'rgba(255,255,255,0.9)', fontSize: 'clamp(16px, 1.8vw, 20px)', lineHeight: 1.8, textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}
           >
-            {activeEventData.description}
+            {vi ? activeEventData.description : activeEventData.descriptionEn}
           </motion.p>
 
           {/* Nút Xem Chi Tiết */}
@@ -304,7 +319,7 @@ const DepartmentsSection = ({ vi }) => {
               >
                 <img
                   src={dept.image}
-                  alt={dept.name}
+                  alt={vi ? dept.name : dept.nameEn}
                   className={`absolute -inset-1 w-[calc(100%+8px)] h-[calc(100%+8px)] object-cover transition-transform duration-700 ease-out ${isActive ? 'scale-110' : 'scale-100'}`}
                 />
                 <div
@@ -320,13 +335,13 @@ const DepartmentsSection = ({ vi }) => {
                 <div className="absolute inset-0 p-6 flex flex-col justify-end">
 
                   <h3 style={{ fontSize: '28px', fontWeight: 800, color: '#fff' }}>
-                    {dept.name}
+                    {vi ? dept.name : dept.nameEn}
                   </h3>
 
                   {/* Expandable Description */}
                   <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isActive ? 'max-h-[500px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
                     <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, marginBottom: '20px' }}>
-                      {dept.description}
+                      {vi ? dept.description : dept.descriptionEn}
                     </p>
 
 
@@ -341,7 +356,7 @@ const DepartmentsSection = ({ vi }) => {
   );
 };
 
-const FacesCarousel = () => {
+const FacesCarousel = ({ vi }) => {
   const itemWidth = 320;
   const gap = 32;
   const itemWithGap = itemWidth + gap;
@@ -463,7 +478,7 @@ const FacesCarousel = () => {
               <h3 style={{ fontSize: '24px', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '4px', color: '#fff', textShadow: 'rgba(0, 0, 0, 0.8) 2px 2px 4px', fontFamily: '"Cormorant Garamond", "Cormorant SC", serif' }}>
                 {face.name}
               </h3>
-              <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.8)', textShadow: 'rgba(0, 0, 0, 0.7) 1px 1px 3px', fontFamily: '"Cormorant Garamond", "Cormorant SC", serif', margin: 0, lineHeight: 1.4 }} dangerouslySetInnerHTML={{ __html: face.desc }} />
+              <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.8)', textShadow: 'rgba(0, 0, 0, 0.7) 1px 1px 3px', fontFamily: '"Cormorant Garamond", "Cormorant SC", serif', margin: 0, lineHeight: 1.4 }} dangerouslySetInnerHTML={{ __html: vi ? face.desc : face.descEn }} />
             </div>
           </div>
         ))}
@@ -516,11 +531,11 @@ const AboutPage = () => {
             <p style={{ fontSize: 'clamp(15px, 1.8vw, 17px)', color: 'rgba(255,255,255,0.75)', lineHeight: 1.9, marginBottom: 24, textAlign: 'justify', fontWeight: 300 }}>
               {vi ? 'CLB MC & Thời trang Trường Đại học Ngoại thương - MFC FTU là câu lạc bộ sở thích trực thuộc Đoàn Thanh niên Trường Đại học Ngoại thương. Được thành lập vào ngày 21/10/2009, MFC FTU đã trải qua 16 năm hình thành, phát triển và không ngừng khẳng định dấu ấn riêng trong lĩnh vực thời trang, nghệ thuật và dẫn chương trình.' : 'MFC is a dynamic hub for students passionate about MCing, modeling, and media. Here, every individual is empowered to step into the spotlight and express their unique identity.'}
             </p>
-            {vi && (
-              <p style={{ fontSize: 'clamp(15px, 1.8vw, 17px)', color: 'rgba(255,255,255,0.75)', lineHeight: 1.9, marginBottom: 40, textAlign: 'justify', fontWeight: 300 }}>
-                Với tinh thần luôn vượt qua giới hạn và phá bỏ những khuôn mẫu sẵn có, MFC FTU hướng tới xây dựng một tập thể chuyên nghiệp, sáng tạo và giàu sức sống sinh viên. Trên hành trình ấy, câu lạc bộ không chỉ là nơi nuôi dưỡng đam mê mà còn là không gian để các bạn trẻ tự tin thể hiện cá tính, bản lĩnh và màu sắc riêng của mình.
-              </p>
-            )}
+            <p style={{ fontSize: 'clamp(15px, 1.8vw, 17px)', color: 'rgba(255,255,255,0.75)', lineHeight: 1.9, marginBottom: 40, textAlign: 'justify', fontWeight: 300 }}>
+              {vi
+                ? 'Với tinh thần luôn vượt qua giới hạn và phá bỏ những khuôn mẫu sẵn có, MFC FTU hướng tới xây dựng một tập thể chuyên nghiệp, sáng tạo và giàu sức sống sinh viên. Trên hành trình ấy, câu lạc bộ không chỉ là nơi nuôi dưỡng đam mê mà còn là không gian để các bạn trẻ tự tin thể hiện cá tính, bản lĩnh và màu sắc riêng của mình.'
+                : 'With a spirit of always pushing past limits and breaking away from convention, MFC FTU aims to build a professional, creative, and vibrant student community. On this journey, the club is not just a place to nurture passion, but also a space for young people to confidently express their individuality, resolve, and unique colors.'}
+            </p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <button
                 className="btn-pill"
@@ -556,7 +571,7 @@ const AboutPage = () => {
         </div>
 
         <div style={{ position: 'relative' }}>
-          <FacesCarousel />
+          <FacesCarousel vi={vi} />
         </div>
       </section>
 
