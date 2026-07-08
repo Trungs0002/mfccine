@@ -19,7 +19,7 @@ if (!JWT_SECRET) {
 
 // Enable CORS and Express JSON parsing with 10mb limit for base64 uploads
 app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '40mb' }));
 
 // Cloudinary Configuration
 cloudinary.config({
@@ -153,6 +153,22 @@ const RecruitApplicationSchema = new mongoose.Schema({
 });
 
 const RecruitApplication = mongoose.model('RecruitApplication', RecruitApplicationSchema);
+
+// 7. "Nhất" Design Contest Submission Model (images kept as base64 data URIs for now — a simple
+// first pass; swap for real object storage later if volume grows).
+const NhatSubmissionSchema = new mongoose.Schema({
+  fullName: { type: String, required: true },
+  email: { type: String, required: true },
+  phone: { type: String, required: true },
+  school: { type: String, default: '' },
+  note: { type: String, default: '' },
+  designImage: { type: String, required: true },
+  outfitPhoto1: { type: String, required: true },
+  outfitPhoto2: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const NhatSubmission = mongoose.model('NhatSubmission', NhatSubmissionSchema);
 
 // Generate unique ticket code: MFC-XXXXXXXX
 const generateTicketCode = () => {
@@ -620,6 +636,49 @@ app.put('/api/applications/:id/resolve', async (req, res) => {
     application.resolvedAt = resolved ? new Date() : null;
     await application.save();
     res.json(application);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// "NHẤT" DESIGN CONTEST SUBMISSIONS
+app.get('/api/nhat-submissions', async (req, res) => {
+  try {
+    const submissions = await NhatSubmission.find().sort({ createdAt: -1 });
+    res.json(submissions);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+const isJpegOrPngDataUri = (str) => typeof str === 'string' && /^data:image\/(jpeg|png);base64,/.test(str);
+
+app.post('/api/nhat-submissions', async (req, res) => {
+  try {
+    const { fullName, email, phone, school, note, designImage, outfitPhoto1, outfitPhoto2 } = req.body;
+    if (!fullName || !email || !phone || !designImage || !outfitPhoto1 || !outfitPhoto2) {
+      return res.status(400).json({ error: 'Missing required fields.' });
+    }
+    if (![designImage, outfitPhoto1, outfitPhoto2].every(isJpegOrPngDataUri)) {
+      return res.status(400).json({ error: 'Only JPG, JPEG, or PNG images are accepted.' });
+    }
+    // Upload original-quality images to Cloudinary instead of embedding base64 in MongoDB
+    // (a MongoDB document is capped at 16MB, which 3 full-resolution photos can easily exceed).
+    const [designUpload, outfit1Upload, outfit2Upload] = await Promise.all([
+      cloudinary.uploader.upload(designImage, { folder: 'nhat_entries' }),
+      cloudinary.uploader.upload(outfitPhoto1, { folder: 'nhat_entries' }),
+      cloudinary.uploader.upload(outfitPhoto2, { folder: 'nhat_entries' }),
+    ]);
+    const submission = await NhatSubmission.create({
+      fullName, email, phone, school, note,
+      designImage: designUpload.secure_url,
+      outfitPhoto1: outfit1Upload.secure_url,
+      outfitPhoto2: outfit2Upload.secure_url,
+    });
+    res.status(201).json({ message: 'Submission received', submissionId: submission._id });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/nhat-submissions/:id', async (req, res) => {
+  try {
+    await NhatSubmission.deleteOne({ _id: req.params.id });
+    res.json({ message: 'Submission deleted successfully' });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

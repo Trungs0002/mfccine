@@ -96,6 +96,12 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const [newStaffPassword, setNewStaffPassword] = useState('');
   const [creatingStaff, setCreatingStaff] = useState(false);
 
+  // "Nhất" design contest submissions (admin-only tab)
+  const [nhatSubmissions, setNhatSubmissions] = useState([]);
+  const [loadingNhatSubmissions, setLoadingNhatSubmissions] = useState(false);
+  const [expandedNhatId, setExpandedNhatId] = useState(null);
+  const [zoomedImage, setZoomedImage] = useState(null);
+
   const fetchAnalytics = () => {
     fetch(`${API_URL}/api/analytics`)
       .then(res => res.json())
@@ -147,12 +153,30 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
       .catch(() => setLoadingStaffAccounts(false));
   };
 
+  const fetchNhatSubmissions = () => {
+    setLoadingNhatSubmissions(true);
+    fetch(`${API_URL}/api/nhat-submissions`)
+      .then(res => res.json())
+      .then(data => {
+        setNhatSubmissions(data);
+        setLoadingNhatSubmissions(false);
+      })
+      .catch(() => setLoadingNhatSubmissions(false));
+  };
+
+  const handleDeleteNhatSubmission = async (id) => {
+    if (!window.confirm(language === 'vi' ? 'Xóa bài dự thi này?' : 'Delete this submission?')) return;
+    const res = await fetch(`${API_URL}/api/nhat-submissions/${id}`, { method: 'DELETE' });
+    if (res.ok) setNhatSubmissions(nhatSubmissions.filter(s => s._id !== id));
+  };
+
   useEffect(() => {
     fetchAnalytics();
     if (activeAdminTab === 'bookings') fetchAllBookings();
     if (activeAdminTab === 'coupons') fetchCoupons();
     if (activeAdminTab === 'applications') fetchApplications();
     if (activeAdminTab === 'staff') fetchStaffAccounts();
+    if (activeAdminTab === 'nhat') fetchNhatSubmissions();
   }, [events, activeAdminTab]);
 
   // Auto-sync the history tabs (bookings ledger, CTV applications) every 5s — no manual reload needed.
@@ -355,6 +379,15 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     }, 100);
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageName(file.name);
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = () => setImage(reader.result);
+  };
+
   const resetForm = () => {
     setEditingEventId(null);
     setTitleEn(''); setTitleVi('');
@@ -514,6 +547,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     { id: 'coupons', icon: 'sell', label: language === 'vi' ? 'Mã giảm giá' : 'Discount Codes' },
     { id: 'applications', icon: 'assignment_ind', label: language === 'vi' ? 'Đơn ứng tuyển CTV' : 'CTV Applications' },
     { id: 'staff', icon: 'badge', label: language === 'vi' ? 'Nhân viên' : 'Staff' },
+    { id: 'nhat', icon: 'checkroom', label: language === 'vi' ? 'Bài dự thi Nhất' : 'Nhất Entries' },
   ].filter(tab => !isStaff || tab.id === 'bookings' || tab.id === 'applications');
 
   const getStatCards = () => {
@@ -551,6 +585,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
         { label: language === 'vi' ? 'Đã xử lý' : 'Processed', value: resolvedCount, icon: 'task_alt', color: 'var(--mint)' },
       ];
     }
+    if (activeAdminTab === 'nhat') {
+      return [
+        { label: language === 'vi' ? 'Tổng số bài dự thi' : 'Total Entries', value: nhatSubmissions.length, icon: 'checkroom', color: 'var(--purple)' },
+      ];
+    }
     return [];
   };
 
@@ -567,6 +606,39 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
           onClose={() => setShowScanner(false)}
         />
       )}
+
+      {/* Image zoom overlay */}
+      {zoomedImage && (() => {
+        const ext = /^data:image\/png/.test(zoomedImage.src) ? 'png' : 'jpg';
+        return (
+          <div
+            onClick={() => setZoomedImage(null)}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(1,1,10,.92)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, cursor: 'zoom-out',
+            }}
+          >
+            <div style={{ position: 'absolute', top: 24, right: 24, display: 'flex', gap: 16 }}>
+              <a
+                href={zoomedImage.src}
+                download={`${zoomedImage.name}.${ext}`}
+                onClick={e => e.stopPropagation()}
+                title={language === 'vi' ? 'Tải ảnh chất lượng gốc' : 'Download original quality'}
+                style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex' }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 32 }}>download</span>
+              </a>
+              <button
+                onClick={() => setZoomedImage(null)}
+                style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex' }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 32 }}>close</span>
+              </button>
+            </div>
+            <img src={zoomedImage.src} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', boxShadow: '0 20px 60px rgba(0,0,0,.6)' }} />
+          </div>
+        );
+      })()}
 
       <div className="animate-fade-in" style={{ paddingTop: 120, paddingBottom: 64 }}>
         <div className="container">
@@ -853,14 +925,15 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} id="cloudinaryInput" />
                         <button
                           type="button"
-                          onClick={() => { setImage('/kv-doc.jpeg'); setImageName('kv-doc.jpeg'); }}
+                          onClick={() => document.getElementById('cloudinaryInput').click()}
                           className="btn-outline-pill"
                           style={{ width: '100%', justifyContent: 'center' }}
                         >
                           <span className="material-symbols-outlined" style={{ fontSize: 18 }}>image</span>
-                          {imageName ? `${language === 'vi' ? 'Đã chọn' : 'Selected'}: ${imageName}` : editingEventId ? (language === 'vi' ? 'Thay ảnh sự kiện' : 'Replace Event Image') : (language === 'vi' ? 'Dùng ảnh sự kiện' : 'Use Event Image')}
+                          {imageName ? `${language === 'vi' ? 'Đã chọn' : 'Selected'}: ${imageName.slice(0, 25)}` : editingEventId ? (language === 'vi' ? 'Thay ảnh sự kiện' : 'Replace Event Image') : (language === 'vi' ? 'Tải ảnh sự kiện' : 'Upload Event Image')}
                         </button>
                         <div style={{ display: 'flex', gap: 14 }}>
                           <button type="button" onClick={resetForm} className="btn-outline-pill" style={{ flex: 1, justifyContent: 'center' }}>{t('cancel')}</button>
@@ -1204,6 +1277,91 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                       </button>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          ) : activeAdminTab === 'nhat' ? (
+            <div className="mfc-card animate-fade-in" style={{ padding: 32 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 16, marginBottom: 24, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
+                <h3 className="serif" style={{ color: '#fff', fontSize: 22, margin: 0 }}>
+                  {language === 'vi' ? 'Bài dự thi "Nhất"' : '"Nhất" Entries'}
+                </h3>
+                <button onClick={fetchNhatSubmissions} style={{ background: 'none', border: 'none', color: 'var(--purple)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, textTransform: 'uppercase', letterSpacing: '.08em' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>refresh</span> {language === 'vi' ? 'Tải lại' : 'Reload'}
+                </button>
+              </div>
+
+              {loadingNhatSubmissions ? (
+                <p style={{ textAlign: 'center', padding: '60px 0', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', fontSize: 12 }}>
+                  {language === 'vi' ? 'Đang tải...' : 'Loading...'}
+                </p>
+              ) : nhatSubmissions.length === 0 ? (
+                <p style={{ textAlign: 'center', padding: '32px 0', color: 'var(--muted)', fontSize: 13 }}>
+                  {language === 'vi' ? 'Chưa có bài dự thi nào.' : 'No entries yet.'}
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {nhatSubmissions.map(s => {
+                    const isExpanded = expandedNhatId === s._id;
+                    return (
+                      <div key={s._id} style={{ borderRadius: 14, border: '1px solid var(--line)', background: 'rgba(1,1,10,.35)', overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: 16 }}>
+                          <div>
+                            <span style={{ fontWeight: 700, color: '#fff', fontSize: 14 }}>{s.fullName}</span>
+                            <span style={{ color: 'var(--muted)', fontSize: 11, marginLeft: 10 }}>{s.email} · {s.phone}</span>
+                            {s.school && <span style={{ color: 'var(--muted)', fontSize: 11, marginLeft: 10 }}>· {s.school}</span>}
+                          </div>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button onClick={() => setExpandedNhatId(isExpanded ? null : s._id)} className="btn-outline-pill" style={{ fontSize: 11, padding: '8px 16px' }}>
+                              {isExpanded ? (language === 'vi' ? 'Thu gọn' : 'Collapse') : (language === 'vi' ? 'Xem chi tiết' : 'View details')}
+                            </button>
+                            <button onClick={() => handleDeleteNhatSubmission(s._id)} style={{ padding: '8px 10px', borderRadius: 999, border: '1px solid rgba(255,107,107,.3)', background: 'rgba(255,107,107,.08)', color: '#ff6b6b', cursor: 'pointer', display: 'flex' }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {isExpanded && (
+                          <div style={{ padding: '0 16px 16px', borderTop: '1px solid var(--line)', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 16, fontSize: 13 }}>
+                            <div className="admin-app-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                              <p style={{ margin: 0 }}><span style={{ color: 'var(--muted)' }}>{language === 'vi' ? 'Họ và tên: ' : 'Full Name: '}</span><span style={{ color: '#fff' }}>{s.fullName}</span></p>
+                              <p style={{ margin: 0 }}><span style={{ color: 'var(--muted)' }}>Email: </span><span style={{ color: '#fff' }}>{s.email}</span></p>
+                              <p style={{ margin: 0 }}><span style={{ color: 'var(--muted)' }}>{language === 'vi' ? 'Số điện thoại: ' : 'Phone: '}</span><span style={{ color: '#fff' }}>{s.phone}</span></p>
+                              <p style={{ margin: 0 }}><span style={{ color: 'var(--muted)' }}>{language === 'vi' ? 'Trường / đơn vị: ' : 'School: '}</span><span style={{ color: '#fff' }}>{s.school || '-'}</span></p>
+                            </div>
+
+                            <div>
+                              <p style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '0 0 6px' }}>
+                                {language === 'vi' ? 'Ghi chú thêm' : 'Additional Notes'}
+                              </p>
+                              <p style={{ color: '#e0dbff', margin: 0, lineHeight: 1.6 }}>{s.note || (language === 'vi' ? 'Không có' : 'None')}</p>
+                            </div>
+
+                            <div className="admin-form-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                              {[
+                                { label: language === 'vi' ? 'Bản vẽ thiết kế' : 'Design Sketch', src: s.designImage, name: `${s.fullName}-design-sketch` },
+                                { label: language === 'vi' ? 'Ảnh bộ đồ (1)' : 'Outfit Photo (1)', src: s.outfitPhoto1, name: `${s.fullName}-outfit-1` },
+                                { label: language === 'vi' ? 'Ảnh bộ đồ (2)' : 'Outfit Photo (2)', src: s.outfitPhoto2, name: `${s.fullName}-outfit-2` },
+                              ].map((img, i) => (
+                                <div key={i}>
+                                  <p style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '0 0 6px' }}>{img.label}</p>
+                                  <img
+                                    src={img.src}
+                                    alt={img.label}
+                                    onClick={() => setZoomedImage({ src: img.src, name: img.name })}
+                                    style={{ width: '100%', maxHeight: 180, objectFit: 'cover', border: '1px solid var(--line)', display: 'block', cursor: 'zoom-in' }}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                            <p style={{ color: 'var(--muted)', fontSize: 10, margin: 0 }}>
+                              {new Date(s.createdAt).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

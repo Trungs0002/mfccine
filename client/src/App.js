@@ -16,6 +16,8 @@ import UserDashboardPage  from './pages/UserDashboardPage';
 import AdminPanelPage     from './pages/AdminPanelPage';
 import AboutPage          from './pages/AboutPage';
 import RecruitPage        from './pages/RecruitPage';
+import NhatPage           from './pages/NhatPage';
+import CastingCallPage    from './pages/CastingCallPage';
 import LoginPage          from './pages/LoginPage';
 import RegisterPage       from './pages/RegisterPage';
 
@@ -112,6 +114,8 @@ function AppContent() {
           <Route path="/"          element={<LandingPage events={events} setEvent={setSelectedEvent} settings={settings} />} />
           <Route path="/about"     element={<AboutPage />} />
           <Route path="/recruit"   element={<RecruitPage />} />
+          <Route path="/nhat"      element={<NhatPage />} />
+          <Route path="/casting-call" element={<CastingCallPage />} />
           <Route path="/login"     element={user ? <Navigate to="/" /> : <LoginPage setUser={setUser} />} />
           <Route path="/register"  element={user ? <Navigate to="/" /> : <RegisterPage setUser={setUser} />} />
 

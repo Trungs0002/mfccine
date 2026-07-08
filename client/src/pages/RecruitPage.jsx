@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
 
@@ -310,7 +311,7 @@ const BenefitsSection = ({ vi }) => (
 );
 
 /* ─── Application questions (Tab 2 — depends on selected department) ──── */
-const DepartmentQuestions = ({ dept, answers, onChange, vi }) => (
+const DepartmentQuestions = ({ dept, answers, onChange, vi, errors }) => (
   <div>
     <div style={{ fontSize: 11, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 18, paddingBottom: 10, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
       {vi ? 'Câu hỏi ứng tuyển' : 'Application Questions'}
@@ -319,7 +320,7 @@ const DepartmentQuestions = ({ dept, answers, onChange, vi }) => (
       {(vi ? dept.questions : dept.questionsEn).map((q, i) => (
         <div key={i}>
           <label style={{ display: 'block', fontSize: 13, color: '#e0dbff', lineHeight: 1.6, marginBottom: 8 }}>
-            {i + 1}. {q}
+            {i + 1}. {q} *
           </label>
           <textarea
             className="mfc-input"
@@ -327,8 +328,9 @@ const DepartmentQuestions = ({ dept, answers, onChange, vi }) => (
             placeholder={vi ? 'Nhập câu trả lời của bạn...' : 'Enter your answer...'}
             value={answers[i] || ''}
             onChange={e => onChange(i, e.target.value)}
-            style={{ resize: 'vertical' }}
+            style={{ resize: 'vertical', borderColor: errors[`answer${i}`] ? '#ff6b6b' : undefined }}
           />
+          {errors[`answer${i}`] && <p style={errorTextStyle}>{errors[`answer${i}`]}</p>}
         </div>
       ))}
     </div>
@@ -343,6 +345,7 @@ const RegistrationForm = ({
   const [submitting, setSubmitting] = useState(false);
   const dobPickerRef = useRef(null);
   const dept = departments.find(d => d.name === formData.department) || departments[0];
+  const showPortfolio = dept.id !== 'doi-ngoai' && dept.id !== 'to-chuc';
 
   const setField = (key) => (e) => {
     const { value } = e.target;
@@ -383,6 +386,7 @@ const RegistrationForm = ({
       answers[idx] = value;
       return { ...f, answers };
     });
+    setErrors(er => (er[`answer${idx}`] ? { ...er, [`answer${idx}`]: undefined } : er));
   };
 
   const handleSubmit = async (e) => {
@@ -393,6 +397,12 @@ const RegistrationForm = ({
     if (!formData.phone.trim()) newErrors.phone = vi ? 'Vui lòng nhập số điện thoại.' : 'Please enter your phone number.';
     if (!formData.email.trim()) newErrors.email = vi ? 'Vui lòng nhập email.' : 'Please enter your email.';
     if (!formData.department) newErrors.department = vi ? 'Vui lòng chọn ban ứng tuyển.' : 'Please select a department.';
+    if (!formData.facebook.trim()) newErrors.facebook = vi ? 'Vui lòng nhập link Facebook cá nhân.' : 'Please enter your Facebook link.';
+    dept.questions.forEach((_, i) => {
+      if (!(formData.answers[i] || '').trim()) {
+        newErrors[`answer${i}`] = vi ? 'Vui lòng trả lời câu hỏi này.' : 'Please answer this question.';
+      }
+    });
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -523,21 +533,24 @@ const RegistrationForm = ({
           {errors.department && <p style={errorTextStyle}>{errors.department}</p>}
         </div>
 
-        <div className="recruit-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div className="recruit-form-grid" style={{ display: 'grid', gridTemplateColumns: showPortfolio ? '1fr 1fr' : '1fr', gap: 16 }}>
           <div>
-            <label style={fieldLabelStyle}>{vi ? 'Link Facebook cá nhân' : 'Facebook Link'}</label>
+            <label style={fieldLabelStyle}>{vi ? 'Link Facebook cá nhân *' : 'Facebook Link *'}</label>
             <input className="mfc-input" value={formData.facebook} onChange={setField('facebook')} placeholder="https://www.facebook.com/..." />
+            {errors.facebook && <p style={errorTextStyle}>{errors.facebook}</p>}
           </div>
-          <div>
-            <label style={fieldLabelStyle}>{vi ? 'Link portfolio / sản phẩm cá nhân' : 'Portfolio Link'}</label>
-            <input className="mfc-input" value={formData.portfolio} onChange={setField('portfolio')} placeholder="https://..." />
-          </div>
+          {showPortfolio && (
+            <div>
+              <label style={fieldLabelStyle}>{vi ? 'Link portfolio / sản phẩm cá nhân (nếu có)' : 'Portfolio Link (if any)'}</label>
+              <input className="mfc-input" value={formData.portfolio} onChange={setField('portfolio')} placeholder="https://..." />
+            </div>
+          )}
         </div>
       </div>
 
       {/* Questions */}
       <div style={{ marginBottom: 28 }}>
-        <DepartmentQuestions dept={dept} answers={formData.answers} onChange={setAnswer} vi={vi} />
+        <DepartmentQuestions dept={dept} answers={formData.answers} onChange={setAnswer} vi={vi} errors={errors} />
       </div>
 
       {submitStatus === 'error' && (
@@ -572,6 +585,7 @@ const RegistrationForm = ({
 
 /* ─── Page ───────────────────────────────────────────────────────────── */
 const RecruitPage = () => {
+  const navigate = useNavigate();
   const { language } = useLanguage();
   const vi = language === 'vi';
 
@@ -593,8 +607,10 @@ const RecruitPage = () => {
   };
 
   const handleDepartmentChange = (deptName) => {
+    const newDept = DEPARTMENTS.find(d => d.name === deptName);
+    const hidesPortfolio = newDept && (newDept.id === 'doi-ngoai' || newDept.id === 'to-chuc');
     setSelectedDepartment(deptName);
-    setFormData(f => ({ ...f, department: deptName, answers: ['', '', '', ''] }));
+    setFormData(f => ({ ...f, department: deptName, answers: ['', '', '', ''], portfolio: hidesPortfolio ? '' : f.portfolio }));
     setErrors(er => ({ ...er, department: undefined }));
   };
 
@@ -672,6 +688,26 @@ const RecruitPage = () => {
           </section>
 
           <BenefitsSection vi={vi} />
+
+          {/* CTA */}
+          <section style={{ padding: '0 0 72px', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <button
+                className="btn-outline-pill"
+                onClick={() => { navigate('/about'); window.scrollTo(0, 0); }}
+                style={{ fontSize: 16, padding: '16px 32px' }}
+              >
+                {vi ? 'Khám phá thêm về chúng tôi →' : 'Discover More About Us →'}
+              </button>
+              <button
+                className="btn-pill btn-radiate"
+                onClick={() => { navigate('/seating'); window.scrollTo(0, 0); }}
+                style={{ fontSize: 16, padding: '16px 32px' }}
+              >
+                {vi ? 'Mua vé ngay ✦' : 'Buy Tickets Now ✦'}
+              </button>
+            </div>
+          </section>
         </>
       ) : (
         <div className="container" style={{ maxWidth: 860 }}>
