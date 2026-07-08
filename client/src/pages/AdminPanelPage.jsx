@@ -911,7 +911,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                 </div>
                 <div style={{ flex: '1 1 160px' }}>
                   <label style={fieldLabelStyle}>
-                    {language === 'vi' ? 'Số lượt vé áp dụng' : 'Max seats'}
+                    {language === 'vi' ? 'Tổng số vé được áp dụng' : 'Total seats allowed'}
                   </label>
                   <input
                     type="number"
@@ -944,7 +944,9 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                         <span style={{ color: 'var(--mint)', fontWeight: 700, fontSize: 14 }}>−{c.percent}%</span>
                         <span style={{ color: 'var(--muted)', fontSize: 11 }}>
                           {c.maxSeats
-                            ? (language === 'vi' ? `Tối đa ${c.maxSeats} vé/đơn` : `Max ${c.maxSeats} seats/order`)
+                            ? (language === 'vi'
+                                ? `Đã dùng ${c.usedSeats || 0}/${c.maxSeats} vé`
+                                : `Used ${c.usedSeats || 0}/${c.maxSeats} seats`)
                             : (language === 'vi' ? 'Không giới hạn vé' : 'Unlimited seats')}
                         </span>
                         <span style={{

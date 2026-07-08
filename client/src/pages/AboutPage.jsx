@@ -493,7 +493,7 @@ const AboutPage = () => {
       <section style={{ padding: '0 0 60px' }}>
         <div className="about-hero-grid" style={{ maxWidth: 1536, margin: '0 auto', padding: '0 clamp(20px, 4vw, 64px)', display: 'grid', gridTemplateColumns: '1.05fr 1fr', gap: 'clamp(40px, 6vw, 100px)', alignItems: 'center' }}>
           {/* KV image left */}
-          <div style={{ position: 'relative', borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(168,150,246,0.2)', boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(168,150,246,0.1)' }}>
+          <div style={{ position: 'relative', overflow: 'hidden', border: '1px solid rgba(168,150,246,0.2)', boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(168,150,246,0.1)' }}>
             <img
               src="/mfcanhchinh.jpg"
               alt="MFC Family"

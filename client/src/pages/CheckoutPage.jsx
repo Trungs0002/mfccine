@@ -35,10 +35,11 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
   const subtotal = bookingDetails.subtotal;
   const seatsCount = bookingDetails.selectedSeats.length;
 
-  // Discount only covers up to `maxSeats` tickets — applied to the highest-priced seats first.
+  // Discount only covers up to the code's remaining allowance (shared across every past use of
+  // this code, not just this order) — applied to the highest-priced seats first.
   const seatsByPriceDesc = [...bookingDetails.selectedSeats].sort((a, b) => b.price - a.price);
   const discountApplyCount = appliedCoupon
-    ? (appliedCoupon.maxSeats ? Math.min(appliedCoupon.maxSeats, seatsCount) : seatsCount)
+    ? (appliedCoupon.remaining != null ? Math.min(appliedCoupon.remaining, seatsCount) : seatsCount)
     : 0;
   const discountedSeatIds = new Set(seatsByPriceDesc.slice(0, discountApplyCount).map(s => s.seatId));
   const discountBase = seatsByPriceDesc.slice(0, discountApplyCount).reduce((sum, s) => sum + s.price, 0);
@@ -59,7 +60,7 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
       });
       const data = await res.json();
       if (res.ok) {
-        setAppliedCoupon({ code: data.code, percent: data.percent, maxSeats: data.maxSeats });
+        setAppliedCoupon({ code: data.code, percent: data.percent, maxSeats: data.maxSeats, remaining: data.remaining });
         setCouponError('');
       } else {
         setAppliedCoupon(null);
@@ -266,11 +267,11 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
                       {vi ? 'Xóa' : 'Remove'}
                     </button>
                   </div>
-                  {appliedCoupon.maxSeats && (
+                  {appliedCoupon.maxSeats != null && (
                     <p style={{ fontSize: 12, color: 'var(--muted)', margin: '6px 0 0' }}>
                       {vi
-                        ? `Áp dụng cho ${discountApplyCount}/${seatsCount} vé có giá cao nhất trong đơn.`
-                        : `Applied to the ${discountApplyCount}/${seatsCount} highest-priced seats in this order.`}
+                        ? `Áp dụng cho ${discountApplyCount}/${seatsCount} vé có giá cao nhất trong đơn. Mã còn ${Math.max(0, appliedCoupon.remaining - discountApplyCount)} lượt sau đơn này.`
+                        : `Applied to the ${discountApplyCount}/${seatsCount} highest-priced seats in this order. ${Math.max(0, appliedCoupon.remaining - discountApplyCount)} use(s) left after this order.`}
                     </p>
                   )}
                 </div>

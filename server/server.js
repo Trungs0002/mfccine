@@ -123,7 +123,8 @@ const BookingSchema = new mongoose.Schema({
 const DiscountCodeSchema = new mongoose.Schema({
   code: { type: String, required: true, unique: true, uppercase: true, trim: true },
   percent: { type: Number, required: true, min: 1, max: 100 },
-  maxSeats: { type: Number, default: null, min: 1 }, // max number of seats it discounts per order; null = unlimited
+  maxSeats: { type: Number, default: null, min: 1 }, // total number of seats this code can ever discount, across all bookings combined; null = unlimited
+  usedSeats: { type: Number, default: 0, min: 0 }, // running total of seats already discounted by this code
   active: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
 });
@@ -362,16 +363,25 @@ app.post('/api/bookings', async (req, res) => {
     if (discountCode) {
       const coupon = await DiscountCode.findOne({ code: discountCode.trim().toUpperCase(), active: true });
       if (!coupon) return res.status(400).json({ error: 'Mã giảm giá không hợp lệ hoặc đã hết hạn.' });
+
+      // `maxSeats` is a total usage cap shared across every booking that ever applies this code —
+      // once `usedSeats` reaches it, the code can no longer be applied at all.
+      const remaining = coupon.maxSeats != null ? Math.max(0, coupon.maxSeats - coupon.usedSeats) : Infinity;
+      if (remaining <= 0) return res.status(400).json({ error: 'Mã giảm giá đã hết lượt sử dụng.' });
+
       appliedCode = coupon.code;
       discountPercent = coupon.percent;
 
-      // Discount only covers up to `maxSeats` tickets per order, applied to the
-      // highest-priced seats first (so the customer gets the most value from it).
+      // Discount covers up to the remaining allowance, applied to the highest-priced seats first
+      // (so the customer gets the most value from it); any leftover seats in this order pay full price.
       const pricesDesc = [...selectedSeats].map(s => s.price).sort((a, b) => b - a);
-      const applyCount = coupon.maxSeats ? Math.min(coupon.maxSeats, pricesDesc.length) : pricesDesc.length;
+      const applyCount = Math.min(remaining, pricesDesc.length);
       const discountBase = pricesDesc.slice(0, applyCount).reduce((sum, p) => sum + p, 0);
       const discountAmount = Math.round(discountBase * (coupon.percent / 100));
       finalSubtotal = subtotal - discountAmount;
+
+      coupon.usedSeats += applyCount;
+      await coupon.save();
     }
 
     // Generate a unique ticket code
@@ -548,7 +558,11 @@ app.post('/api/coupons/validate', async (req, res) => {
     if (!code) return res.status(400).json({ error: 'Vui lòng nhập mã giảm giá.' });
     const coupon = await DiscountCode.findOne({ code: code.trim().toUpperCase(), active: true });
     if (!coupon) return res.status(404).json({ error: 'Mã giảm giá không hợp lệ hoặc đã hết hạn.' });
-    res.json({ code: coupon.code, percent: coupon.percent, maxSeats: coupon.maxSeats });
+    const remaining = coupon.maxSeats != null ? Math.max(0, coupon.maxSeats - coupon.usedSeats) : null;
+    if (coupon.maxSeats != null && remaining <= 0) {
+      return res.status(400).json({ error: 'Mã giảm giá đã hết lượt sử dụng.' });
+    }
+    res.json({ code: coupon.code, percent: coupon.percent, maxSeats: coupon.maxSeats, remaining });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
