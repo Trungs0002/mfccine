@@ -94,7 +94,7 @@ const Navbar = ({ isAdminMode, user, onLogout, settings, selectedEvent }) => {
           {/* Auth + Admin actions */}
           {user ? (
             <div className="nav-links-desktop" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              {user.role === 'admin' && (
+              {(user.role === 'admin' || user.role === 'staff') && (
                 <button
                   onClick={() => navigate(isAdminMode ? '/' : '/admin')}
                   style={{
@@ -301,7 +301,7 @@ const Navbar = ({ isAdminMode, user, onLogout, settings, selectedEvent }) => {
                   <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>person</span>
                   {language === 'vi' ? 'Tài khoản' : 'Profile'}
                 </button>
-                {user.role === 'admin' && (
+                {(user.role === 'admin' || user.role === 'staff') && (
                   <button
                     onClick={() => { setIsMobileMenuOpen(false); navigate(isAdminMode ? '/' : '/admin'); }}
                     className="btn-outline-pill" style={{ justifyContent: 'center' }}

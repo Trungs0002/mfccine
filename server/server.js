@@ -35,7 +35,7 @@ const UserSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  role: { type: String, enum: ['user', 'admin', 'staff'], default: 'user' },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -207,6 +207,37 @@ app.post('/api/auth/login', async (req, res) => {
     if (!isMatch) return res.status(400).json({ error: 'Invalid credentials.' });
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { id: user._id, fullName: user.fullName, email: user.email, role: user.role } });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Create a staff account (used from the admin panel — separate from the public /register
+// endpoint so a normal sign-up can never self-assign the staff/admin role)
+app.post('/api/auth/register-staff', async (req, res) => {
+  try {
+    const { fullName, email, password } = req.body;
+    if (!fullName || !email || !password) return res.status(400).json({ error: 'Missing required fields.' });
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ error: 'Email already registered.' });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({ fullName, email, password: hashedPassword, role: 'staff' });
+    res.status(201).json({ id: user._id, fullName: user.fullName, email: user.email, role: user.role });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// List users (e.g. GET /api/users?role=staff)
+app.get('/api/users', async (req, res) => {
+  try {
+    const filter = {};
+    if (req.query.role) filter.role = req.query.role;
+    const users = await User.find(filter).select('-password').sort({ createdAt: -1 });
+    res.json(users);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    await User.deleteOne({ _id: req.params.id });
+    res.json({ message: 'User deleted successfully' });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

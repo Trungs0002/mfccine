@@ -9,7 +9,8 @@ const sectionLabelStyle = { fontSize: 11, color: 'var(--purple)', textTransform:
 const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const { language, t } = useLanguage();
   const formatPrice = (p) => language === 'vi' ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + Number(p).toLocaleString('en-US');
-  const [activeAdminTab, setActiveTab] = useState('events'); // 'events', 'bookings', 'coupons', or 'applications'
+  const isStaff = user?.role === 'staff'; // staff accounts only see Bookings & Applications
+  const [activeAdminTab, setActiveTab] = useState(isStaff ? 'bookings' : 'events'); // 'events', 'bookings', 'coupons', 'applications', or 'staff'
   const [showEventForm, setShowEventForm] = useState(false); // Controls visibility of the Create/Edit form
 
   const l = useCallback((field) => {
@@ -86,6 +87,14 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const [noteDrafts, setNoteDrafts] = useState({}); // { [applicationId]: draft text }
   const staffName = user?.fullName || user?.email || '';
 
+  // Staff account management states (admin-only tab)
+  const [staffAccounts, setStaffAccounts] = useState([]);
+  const [loadingStaffAccounts, setLoadingStaffAccounts] = useState(false);
+  const [newStaffName, setNewStaffName] = useState('');
+  const [newStaffEmail, setNewStaffEmail] = useState('');
+  const [newStaffPassword, setNewStaffPassword] = useState('');
+  const [creatingStaff, setCreatingStaff] = useState(false);
+
   const fetchAnalytics = () => {
     fetch(`${API_URL}/api/analytics`)
       .then(res => res.json())
@@ -93,15 +102,15 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
       .catch(err => console.error('Error fetching analytics:', err));
   };
 
-  const fetchAllBookings = () => {
-    setLoadingBookings(true);
+  const fetchAllBookings = (silent = false) => {
+    if (!silent) setLoadingBookings(true);
     fetch(`${API_URL}/api/bookings`)
       .then(res => res.json())
       .then(data => {
         setAllBookings(data);
-        setLoadingBookings(false);
+        if (!silent) setLoadingBookings(false);
       })
-      .catch(() => setLoadingBookings(false));
+      .catch(() => { if (!silent) setLoadingBookings(false); });
   };
 
   const fetchCoupons = () => {
@@ -115,15 +124,26 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
       .catch(() => setLoadingCoupons(false));
   };
 
-  const fetchApplications = () => {
-    setLoadingApplications(true);
+  const fetchApplications = (silent = false) => {
+    if (!silent) setLoadingApplications(true);
     fetch(`${API_URL}/api/applications`)
       .then(res => res.json())
       .then(data => {
         setApplications(data);
-        setLoadingApplications(false);
+        if (!silent) setLoadingApplications(false);
       })
-      .catch(() => setLoadingApplications(false));
+      .catch(() => { if (!silent) setLoadingApplications(false); });
+  };
+
+  const fetchStaffAccounts = () => {
+    setLoadingStaffAccounts(true);
+    fetch(`${API_URL}/api/users?role=staff`)
+      .then(res => res.json())
+      .then(data => {
+        setStaffAccounts(data);
+        setLoadingStaffAccounts(false);
+      })
+      .catch(() => setLoadingStaffAccounts(false));
   };
 
   useEffect(() => {
@@ -131,7 +151,51 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     if (activeAdminTab === 'bookings') fetchAllBookings();
     if (activeAdminTab === 'coupons') fetchCoupons();
     if (activeAdminTab === 'applications') fetchApplications();
+    if (activeAdminTab === 'staff') fetchStaffAccounts();
   }, [events, activeAdminTab]);
+
+  // Auto-sync the history tabs (bookings ledger, CTV applications) every 5s — no manual reload needed.
+  // Uses the silent flag so the periodic refresh swaps data in place instead of
+  // flashing the loading placeholder over the list every 5s (was causing visible jitter).
+  useEffect(() => {
+    let fetchFn = null;
+    if (activeAdminTab === 'bookings') fetchFn = () => fetchAllBookings(true);
+    if (activeAdminTab === 'applications') fetchFn = () => fetchApplications(true);
+    if (!fetchFn) return;
+    const interval = setInterval(fetchFn, 5000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeAdminTab]);
+
+  const handleCreateStaff = async (e) => {
+    e.preventDefault();
+    if (!newStaffName.trim() || !newStaffEmail.trim() || !newStaffPassword.trim()) return;
+    setCreatingStaff(true);
+    try {
+      const res = await fetch(`${API_URL}/api/auth/register-staff`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName: newStaffName.trim(), email: newStaffEmail.trim(), password: newStaffPassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setStaffAccounts([data, ...staffAccounts]);
+        setNewStaffName('');
+        setNewStaffEmail('');
+        setNewStaffPassword('');
+      } else {
+        alert(data.error || 'Failed to create staff account.');
+      }
+    } finally {
+      setCreatingStaff(false);
+    }
+  };
+
+  const handleDeleteStaff = async (id) => {
+    if (!window.confirm(language === 'vi' ? 'Xóa tài khoản nhân viên này?' : 'Delete this staff account?')) return;
+    const res = await fetch(`${API_URL}/api/users/${id}`, { method: 'DELETE' });
+    if (res.ok) setStaffAccounts(staffAccounts.filter(s => s._id !== id));
+  };
 
   const handleDeleteApplication = async (id) => {
     if (!window.confirm(language === 'vi' ? 'Xóa đơn ứng tuyển này?' : 'Delete this application?')) return;
@@ -457,7 +521,8 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     { id: 'bookings', icon: 'confirmation_number', label: t('manageTickets') },
     { id: 'coupons', icon: 'sell', label: language === 'vi' ? 'Mã giảm giá' : 'Discount Codes' },
     { id: 'applications', icon: 'assignment_ind', label: language === 'vi' ? 'Đơn ứng tuyển CTV' : 'CTV Applications' },
-  ];
+    { id: 'staff', icon: 'badge', label: language === 'vi' ? 'Nhân viên' : 'Staff' },
+  ].filter(tab => !isStaff || tab.id === 'bookings' || tab.id === 'applications');
 
   const getStatCards = () => {
     if (activeAdminTab === 'events') {
@@ -470,7 +535,10 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     if (activeAdminTab === 'bookings') {
       const checkedIn = allBookings.filter(b => b.isCheckedIn).length;
       return [
-        { label: language === 'vi' ? 'Tổng số vé' : 'Total Tickets', value: allBookings.length, icon: 'confirmation_number', color: 'var(--purple)' },
+        {
+          label: language === 'vi' ? 'Tổng số vé đã bán' : 'Total Tickets Sold', value: allBookings.length, icon: 'confirmation_number', color: 'var(--purple)',
+          onClick: () => document.getElementById('master-ledger-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+        },
         { label: language === 'vi' ? 'Chưa check-in' : 'Not Checked-in', value: allBookings.length - checkedIn, icon: 'schedule', color: '#ffb800' },
         { label: language === 'vi' ? 'Đã check-in' : 'Checked-in', value: checkedIn, icon: 'how_to_reg', color: 'var(--mint)' },
       ];
@@ -546,19 +614,30 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
           {(() => {
             const statCards = getStatCards();
             return statCards.length > 0 && (
-            <div className="admin-analytics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
-              {statCards.map((c, i) => (
-                <div key={i} className="mfc-card" style={{ padding: '18px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(168,150,246,.12)', color: c.color }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{c.icon}</span>
+              <div className="admin-analytics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
+                {statCards.map((c, i) => (
+                  <div
+                    key={i}
+                    className="mfc-card"
+                    onClick={c.onClick}
+                    style={{
+                      padding: '18px 16px', display: 'flex', alignItems: 'center', gap: 12,
+                      cursor: c.onClick ? 'pointer' : 'default',
+                      transition: c.onClick ? 'border-color .2s' : undefined,
+                    }}
+                    onMouseEnter={c.onClick ? (e => e.currentTarget.style.borderColor = 'rgba(168,150,246,.6)') : undefined}
+                    onMouseLeave={c.onClick ? (e => e.currentTarget.style.borderColor = '') : undefined}
+                  >
+                    <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(168,150,246,.12)', color: c.color }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{c.icon}</span>
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4, whiteSpace: 'nowrap' }}>{c.label}</div>
+                      <div className="serif" style={{ fontSize: 21, color: '#fff', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.value}</div>
+                    </div>
                   </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4, whiteSpace: 'nowrap' }}>{c.label}</div>
-                    <div className="serif" style={{ fontSize: 21, color: '#fff', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.value}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
             );
           })()}
 
@@ -893,9 +972,6 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                 <h3 className="serif" style={{ color: '#fff', fontSize: 22, margin: 0 }}>
                   {language === 'vi' ? 'Đơn ứng tuyển CTV' : 'CTV Applications'}
                 </h3>
-                <button onClick={fetchApplications} style={{ background: 'none', border: 'none', color: 'var(--purple)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, textTransform: 'uppercase', letterSpacing: '.08em' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>refresh</span> {language === 'vi' ? 'Tải lại' : 'Reload'}
-                </button>
               </div>
 
               {(() => {
@@ -962,9 +1038,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                   <button onClick={() => setExpandedApplicationId(isExpanded ? null : a._id)} className="btn-outline-pill" style={{ fontSize: 11, padding: '8px 16px' }}>
                                     {isExpanded ? (language === 'vi' ? 'Thu gọn' : 'Collapse') : (language === 'vi' ? 'Xem chi tiết' : 'View details')}
                                   </button>
-                                  <button onClick={() => handleDeleteApplication(a._id)} style={{ padding: '8px 10px', borderRadius: 999, border: '1px solid rgba(255,107,107,.3)', background: 'rgba(255,107,107,.08)', color: '#ff6b6b', cursor: 'pointer', display: 'flex' }}>
-                                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
-                                  </button>
+                                  {!isStaff && (
+                                    <button onClick={() => handleDeleteApplication(a._id)} style={{ padding: '8px 10px', borderRadius: 999, border: '1px solid rgba(255,107,107,.3)', background: 'rgba(255,107,107,.08)', color: '#ff6b6b', cursor: 'pointer', display: 'flex' }}>
+                                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
+                                    </button>
+                                  )}
                                 </div>
                               </div>
 
@@ -1008,7 +1086,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                         className={a.resolved ? 'btn-outline-pill' : 'btn-pill'}
                                         style={{ fontSize: 10, padding: '7px 14px' }}
                                       >
-                                        {a.resolved ? (language === 'vi' ? '↺ Mở lại' : '↺ Reopen') : (language === 'vi' ? '✓ Đã xử lý' : '✓ Mark Processed')}
+                                        {a.resolved ? (language === 'vi' ? '↺ Đánh dấu chưa xử lý' : '↺ Mark Unprocessed') : (language === 'vi' ? '✓ Đánh dấu đã xử lý' : '✓ Mark Processed')}
                                       </button>
                                     </div>
 
@@ -1031,8 +1109,8 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                     {a.resolved ? (
                                       <p style={{ color: 'var(--mint)', fontSize: 12, fontStyle: 'italic', margin: 0 }}>
                                         {language === 'vi'
-                                          ? `Đã được xử lý xong bởi ${a.resolvedBy || '—'}${a.resolvedAt ? ` lúc ${new Date(a.resolvedAt).toLocaleString('vi-VN')}` : ''}. Bấm "Mở lại" để ghi chú thêm.`
-                                          : `Processed by ${a.resolvedBy || '—'}${a.resolvedAt ? ` at ${new Date(a.resolvedAt).toLocaleString('en-US')}` : ''}. Click "Reopen" to add more notes.`}
+                                          ? `Đã được xử lý xong bởi ${a.resolvedBy || '—'}${a.resolvedAt ? ` lúc ${new Date(a.resolvedAt).toLocaleString('vi-VN')}` : ''}. Bấm "Đánh dấu chưa xử lý" để mở lại.`
+                                          : `Processed by ${a.resolvedBy || '—'}${a.resolvedAt ? ` at ${new Date(a.resolvedAt).toLocaleString('en-US')}` : ''}. Click "Mark Unprocessed" to reopen.`}
                                       </p>
                                     ) : (
                                       <div style={{ display: 'flex', gap: 8 }}>
@@ -1065,6 +1143,65 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                   </>
                 );
               })()}
+            </div>
+          ) : activeAdminTab === 'staff' ? (
+            <div className="mfc-card animate-fade-in" style={{ padding: 32 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 16, marginBottom: 24, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
+                <h3 className="serif" style={{ color: '#fff', fontSize: 22, margin: 0 }}>
+                  {language === 'vi' ? 'Tài khoản nhân viên' : 'Staff Accounts'}
+                </h3>
+                <button onClick={fetchStaffAccounts} style={{ background: 'none', border: 'none', color: 'var(--purple)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, textTransform: 'uppercase', letterSpacing: '.08em' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>refresh</span> {language === 'vi' ? 'Tải lại' : 'Reload'}
+                </button>
+              </div>
+
+              <p style={{ color: 'var(--muted)', fontSize: 13, marginTop: 0, marginBottom: 20 }}>
+                {language === 'vi'
+                  ? 'Tài khoản nhân viên chỉ có thể xem "Quản lý vé" và "Đơn ứng tuyển CTV" trong trang quản trị.'
+                  : 'Staff accounts can only access "Manage Tickets" and "CTV Applications" in the admin panel.'}
+              </p>
+
+              <form onSubmit={handleCreateStaff} className="mfc-card" style={{ padding: 20, marginBottom: 24, display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'flex-end' }}>
+                <div style={{ flex: '1 1 200px' }}>
+                  <label style={fieldLabelStyle}>{language === 'vi' ? 'Họ và tên' : 'Full Name'}</label>
+                  <input type="text" value={newStaffName} onChange={e => setNewStaffName(e.target.value)} placeholder={language === 'vi' ? 'Nguyễn Văn A' : 'John Doe'} className="mfc-input" required />
+                </div>
+                <div style={{ flex: '1 1 200px' }}>
+                  <label style={fieldLabelStyle}>Email</label>
+                  <input type="email" value={newStaffEmail} onChange={e => setNewStaffEmail(e.target.value)} placeholder="email@example.com" className="mfc-input" required />
+                </div>
+                <div style={{ flex: '1 1 160px' }}>
+                  <label style={fieldLabelStyle}>{language === 'vi' ? 'Mật khẩu' : 'Password'}</label>
+                  <input type="password" value={newStaffPassword} onChange={e => setNewStaffPassword(e.target.value)} placeholder="••••••••" className="mfc-input" required />
+                </div>
+                <button type="submit" disabled={creatingStaff} className="btn-pill" style={{ flexShrink: 0 }}>
+                  {creatingStaff ? '...' : (language === 'vi' ? 'Tạo tài khoản' : 'Create Account')}
+                </button>
+              </form>
+
+              {loadingStaffAccounts ? (
+                <p style={{ textAlign: 'center', padding: '60px 0', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', fontSize: 12 }}>
+                  {language === 'vi' ? 'Đang tải...' : 'Loading...'}
+                </p>
+              ) : staffAccounts.length === 0 ? (
+                <p style={{ textAlign: 'center', padding: '32px 0', color: 'var(--muted)', fontSize: 13 }}>
+                  {language === 'vi' ? 'Chưa có tài khoản nhân viên nào.' : 'No staff accounts yet.'}
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {staffAccounts.map(s => (
+                    <div key={s._id} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 14, padding: 16, borderRadius: 14, border: '1px solid var(--line)', background: 'rgba(1,1,10,.35)' }}>
+                      <div>
+                        <span style={{ color: '#fff', fontWeight: 700, fontSize: 14 }}>{s.fullName}</span>
+                        <span style={{ color: 'var(--muted)', fontSize: 12, marginLeft: 10 }}>{s.email}</span>
+                      </div>
+                      <button onClick={() => handleDeleteStaff(s._id)} style={{ padding: '8px 10px', borderRadius: 999, border: '1px solid rgba(255,107,107,.3)', background: 'rgba(255,107,107,.08)', color: '#ff6b6b', cursor: 'pointer', display: 'flex' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <div className="mfc-card animate-fade-in" style={{ padding: 32 }}>
@@ -1228,11 +1365,8 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
               </div>
 
               {/* ── Master ledger: full ticket list ── */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 16, marginBottom: 20, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
+              <div id="master-ledger-section" style={{ paddingBottom: 16, marginBottom: 20, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
                 <h3 className="serif" style={{ color: '#fff', fontSize: 22, margin: 0 }}>{t('masterLedger')}</h3>
-                <button onClick={fetchAllBookings} style={{ background: 'none', border: 'none', color: 'var(--purple)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, textTransform: 'uppercase', letterSpacing: '.08em' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>refresh</span> {t('reloadLedger')}
-                </button>
               </div>
 
               {loadingBookings ? (
@@ -1280,7 +1414,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                       </span>
 
                       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                        {editingBookingId === booking._id ? (
+                        {isStaff ? null : editingBookingId === booking._id ? (
                           <>
                             <button onClick={saveBookingEdit} style={{ background: 'none', border: 'none', color: 'var(--mint)', fontWeight: 700, fontSize: 10, textTransform: 'uppercase', cursor: 'pointer' }}>{t('save')}</button>
                             <button onClick={() => setEditingBookingId(null)} style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: 10, textTransform: 'uppercase', cursor: 'pointer' }}>{t('cancel')}</button>
