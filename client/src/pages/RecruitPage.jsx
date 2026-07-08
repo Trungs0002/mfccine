@@ -704,7 +704,7 @@ const RecruitPage = () => {
                 onClick={() => { navigate('/seating'); window.scrollTo(0, 0); }}
                 style={{ fontSize: 16, padding: '16px 32px' }}
               >
-                {vi ? 'Mua vé ngay ✦' : 'Buy Tickets Now ✦'}
+                {vi ? 'Mua vé ngay' : 'Buy Tickets Now'}
               </button>
             </div>
           </section>
