@@ -295,15 +295,6 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
       .catch(() => setUpdatingSettings(false));
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setImageName(file.name);
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = () => setImage(reader.result);
-  };
-
   const handleEditClick = (evt) => {
     setEditingEventId(evt._id);
 
@@ -862,10 +853,14 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                        <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} id="cloudinaryInput" />
-                        <button type="button" onClick={() => document.getElementById('cloudinaryInput').click()} className="btn-outline-pill" style={{ width: '100%', justifyContent: 'center' }}>
+                        <button
+                          type="button"
+                          onClick={() => { setImage('/kv-doc.jpeg'); setImageName('kv-doc.jpeg'); }}
+                          className="btn-outline-pill"
+                          style={{ width: '100%', justifyContent: 'center' }}
+                        >
                           <span className="material-symbols-outlined" style={{ fontSize: 18 }}>image</span>
-                          {imageName ? `${language === 'vi' ? 'Đã chọn' : 'Attached'}: ${imageName.slice(0, 25)}...` : editingEventId ? (language === 'vi' ? 'Thay ảnh sự kiện' : 'Replace Brand Visual') : (language === 'vi' ? 'Tải ảnh sự kiện' : 'Upload Event Thumbnail')}
+                          {imageName ? `${language === 'vi' ? 'Đã chọn' : 'Selected'}: ${imageName}` : editingEventId ? (language === 'vi' ? 'Thay ảnh sự kiện' : 'Replace Event Image') : (language === 'vi' ? 'Dùng ảnh sự kiện' : 'Use Event Image')}
                         </button>
                         <div style={{ display: 'flex', gap: 14 }}>
                           <button type="button" onClick={resetForm} className="btn-outline-pill" style={{ flex: 1, justifyContent: 'center' }}>{t('cancel')}</button>

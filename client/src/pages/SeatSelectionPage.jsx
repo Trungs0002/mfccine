@@ -10,11 +10,11 @@ const ZONE = {
   VIP: { color: '#a896f6', label: (vi) => vi ? 'Khu VIP' : 'VIP' },
 };
 
-const SEAT_SIZE   = 20; // seat button diameter
-const SEAT_GAP    = 24; // seatGap: normal pitch between seats inside a vertical strip (top → bottom)
-const AISLE_GAP   = 46; // aisleGap: pitch between every adjacent column — real seat-strip or runway slot alike
+const SEAT_SIZE = 20; // seat button diameter
+const SEAT_GAP = 24; // seatGap: normal pitch between seats inside a vertical strip (top → bottom)
+const AISLE_GAP = 46; // aisleGap: pitch between every adjacent column — real seat-strip or runway slot alike
 const ENTRY_AISLE = 10; // walking gap between the vertical strips and the bottom U-section
-const H_ROW_GAP   = 30; // pitch between the 5 bottom horizontal rows
+const H_ROW_GAP = 30; // pitch between the 5 bottom horizontal rows
 const X0 = 40;  // left margin (x of column A) — also doubles as the row-number gutter width
 const STAGE_TOP = 16;
 const RUNWAY_TOP = 80;
@@ -180,7 +180,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
     { color: '#a896f6', label: vi ? 'Vé VIP' : 'VIP', price: formatPrice(vipPrice) },
     { color: '#5aaddc', label: vi ? 'Vé Premium' : 'Premium', price: formatPrice(premiumPrice) },
     { color: '#10b981', label: vi ? 'Vé Standard' : 'Standard', price: formatPrice(standardPrice) },
-    { color: '#00e8c8', label: vi ? 'Đang chọn' : 'Selected', price: null },
+    { color: '#ff3b3b', label: vi ? 'Đang chọn' : 'Selected', price: null },
     { color: '#1e1e2f', label: vi ? 'Đã bán' : 'Taken', price: null, bordered: true },
   ];
 
@@ -328,7 +328,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                     const seatColor = isOccupied
                       ? '#1c1c30'
                       : isSelected
-                        ? '#00e8c8'
+                        ? '#ff3b3b'
                         : seat.color;
                     return (
                       <button
@@ -345,7 +345,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                           border: isOccupied
                             ? '1px solid #2e2e44'
                             : isSelected
-                              ? '2px solid #00e8c8'
+                              ? '2px solid #ff3b3b'
                               : `1px solid ${seat.color}99`,
                           opacity: isOccupied ? .45 : 1,
                           cursor: isOccupied ? 'not-allowed' : 'pointer',
@@ -354,7 +354,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                           color: isOccupied ? '#3a3a58' : isSelected ? '#000' : 'rgba(0,0,0,.5)',
                           transform: isSelected ? 'scale(1.15)' : undefined,
                           boxShadow: isSelected
-                            ? '0 0 14px rgba(0,232,200,.8)'
+                            ? '0 0 14px rgba(255,59,59,.8)'
                             : isOccupied
                               ? 'none'
                               : `0 0 6px ${seat.color}55`,
@@ -464,7 +464,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                   <span style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.12em' }}>
                     {vi ? 'Tổng cộng' : 'Total'}
                   </span>
-                  <span className="serif" style={{ fontSize: 28, color: 'var(--purple)', fontWeight: 700 }}>
+                  <span style={{ fontSize: 28, color: 'var(--mint)', fontWeight: 700 }}>
                     {formatPrice(total)}
                   </span>
                 </div>
@@ -475,7 +475,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                 </button>
 
                 <p style={{ fontSize: 11, color: 'rgba(168,150,246,.45)', textAlign: 'center', margin: 0 }}>
-                  🔒 {vi ? 'Thông tin và giao dịch được bảo mật.' : 'Your info and payment are secured.'}
+                  {vi ? 'Thông tin và giao dịch được bảo mật.' : 'Your info and payment are secured.'}
                 </p>
               </>
             )}

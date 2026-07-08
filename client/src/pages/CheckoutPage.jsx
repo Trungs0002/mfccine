@@ -340,14 +340,27 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
                 return (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
                     <span style={{ color: 'var(--muted)' }}>
-                      {s.seatId}
+                      {s.seatId} · {s.type}
                       {isDiscounted && (
                         <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: 'var(--mint)' }}>
                           −{appliedCoupon.percent}%
                         </span>
                       )}
                     </span>
-                    <span style={{ color: '#fff', fontWeight: 600 }}>{formatPrice(s.price)}</span>
+                    <span>
+                      {isDiscounted ? (
+                        <>
+                          <span style={{ color: 'var(--muted)', textDecoration: 'line-through', marginRight: 8, fontSize: 12 }}>
+                            {formatPrice(s.price)}
+                          </span>
+                          <span style={{ color: 'var(--mint)' }}>
+                            {formatPrice(Math.round(s.price * (1 - appliedCoupon.percent / 100)))}
+                          </span>
+                        </>
+                      ) : (
+                        <span style={{ color: '#fff' }}>{formatPrice(s.price)}</span>
+                      )}
+                    </span>
                   </div>
                 );
               })}
@@ -369,7 +382,7 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
                 <span style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.12em' }}>
                   {vi ? 'Tổng thanh toán' : 'Total'}
                 </span>
-                <span className="serif" style={{ fontSize: 32, color: 'var(--purple)', fontWeight: 700 }}>{formatPrice(finalTotal)}</span>
+                <span style={{ fontSize: 32, color: 'var(--mint)', fontWeight: 700 }}>{formatPrice(finalTotal)}</span>
               </div>
             </div>
           </div>
