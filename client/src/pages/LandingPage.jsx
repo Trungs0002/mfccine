@@ -316,8 +316,8 @@ const LandingPage = ({ events, setEvent, settings }) => {
                       <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4 }}>
                         {vi ? 'Giá vé' : 'Price'}
                       </span>
-                      <div className="serif" style={{ fontSize: 32, color: '#fff', margin: '0', fontWeight: 700 }}>
-                        {formatPrice(tier.price)}
+                      <div className="serif" style={{ fontSize: settings?.ticketSalesEnabled === false ? 18 : 32, color: '#fff', margin: '0', fontWeight: 700 }}>
+                        {settings?.ticketSalesEnabled === false ? (vi ? 'Sắp công bố' : 'Coming Soon') : formatPrice(tier.price)}
                       </div>
                     </div>
 

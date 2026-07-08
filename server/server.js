@@ -45,7 +45,8 @@ const User = mongoose.model('User', UserSchema);
 const SettingsSchema = new mongoose.Schema({
   siteName: { type: String, default: 'EVENT TICKETING PRO' },
   siteTagline: { type: String, default: 'FOREIGN TRADE UNIVERSITY' },
-  contactEmail: { type: String, default: 'support@eventpro.com' }
+  contactEmail: { type: String, default: 'support@eventpro.com' },
+  ticketSalesEnabled: { type: Boolean, default: true }
 });
 
 const Settings = mongoose.model('Settings', SettingsSchema);
@@ -294,12 +295,13 @@ app.get('/api/settings', async (req, res) => {
 
 app.put('/api/settings', async (req, res) => {
   try {
-    const { siteName, siteTagline, contactEmail } = req.body;
+    const { siteName, siteTagline, contactEmail, ticketSalesEnabled } = req.body;
     let settings = await Settings.findOne();
     if (!settings) settings = new Settings();
     settings.siteName = siteName || settings.siteName;
     settings.siteTagline = siteTagline || settings.siteTagline;
     settings.contactEmail = contactEmail || settings.contactEmail;
+    if (typeof ticketSalesEnabled === 'boolean') settings.ticketSalesEnabled = ticketSalesEnabled;
     await settings.save();
     res.json(settings);
   } catch (err) { res.status(500).json({ error: err.message }); }

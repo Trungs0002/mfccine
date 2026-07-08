@@ -31,6 +31,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const [siteName, setSiteName] = useState(settings?.siteName || '');
   const [siteTagline, setSiteTagline] = useState(settings?.siteTagline || '');
   const [contactEmail] = useState(settings?.contactEmail || '');
+  const [ticketSalesEnabled, setTicketSalesEnabled] = useState(settings?.ticketSalesEnabled !== false);
   const [updatingSettings, setUpdatingSettings] = useState(false);
 
   // Bilingual Event Management states
@@ -308,7 +309,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     fetch(`${API_URL}/api/settings`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ siteName, siteTagline, contactEmail })
+      body: JSON.stringify({ siteName, siteTagline, contactEmail, ticketSalesEnabled })
     })
       .then(res => res.json())
       .then(data => {
@@ -719,6 +720,34 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                     <label style={fieldLabelStyle}>{language === 'vi' ? 'Chữ phụ (dưới tên site)' : 'Tagline (below site name)'}</label>
                     <input type="text" value={siteTagline} onChange={(e) => setSiteTagline(e.target.value)} placeholder="FOREIGN TRADE UNIVERSITY" className="mfc-input" required />
                   </div>
+
+                  <div style={{ flex: '1 1 100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(168,150,246,.28)', background: 'rgba(1,1,10,.4)' }}>
+                    <div>
+                      <div style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>
+                        {language === 'vi' ? 'Mở bán vé (trang chọn ghế)' : 'Ticket Sales (Seating Page)'}
+                      </div>
+                      <div style={{ color: 'var(--muted)', fontSize: 11, marginTop: 2 }}>
+                        {language === 'vi'
+                          ? 'Tắt để chặn truy cập trang chọn ghế/thanh toán và ẩn giá vé ở trang chủ.'
+                          : 'Turn off to block the seating/checkout pages and hide ticket prices on the home page.'}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setTicketSalesEnabled(v => !v)}
+                      style={{
+                        position: 'relative', flexShrink: 0, width: 48, height: 26, borderRadius: 999, border: 'none', cursor: 'pointer',
+                        background: ticketSalesEnabled ? 'linear-gradient(135deg, var(--ultra), var(--purple))' : 'rgba(255,255,255,.15)',
+                        transition: 'background .2s',
+                      }}
+                    >
+                      <span style={{
+                        position: 'absolute', top: 3, left: ticketSalesEnabled ? 25 : 3, width: 20, height: 20, borderRadius: '50%',
+                        background: '#fff', transition: 'left .2s',
+                      }} />
+                    </button>
+                  </div>
+
                   <button type="submit" disabled={updatingSettings} className="btn-pill" style={{ flexShrink: 0 }}>
                     {updatingSettings ? (language === 'vi' ? 'Đang lưu...' : 'Saving...') : t('applyChanges')}
                   </button>

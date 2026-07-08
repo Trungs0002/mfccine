@@ -55,7 +55,7 @@ function AppContent() {
   const [completedBookingId, setCompletedBookingId] = useState(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [events, setEvents] = useState(FALLBACK_EVENTS);
-  const [settings, setSettings] = useState({ siteName: 'MFC & FASHION CLUB' });
+  const [settings, setSettings] = useState({ siteName: 'MFC & FASHION CLUB', ticketSalesEnabled: true });
 
   useEffect(() => {
     setIsAdminMode(location.pathname.startsWith('/admin'));
@@ -124,8 +124,8 @@ function AppContent() {
           <Route path="/seating"   element={user ? (selectedEvent ? <SeatSelectionPage event={selectedEvent} setBookingDetails={setBookingDetails} /> : <Navigate to="/" />) : <Navigate to="/login" />} />
           <Route path="/checkout"  element={user ? (selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} user={user} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />) : <Navigate to="/login" />} />
           */}
-          <Route path="/seating"   element={selectedEvent ? <SeatSelectionPage event={selectedEvent} setBookingDetails={setBookingDetails} /> : <Navigate to="/" />} />
-          <Route path="/checkout"  element={selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} user={user} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />} />
+          <Route path="/seating"   element={settings.ticketSalesEnabled === false ? <Navigate to="/" /> : (selectedEvent ? <SeatSelectionPage event={selectedEvent} setBookingDetails={setBookingDetails} /> : <Navigate to="/" />)} />
+          <Route path="/checkout"  element={settings.ticketSalesEnabled === false ? <Navigate to="/" /> : (selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} user={user} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />)} />
           <Route path="/ticket"    element={<DigitalTicketPage completedBookingId={completedBookingId} settings={settings} />} />
           <Route path="/dashboard" element={user ? <UserDashboardPage userEmail={user.email} setCompletedBookingId={setCompletedBookingId} settings={settings} /> : <Navigate to="/login" />} />
           <Route path="/admin"     element={(user?.role === 'admin' || user?.role === 'staff') ? <AdminPanelPage events={events} setEvents={setEvents} settings={settings} setSettings={setSettings} user={user} /> : <Navigate to="/login" />} />
