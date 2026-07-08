@@ -461,8 +461,13 @@ const RegistrationForm = ({
         <button type="button" onClick={onBack} className="btn-outline-pill" style={{ flex: '1 1 160px', justifyContent: 'center' }}>
           {vi ? '← Quay lại' : '← Back'}
         </button>
-        <button type="submit" disabled={submitting} className="btn-pill" style={{ flex: '2 1 240px', justifyContent: 'center', opacity: submitting ? .6 : 1 }}>
-          {submitting ? (vi ? 'Đang gửi...' : 'Submitting...') : (vi ? 'Gửi đăng ký ✈' : 'Submit ✈')}
+        <button type="submit" disabled={submitting} className="btn-pill" style={{ flex: '2 1 240px', justifyContent: 'center', gap: 6, opacity: submitting ? .6 : 1 }}>
+          {submitting ? (vi ? 'Đang gửi...' : 'Submitting...') : (
+            <>
+              {vi ? 'Gửi đăng ký' : 'Submit'}
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_outward</span>
+            </>
+          )}
         </button>
       </div>
 
