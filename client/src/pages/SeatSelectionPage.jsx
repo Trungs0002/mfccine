@@ -256,7 +256,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                 </span>
               </div>
             ) : (
-              <div style={{ overflowX: 'auto', margin: '0 -20px', padding: '0 20px 20px' }}>
+              <div style={{ overflowX: 'auto', margin: '0 -20px', padding: '0 20px 20px', touchAction: 'pan-x pan-y pinch-zoom' }}>
                 <div style={{
                   width: `${CANVAS_W}px`, height: `${CANVAS_H}px`,
                   position: 'relative', margin: '0 auto',
