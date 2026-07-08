@@ -37,8 +37,8 @@ const CastingCallPage = () => {
 
       <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 15, lineHeight: 1.8, maxWidth: 460, margin: 0 }}>
         {vi
-          ? 'Một điều gì đó đang được giấu kín phía sau tấm màn của FTU Fashion Show 2026...'
-          : 'Something is being kept behind the curtain of FTU Fashion Show 2026...'}
+          ? ''
+          : ''}
       </p>
     </div>
   );
