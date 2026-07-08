@@ -569,8 +569,20 @@ const AboutPage = () => {
       {/* ── CTA BANNER ────────────────────────────────────────────── */}
       <section style={{ padding: '0 0 72px', marginTop: '64px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
         <div className="section-eyebrow" style={{ margin: 0, width: '100%', padding: '0 16px', display: 'flex', justifyContent: 'center' }}>
-          <span className="gradient-title-hero" style={{ fontSize: 'clamp(24px, 6vw, 40px)', fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'transparent', WebkitTextFillColor: 'transparent' }}>
-            {vi ? 'Vậy còn chần chờ gì nữa hãy' : 'So What Are You Waiting For?'}
+          <span className="gradient-title-hero cta-heading" style={{ fontSize: 'clamp(24px, 6vw, 40px)', fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', textAlign: 'center', whiteSpace: 'nowrap', color: 'transparent', WebkitTextFillColor: 'transparent' }}>
+            {vi ? (
+              <>
+                <span className="cta-l1" style={{ textTransform: 'uppercase' }}>Vậy</span>{' '}
+                <span className="cta-l2" style={{ textTransform: 'uppercase' }}>còn chần chờ gì nữa</span>{' '}
+                <span className="cta-l3" style={{ textTransform: 'uppercase' }}>hãy</span>
+              </>
+            ) : (
+              <>
+                <span className="cta-l1" style={{ textTransform: 'uppercase' }}>So</span>{' '}
+                <span className="cta-l2" style={{ textTransform: 'uppercase' }}>What Are You Waiting</span>{' '}
+                <span className="cta-l3" style={{ textTransform: 'uppercase' }}>For?</span>
+              </>
+            )}
           </span>
         </div>
         <button className="btn-pill btn-radiate" onClick={() => navigate('/seating')} style={{ fontSize: 16, padding: '16px 44px' }}>
@@ -581,6 +593,10 @@ const AboutPage = () => {
       <style>{`
         @media (max-width: 900px) {
           .about-hero-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 480px) {
+          .cta-heading { font-size: 22px !important; white-space: normal !important; text-align: center !important; }
+          .cta-l1, .cta-l2, .cta-l3 { display: block; text-align: center; }
         }
       `}</style>
     </div>

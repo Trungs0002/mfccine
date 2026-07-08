@@ -59,6 +59,11 @@ function AppContent() {
     setIsAdminMode(location.pathname.startsWith('/admin'));
   }, [location.pathname]);
 
+  // Always land at the top of the page on route change/redirect (browser doesn't reset scroll on its own in an SPA)
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) setUser(JSON.parse(savedUser));
