@@ -12,7 +12,6 @@ import CheckoutPage       from './pages/CheckoutPage';
 import DigitalTicketPage  from './pages/DigitalTicketPage';
 import UserDashboardPage  from './pages/UserDashboardPage';
 import AdminPanelPage     from './pages/AdminPanelPage';
-import EventDetailsPage   from './pages/EventDetailsPage';
 import AboutPage          from './pages/AboutPage';
 import RecruitPage        from './pages/RecruitPage';
 import LoginPage          from './pages/LoginPage';
@@ -109,8 +108,13 @@ function AppContent() {
           <Route path="/login"     element={user ? <Navigate to="/" /> : <LoginPage setUser={setUser} />} />
           <Route path="/register"  element={user ? <Navigate to="/" /> : <RegisterPage setUser={setUser} />} />
 
+          {/* TODO: login requirement for buying tickets disabled for now — to re-enable, restore the
+              `user ? (...) : <Navigate to="/login" />` wrapper on these two routes:
           <Route path="/seating"   element={user ? (selectedEvent ? <SeatSelectionPage event={selectedEvent} setBookingDetails={setBookingDetails} /> : <Navigate to="/" />) : <Navigate to="/login" />} />
           <Route path="/checkout"  element={user ? (selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} user={user} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />) : <Navigate to="/login" />} />
+          */}
+          <Route path="/seating"   element={selectedEvent ? <SeatSelectionPage event={selectedEvent} setBookingDetails={setBookingDetails} /> : <Navigate to="/" />} />
+          <Route path="/checkout"  element={selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} user={user} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />} />
           <Route path="/ticket"    element={<DigitalTicketPage completedBookingId={completedBookingId} settings={settings} />} />
           <Route path="/dashboard" element={user ? <UserDashboardPage userEmail={user.email} setCompletedBookingId={setCompletedBookingId} settings={settings} /> : <Navigate to="/login" />} />
           <Route path="/admin"     element={user?.role === 'admin' ? <AdminPanelPage events={events} setEvents={setEvents} settings={settings} setSettings={setSettings} /> : <Navigate to="/login" />} />
