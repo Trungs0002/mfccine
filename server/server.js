@@ -129,6 +129,29 @@ const DiscountCodeSchema = new mongoose.Schema({
 
 const DiscountCode = mongoose.model('DiscountCode', DiscountCodeSchema);
 
+// 6. Recruitment Application Model (CTV sign-up form on /recruit)
+const RecruitApplicationSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  dob: { type: String, required: true },
+  phone: { type: String, required: true },
+  email: { type: String, required: true },
+  school: { type: String, default: '' },
+  department: { type: String, required: true },
+  facebook: { type: String, default: '' },
+  portfolio: { type: String, default: '' },
+  answers: { type: [{ question: String, answer: String }], default: [] }, // each entry keeps the question text alongside the answer
+  resolved: { type: Boolean, default: false },
+  resolvedBy: { type: String, default: null },
+  resolvedAt: { type: Date, default: null },
+  notes: {
+    type: [{ author: String, message: String, createdAt: { type: Date, default: Date.now } }],
+    default: [],
+  },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const RecruitApplication = mongoose.model('RecruitApplication', RecruitApplicationSchema);
+
 // Generate unique ticket code: MFC-XXXXXXXX
 const generateTicketCode = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -472,7 +495,64 @@ app.post('/api/coupons/validate', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 5. ANALYTICS
+// 5. RECRUITMENT APPLICATIONS
+app.get('/api/applications', async (req, res) => {
+  try {
+    const { department } = req.query;
+    const filter = department ? { department } : {};
+    const applications = await RecruitApplication.find(filter).sort({ createdAt: -1 });
+    res.json(applications);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/applications', async (req, res) => {
+  try {
+    const { name, dob, phone, email, school, department, facebook, portfolio, answers } = req.body;
+    if (!name || !dob || !phone || !email || !department) {
+      return res.status(400).json({ error: 'Missing required fields.' });
+    }
+    const application = await RecruitApplication.create({ name, dob, phone, email, school, department, facebook, portfolio, answers });
+    res.status(201).json({ message: 'Application submitted', applicationId: application._id });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/applications/:id', async (req, res) => {
+  try {
+    await RecruitApplication.deleteOne({ _id: req.params.id });
+    res.json({ message: 'Application deleted successfully' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Add a staff note to an application (so other staff can see who did what)
+app.post('/api/applications/:id/notes', async (req, res) => {
+  try {
+    const { author, message } = req.body;
+    if (!author?.trim() || !message?.trim()) {
+      return res.status(400).json({ error: 'Vui lòng nhập tên nhân viên và nội dung ghi chú.' });
+    }
+    const application = await RecruitApplication.findById(req.params.id);
+    if (!application) return res.status(404).json({ error: 'Application not found' });
+    application.notes.push({ author: author.trim(), message: message.trim() });
+    await application.save();
+    res.status(201).json(application);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Mark an application as processed, or reopen it
+app.put('/api/applications/:id/resolve', async (req, res) => {
+  try {
+    const { resolved, resolvedBy } = req.body;
+    const application = await RecruitApplication.findById(req.params.id);
+    if (!application) return res.status(404).json({ error: 'Application not found' });
+    application.resolved = !!resolved;
+    application.resolvedBy = resolved ? (resolvedBy || null) : null;
+    application.resolvedAt = resolved ? new Date() : null;
+    await application.save();
+    res.json(application);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 6. ANALYTICS
 app.get('/api/analytics', async (req, res) => {
   try {
     const bookings = await Booking.find();

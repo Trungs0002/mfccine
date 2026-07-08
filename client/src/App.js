@@ -117,7 +117,7 @@ function AppContent() {
           <Route path="/checkout"  element={selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} user={user} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />} />
           <Route path="/ticket"    element={<DigitalTicketPage completedBookingId={completedBookingId} settings={settings} />} />
           <Route path="/dashboard" element={user ? <UserDashboardPage userEmail={user.email} setCompletedBookingId={setCompletedBookingId} settings={settings} /> : <Navigate to="/login" />} />
-          <Route path="/admin"     element={user?.role === 'admin' ? <AdminPanelPage events={events} setEvents={setEvents} settings={settings} setSettings={setSettings} /> : <Navigate to="/login" />} />
+          <Route path="/admin"     element={user?.role === 'admin' ? <AdminPanelPage events={events} setEvents={setEvents} settings={settings} setSettings={setSettings} user={user} /> : <Navigate to="/login" />} />
           <Route path="*"          element={<Navigate to="/" />} />
         </Routes>
       </main>

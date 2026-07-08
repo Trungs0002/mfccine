@@ -54,21 +54,6 @@ const Navbar = ({ isAdminMode, user, onLogout, settings, selectedEvent }) => {
           </div>
         )}
 
-        {isAdminMode && (
-          <span style={{
-            fontSize: '11px',
-            color: 'var(--mint)',
-            textTransform: 'uppercase',
-            letterSpacing: '.1em',
-            border: '1px solid rgba(158,254,253,.3)',
-            background: 'rgba(158,254,253,.06)',
-            borderRadius: 8,
-            padding: '6px 14px',
-          }}>
-            Control Panel
-          </span>
-        )}
-
         {/* Right section */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
           {/* Language toggle */}
