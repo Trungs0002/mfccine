@@ -35,7 +35,7 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
     return field[language] || field.en || '';
   }, [language]);
 
-  const formatPrice = (p) => vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + p;
+  const formatPrice = (p) => Number(p).toLocaleString('vi-VN') + (vi ? 'đ' : ' VND');
 
   const stats = useMemo(() => ({
     totalPasses:  bookings.reduce((sum, b) => sum + (b.selectedSeats?.length || 0), 0),

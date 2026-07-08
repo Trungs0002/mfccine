@@ -136,7 +136,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
   const handleBook = () => { navigate('/seating'); window.scrollTo(0, 0); };
 
   const formatPrice = (p) =>
-    vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + Number(p).toLocaleString('en-US');
+    Number(p).toLocaleString('vi-VN') + (vi ? 'đ' : ' VND');
 
   const tiers = activeEvent ? [
     { key: 'standard', accentColor: '#10b981', featured: false },

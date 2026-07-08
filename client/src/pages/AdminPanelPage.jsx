@@ -8,7 +8,7 @@ const sectionLabelStyle = { fontSize: 11, color: 'var(--purple)', textTransform:
 
 const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const { language, t } = useLanguage();
-  const formatPrice = (p) => language === 'vi' ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + Number(p).toLocaleString('en-US');
+  const formatPrice = (p) => Number(p).toLocaleString('vi-VN') + (language === 'vi' ? 'đ' : ' VND');
   const isStaff = user?.role === 'staff'; // staff accounts only see Bookings & Applications
   const [activeAdminTab, setActiveTab] = useState(isStaff ? 'bookings' : 'events'); // 'events', 'bookings', 'coupons', 'applications', or 'staff'
   const [showEventForm, setShowEventForm] = useState(false); // Controls visibility of the Create/Edit form

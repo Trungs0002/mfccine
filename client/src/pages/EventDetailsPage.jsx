@@ -16,7 +16,7 @@ const EventDetailsPage = ({ event, setEvent }) => {
   if (!event) return null;
 
   const TIER_COLORS = { vip: '#a896f6', premium: '#5aaddc', standard: '#10b981' };
-  const formatPrice = (p) => vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + p;
+  const formatPrice = (p) => Number(p).toLocaleString('vi-VN') + (vi ? 'đ' : ' VND');
 
   return (
     <div style={{ paddingTop: 120, paddingBottom: 64 }} className="animate-fade-in">

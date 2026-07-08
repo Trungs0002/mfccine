@@ -135,7 +135,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
   const premiumPrice = event?.pricingTiers?.premium?.price || 250000;
   const standardPrice = event?.pricingTiers?.standard?.price || 150000;
 
-  const formatPrice = (p) => vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + p;
+  const formatPrice = (p) => Number(p).toLocaleString('vi-VN') + (vi ? 'đ' : ' VND');
 
   useEffect(() => {
     if (!event) return;

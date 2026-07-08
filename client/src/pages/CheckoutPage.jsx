@@ -45,7 +45,7 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
   const discountBase = seatsByPriceDesc.slice(0, discountApplyCount).reduce((sum, s) => sum + s.price, 0);
   const discountAmount = appliedCoupon ? Math.round(discountBase * (appliedCoupon.percent / 100)) : 0;
   const finalTotal = subtotal - discountAmount;
-  const formatPrice = (p) => vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + p;
+  const formatPrice = (p) => Number(p).toLocaleString('vi-VN') + (vi ? 'đ' : ' VND');
 
   const handleApplyCoupon = async () => {
     const code = discountInput.trim();
