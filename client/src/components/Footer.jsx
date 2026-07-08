@@ -32,7 +32,7 @@ const Footer = ({ setIsAdminMode, settings }) => {
                   {settings?.siteName || 'MFC & FASHION CLUB'}
                 </h4>
                 <span style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '.06em' }}>
-                  FOREIGN TRADE UNIVERSITY
+                  {settings?.siteTagline || 'FOREIGN TRADE UNIVERSITY'}
                 </span>
               </div>
             </div>

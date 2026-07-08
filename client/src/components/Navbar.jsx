@@ -28,7 +28,7 @@ const Navbar = ({ isAdminMode, user, onLogout, settings, selectedEvent }) => {
           <img src="/logo-mfc.png" alt="MFC logo" />
           <div className="nav-brand-text">
             <strong>{settings?.siteName || 'MFC & FASHION CLUB'}</strong>
-            <span>FOREIGN TRADE UNIVERSITY</span>
+            <span>{settings?.siteTagline || 'FOREIGN TRADE UNIVERSITY'}</span>
           </div>
         </div>
 

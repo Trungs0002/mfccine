@@ -44,6 +44,7 @@ const User = mongoose.model('User', UserSchema);
 // 2. Settings Model
 const SettingsSchema = new mongoose.Schema({
   siteName: { type: String, default: 'EVENT TICKETING PRO' },
+  siteTagline: { type: String, default: 'FOREIGN TRADE UNIVERSITY' },
   contactEmail: { type: String, default: 'support@eventpro.com' }
 });
 
@@ -252,10 +253,11 @@ app.get('/api/settings', async (req, res) => {
 
 app.put('/api/settings', async (req, res) => {
   try {
-    const { siteName, contactEmail } = req.body;
+    const { siteName, siteTagline, contactEmail } = req.body;
     let settings = await Settings.findOne();
     if (!settings) settings = new Settings();
     settings.siteName = siteName || settings.siteName;
+    settings.siteTagline = siteTagline || settings.siteTagline;
     settings.contactEmail = contactEmail || settings.contactEmail;
     await settings.save();
     res.json(settings);

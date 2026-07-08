@@ -29,6 +29,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
 
   // Site Branding states
   const [siteName, setSiteName] = useState(settings?.siteName || '');
+  const [siteTagline, setSiteTagline] = useState(settings?.siteTagline || '');
   const [contactEmail] = useState(settings?.contactEmail || '');
   const [updatingSettings, setUpdatingSettings] = useState(false);
 
@@ -283,7 +284,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     fetch(`${API_URL}/api/settings`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ siteName, contactEmail })
+      body: JSON.stringify({ siteName, siteTagline, contactEmail })
     })
       .then(res => res.json())
       .then(data => {
@@ -647,7 +648,14 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
               <div className="mfc-card" style={{ padding: 26 }}>
                 <h3 style={{ ...sectionLabelStyle, color: 'var(--mint)' }}>{t('websiteBranding')}</h3>
                 <form onSubmit={handleUpdateSettings} style={{ display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'flex-end' }}>
-                  <input type="text" value={siteName} onChange={(e) => setSiteName(e.target.value)} placeholder={t('siteName')} className="mfc-input" style={{ flex: '1 1 260px' }} required />
+                  <div style={{ flex: '1 1 260px' }}>
+                    <label style={fieldLabelStyle}>{t('siteName')}</label>
+                    <input type="text" value={siteName} onChange={(e) => setSiteName(e.target.value)} placeholder={t('siteName')} className="mfc-input" required />
+                  </div>
+                  <div style={{ flex: '1 1 260px' }}>
+                    <label style={fieldLabelStyle}>{language === 'vi' ? 'Chữ phụ (dưới tên site)' : 'Tagline (below site name)'}</label>
+                    <input type="text" value={siteTagline} onChange={(e) => setSiteTagline(e.target.value)} placeholder="FOREIGN TRADE UNIVERSITY" className="mfc-input" required />
+                  </div>
                   <button type="submit" disabled={updatingSettings} className="btn-pill" style={{ flexShrink: 0 }}>
                     {updatingSettings ? (language === 'vi' ? 'Đang lưu...' : 'Saving...') : t('applyChanges')}
                   </button>
@@ -1032,6 +1040,9 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                   >
                                     {a.resolved ? (language === 'vi' ? 'Đã xử lý' : 'Processed') : (language === 'vi' ? 'Chưa xử lý' : 'Pending')}
                                   </span>
+                                  <span style={{ color: 'var(--muted)', fontSize: 11 }}>
+                                    {new Date(a.createdAt).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')}
+                                  </span>
                                   <span style={{ color: 'var(--muted)', fontSize: 11 }}>{a.email} · {a.phone}</span>
                                 </div>
                                 <div style={{ display: 'flex', gap: 8 }}>
@@ -1071,15 +1082,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                     ))}
                                   </div>
 
-                                  <p style={{ color: 'var(--muted)', fontSize: 10, paddingTop: 14, borderTop: '1px solid var(--line)', margin: 0 }}>
-                                    {new Date(a.createdAt).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')}
-                                  </p>
-
                                   {/* Processing notes */}
                                   <div style={{ paddingTop: 14, borderTop: '1px solid var(--line)' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                                       <p style={{ color: 'var(--muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.08em', margin: 0 }}>
-                                        {language === 'vi' ? 'Ghi chú xử lý' : 'Processing Notes'}
+                                        {language === 'vi' ? 'Ghi chú' : 'Notes'}
                                       </p>
                                       <button
                                         onClick={() => handleToggleResolved(a)}
