@@ -173,8 +173,8 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
 
   const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
 
-  /* Unique zones of selected seats */
-  const selectedZones = [...new Set(selectedSeats.map(s => s.zoneName))];
+  /* Unique zones of selected seats, paired with each zone's ticket color */
+  const selectedZones = [...new Map(selectedSeats.map(s => [s.zoneName, s.color])).entries()];
 
   const LEGEND_ITEMS = [
     { color: '#a896f6', label: vi ? 'Vé VIP' : 'VIP', price: formatPrice(vipPrice) },
@@ -396,12 +396,12 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                     {vi ? 'Khu vực' : 'Zone'}
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {selectedZones.map(z => (
-                      <span key={z} style={{
+                    {selectedZones.map(([name, color]) => (
+                      <span key={name} style={{
                         padding: '4px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700,
-                        background: 'linear-gradient(135deg, var(--ultra), var(--purple))',
-                        color: '#fff', letterSpacing: '.04em',
-                      }}>{z}</span>
+                        background: color,
+                        color: 'rgba(0,0,0,.75)', letterSpacing: '.04em',
+                      }}>{name}</span>
                     ))}
                   </div>
                 </div>

@@ -576,6 +576,17 @@ const RecruitPage = () => {
         </>
       ) : (
         <div className="container" style={{ maxWidth: 860 }}>
+          <button
+            type="button"
+            onClick={goBackToInfo}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--muted)', fontSize: 13, letterSpacing: '.1em', textTransform: 'uppercase', background: 'none', border: 'none', cursor: 'pointer', marginBottom: 24, transition: 'color .2s' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>keyboard_backspace</span>
+            {vi ? 'Trở về' : 'Back'}
+          </button>
+
           <Breadcrumb parts={[vi ? 'Tuyển dụng' : 'Recruitment', vi ? 'Cộng tác viên' : 'Collaborators', vi ? 'Đăng ký' : 'Register']} />
 
           <div className="steps" style={{ justifyContent: 'flex-start', marginBottom: 24 }}>
@@ -588,12 +599,6 @@ const RecruitPage = () => {
               <div className="step-num">2</div>
               <span>{vi ? 'Đăng ký' : 'Register'}</span>
             </div>
-          </div>
-
-          <div style={{ marginBottom: 20 }}>
-            <span style={{ padding: '5px 14px', borderRadius: 999, fontSize: 12, fontWeight: 700, background: 'linear-gradient(135deg, var(--ultra), var(--purple))', color: '#fff', letterSpacing: '.04em' }}>
-              {currentDept.name}
-            </span>
           </div>
 
           <h1 className="gradient-title" style={{ fontSize: 'clamp(24px, 3.6vw, 34px)', margin: '0 0 8px' }}>
