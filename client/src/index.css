@@ -711,6 +711,8 @@ img { display: block; max-width: 100%; }
   .nav-links { flex-wrap: wrap; gap: 14px; }
   .footer-grid { grid-template-columns: 1fr; }
   .step-connector { width: 30px; }
+  /* iOS Safari auto-zooms on focus into any input/select/textarea under 16px — bump it up to stop that */
+  .mfc-input { font-size: 16px; }
 }
 @media (max-width: 480px) {
   .container { width: calc(100% - 28px); }
