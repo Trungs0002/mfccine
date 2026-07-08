@@ -12,7 +12,6 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
   const [email, setEmail]             = useState(user?.email    || '');
   const [phone, setPhone]             = useState('');
   const [paymentMethod, setPaymentMethod] = useState('MoMo');
-  const [isStudent, setIsStudent]     = useState(false);
   const [loading, setLoading]         = useState(false);
 
   const l = useCallback((field) => {
@@ -30,7 +29,6 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
 
   const subtotal   = bookingDetails.subtotal;
   const seatsCount = bookingDetails.selectedSeats.length;
-  const finalTotal = isStudent ? Math.round(subtotal * 0.95) : subtotal;
   const formatPrice = (p) => vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + p;
 
   const handleSubmit = async (e) => {
@@ -44,7 +42,7 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
           eventId: event._id,
           fullName, email, phone,
           selectedSeats: bookingDetails.selectedSeats,
-          subtotal: finalTotal,
+          subtotal,
           paymentMethod,
         }),
       });
@@ -184,25 +182,6 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
               </div>
             </div>
 
-            {/* Student discount */}
-            <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', padding: '16px', borderRadius: 12, border: '1px solid rgba(168,150,246,.2)', background: 'rgba(70,69,215,.06)', marginBottom: 24, userSelect: 'none' }}>
-              <input
-                type="checkbox"
-                checked={isStudent}
-                onChange={e => setIsStudent(e.target.checked)}
-                style={{ width: 18, height: 18, accentColor: 'var(--purple)' }}
-              />
-              <div>
-                <span style={{ color: '#fff', fontSize: 14, fontWeight: 600 }}>
-                  {vi ? 'Áp dụng ưu đãi sinh viên (giảm 5%)' : 'Apply student discount (5% off)'}
-                </span>
-                <br />
-                <span style={{ color: 'var(--muted)', fontSize: 12 }}>
-                  {vi ? 'Áp dụng cho sinh viên đang học tại FTU và các trường đại học.' : 'Valid for students at FTU and other universities.'}
-                </span>
-              </div>
-            </label>
-
             {/* Submit */}
             <button
               type="submit"
@@ -254,17 +233,11 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
                 <span style={{ color: 'var(--muted)' }}>{vi ? `Tạm tính (${seatsCount} vé)` : `Subtotal (${seatsCount} seats)`}</span>
                 <span style={{ color: '#fff' }}>{formatPrice(subtotal)}</span>
               </div>
-              {isStudent && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                  <span style={{ color: 'var(--mint)' }}>{vi ? 'Ưu đãi sinh viên (−5%)' : 'Student discount (−5%)'}</span>
-                  <span style={{ color: 'var(--mint)' }}>−{formatPrice(subtotal - finalTotal)}</span>
-                </div>
-              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 8, paddingTop: 12, borderTop: '1px solid rgba(168,150,246,.18)' }}>
                 <span style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.12em' }}>
                   {vi ? 'Tổng thanh toán' : 'Total'}
                 </span>
-                <span className="serif" style={{ fontSize: 32, color: 'var(--purple)', fontWeight: 700 }}>{formatPrice(finalTotal)}</span>
+                <span className="serif" style={{ fontSize: 32, color: 'var(--purple)', fontWeight: 700 }}>{formatPrice(subtotal)}</span>
               </div>
             </div>
           </div>
