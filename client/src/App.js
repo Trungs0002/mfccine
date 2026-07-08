@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LanguageModal from './components/LanguageModal';
@@ -122,6 +124,8 @@ function AppContent() {
         </Routes>
       </main>
       {!hideNav && <Footer settings={settings} setIsAdminMode={setIsAdminMode} />}
+      <Analytics />
+      <SpeedInsights />
     </>
   );
 }
