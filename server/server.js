@@ -109,12 +109,25 @@ const BookingSchema = new mongoose.Schema({
     }
   ],
   subtotal: { type: Number, required: true },
+  discountCode: { type: String, default: null },
+  discountPercent: { type: Number, default: 0 },
   paymentMethod: { type: String, required: true },
   paymentStatus: { type: String, enum: ['Pending', 'Completed', 'Failed'], default: 'Completed' },
   bookingDate: { type: Date, default: Date.now },
   isCheckedIn: { type: Boolean, default: false },
   checkInDate: { type: Date }
 });
+
+// 5. Discount Code Model
+const DiscountCodeSchema = new mongoose.Schema({
+  code: { type: String, required: true, unique: true, uppercase: true, trim: true },
+  percent: { type: Number, required: true, min: 1, max: 100 },
+  maxSeats: { type: Number, default: null, min: 1 }, // max number of seats it discounts per order; null = unlimited
+  active: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const DiscountCode = mongoose.model('DiscountCode', DiscountCodeSchema);
 
 // Generate unique ticket code: MFC-XXXXXXXX
 const generateTicketCode = () => {
@@ -259,6 +272,28 @@ app.get('/api/bookings', async (req, res) => {
 
 app.post('/api/bookings', async (req, res) => {
   try {
+    const { discountCode, subtotal, selectedSeats, ...rest } = req.body;
+
+    // Validate the discount code server-side and recompute the final price from it —
+    // never trust an already-discounted total sent by the client.
+    let finalSubtotal = subtotal;
+    let appliedCode = null;
+    let discountPercent = 0;
+    if (discountCode) {
+      const coupon = await DiscountCode.findOne({ code: discountCode.trim().toUpperCase(), active: true });
+      if (!coupon) return res.status(400).json({ error: 'Mã giảm giá không hợp lệ hoặc đã hết hạn.' });
+      appliedCode = coupon.code;
+      discountPercent = coupon.percent;
+
+      // Discount only covers up to `maxSeats` tickets per order, applied to the
+      // highest-priced seats first (so the customer gets the most value from it).
+      const pricesDesc = [...selectedSeats].map(s => s.price).sort((a, b) => b - a);
+      const applyCount = coupon.maxSeats ? Math.min(coupon.maxSeats, pricesDesc.length) : pricesDesc.length;
+      const discountBase = pricesDesc.slice(0, applyCount).reduce((sum, p) => sum + p, 0);
+      const discountAmount = Math.round(discountBase * (coupon.percent / 100));
+      finalSubtotal = subtotal - discountAmount;
+    }
+
     // Generate a unique ticket code
     let ticketCode;
     let isUnique = false;
@@ -267,7 +302,14 @@ app.post('/api/bookings', async (req, res) => {
       const existing = await Booking.findOne({ ticketCode });
       if (!existing) isUnique = true;
     }
-    const booking = await Booking.create({ ...req.body, ticketCode });
+    const booking = await Booking.create({
+      ...rest,
+      selectedSeats,
+      subtotal: finalSubtotal,
+      discountCode: appliedCode,
+      discountPercent,
+      ticketCode,
+    });
     res.status(201).json({ message: 'Booking confirmed', bookingId: booking._id, ticketCode: booking.ticketCode });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -376,7 +418,61 @@ app.delete('/api/bookings/:id', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 4. ANALYTICS
+// 4. DISCOUNT CODES
+app.get('/api/coupons', async (req, res) => {
+  try {
+    const coupons = await DiscountCode.find().sort({ createdAt: -1 });
+    res.json(coupons);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/coupons', async (req, res) => {
+  try {
+    const { code, percent, maxSeats } = req.body;
+    if (!code || !percent) return res.status(400).json({ error: 'Code and percent are required.' });
+    const normalizedCode = code.trim().toUpperCase();
+    const existing = await DiscountCode.findOne({ code: normalizedCode });
+    if (existing) return res.status(400).json({ error: 'Mã này đã tồn tại.' });
+    const coupon = await DiscountCode.create({
+      code: normalizedCode,
+      percent,
+      maxSeats: maxSeats ? Number(maxSeats) : null,
+    });
+    res.status(201).json(coupon);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/coupons/:id', async (req, res) => {
+  try {
+    const { percent, active, maxSeats } = req.body;
+    const coupon = await DiscountCode.findById(req.params.id);
+    if (!coupon) return res.status(404).json({ error: 'Coupon not found' });
+    if (percent !== undefined) coupon.percent = percent;
+    if (active !== undefined) coupon.active = active;
+    if (maxSeats !== undefined) coupon.maxSeats = maxSeats ? Number(maxSeats) : null;
+    await coupon.save();
+    res.json(coupon);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/coupons/:id', async (req, res) => {
+  try {
+    await DiscountCode.deleteOne({ _id: req.params.id });
+    res.json({ message: 'Coupon deleted successfully' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/coupons/validate', async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ error: 'Vui lòng nhập mã giảm giá.' });
+    const coupon = await DiscountCode.findOne({ code: code.trim().toUpperCase(), active: true });
+    if (!coupon) return res.status(404).json({ error: 'Mã giảm giá không hợp lệ hoặc đã hết hạn.' });
+    res.json({ code: coupon.code, percent: coupon.percent, maxSeats: coupon.maxSeats });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 5. ANALYTICS
 app.get('/api/analytics', async (req, res) => {
   try {
     const bookings = await Booking.find();

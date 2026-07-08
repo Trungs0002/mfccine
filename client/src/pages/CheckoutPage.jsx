@@ -8,11 +8,16 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
   const { language } = useLanguage();
   const vi = language === 'vi';
 
-  const [fullName, setFullName]       = useState(user?.fullName || '');
-  const [email, setEmail]             = useState(user?.email    || '');
-  const [phone, setPhone]             = useState('');
+  const [fullName, setFullName] = useState(user?.fullName || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [phone, setPhone] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('MoMo');
-  const [loading, setLoading]         = useState(false);
+  const [showComingSoon, setShowComingSoon] = useState(false);
+
+  const [discountInput, setDiscountInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null); // { code, percent, maxSeats }
+  const [couponError, setCouponError] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
 
   const l = useCallback((field) => {
     if (!field) return '';
@@ -23,49 +28,108 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
   useEffect(() => {
     if (user) {
       if (!fullName) setFullName(user.fullName);
-      if (!email)    setEmail(user.email);
+      if (!email) setEmail(user.email);
     }
   }, [user]); // eslint-disable-line
 
-  const subtotal   = bookingDetails.subtotal;
+  const subtotal = bookingDetails.subtotal;
   const seatsCount = bookingDetails.selectedSeats.length;
+
+  // Discount only covers up to `maxSeats` tickets — applied to the highest-priced seats first.
+  const seatsByPriceDesc = [...bookingDetails.selectedSeats].sort((a, b) => b.price - a.price);
+  const discountApplyCount = appliedCoupon
+    ? (appliedCoupon.maxSeats ? Math.min(appliedCoupon.maxSeats, seatsCount) : seatsCount)
+    : 0;
+  const discountedSeatIds = new Set(seatsByPriceDesc.slice(0, discountApplyCount).map(s => s.seatId));
+  const discountBase = seatsByPriceDesc.slice(0, discountApplyCount).reduce((sum, s) => sum + s.price, 0);
+  const discountAmount = appliedCoupon ? Math.round(discountBase * (appliedCoupon.percent / 100)) : 0;
+  const finalTotal = subtotal - discountAmount;
   const formatPrice = (p) => vi ? Number(p).toLocaleString('vi-VN') + 'đ' : '$' + p;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleApplyCoupon = async () => {
+    const code = discountInput.trim();
+    if (!code) return;
+    setCouponLoading(true);
+    setCouponError('');
     try {
-      const res = await fetch(`${API_URL}/api/bookings`, {
+      const res = await fetch(`${API_URL}/api/coupons/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          eventId: event._id,
-          fullName, email, phone,
-          selectedSeats: bookingDetails.selectedSeats,
-          subtotal,
-          paymentMethod,
-        }),
+        body: JSON.stringify({ code }),
       });
       const data = await res.json();
       if (res.ok) {
-        setCompletedBookingId(data.bookingId);
-        localStorage.setItem('lastTicketCode', data.ticketCode || '');
-        navigate('/ticket');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setAppliedCoupon({ code: data.code, percent: data.percent, maxSeats: data.maxSeats });
+        setCouponError('');
+      } else {
+        setAppliedCoupon(null);
+        setCouponError(data.error || (vi ? 'Mã giảm giá không hợp lệ.' : 'Invalid discount code.'));
       }
+    } catch {
+      setCouponError(vi ? 'Không thể kiểm tra mã giảm giá.' : 'Could not check the discount code.');
     } finally {
-      setLoading(false);
+      setCouponLoading(false);
     }
   };
 
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setDiscountInput('');
+    setCouponError('');
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setShowComingSoon(true);
+
+    // TODO: payment not finished yet — re-enable this once it's ready.
+    // (async () => {
+    //   const res = await fetch(`${API_URL}/api/bookings`, {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({
+    //       eventId: event._id,
+    //       fullName, email, phone,
+    //       selectedSeats: bookingDetails.selectedSeats,
+    //       subtotal,
+    //       discountCode: appliedCoupon?.code || null,
+    //       paymentMethod,
+    //     }),
+    //   });
+    //   const data = await res.json();
+    //   if (res.ok) {
+    //     setCompletedBookingId(data.bookingId);
+    //     localStorage.setItem('lastTicketCode', data.ticketCode || '');
+    //     navigate('/ticket');
+    //     window.scrollTo({ top: 0, behavior: 'smooth' });
+    //   }
+    // })();
+  };
+
   const PAYMENT_METHODS = [
-    { id: 'MoMo',          icon: <img src="https://img.mservice.com.vn/app/img/portal_documents/mini-app_design-guideline_branding-guide-2-2.png" alt="MoMo" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'cover' }} />, label: 'MoMo' },
-    { id: 'VNPay',         icon: <div style={{ background: '#fff', padding: '4px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', height: 28 }}><img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR.png" alt="VNPay" style={{ height: 16, width: 'auto', objectFit: 'contain' }} /></div>, label: 'VNPay' },
+    { id: 'MoMo', icon: <img src="https://img.mservice.com.vn/app/img/portal_documents/mini-app_design-guideline_branding-guide-2-2.png" alt="MoMo" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'cover' }} />, label: 'MoMo' },
+    { id: 'VNPay', icon: <div style={{ background: '#fff', padding: '4px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', height: 28 }}><img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR.png" alt="VNPay" style={{ height: 16, width: 'auto', objectFit: 'contain' }} /></div>, label: 'VNPay' },
     { id: 'Bank Transfer', icon: <span className="material-symbols-outlined" style={{ fontSize: 28, color: '#a896f6' }}>account_balance</span>, label: vi ? 'Chuyển khoản' : 'Bank Transfer' },
   ];
 
   return (
     <div style={{ paddingTop: 120, paddingBottom: 64 }} className="animate-fade-in">
+      {showComingSoon && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(1,1,10,.75)', backdropFilter: 'blur(6px)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div className="mfc-card" style={{ padding: 40, maxWidth: 420, textAlign: 'center' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 48, color: 'var(--purple)', marginBottom: 16, display: 'block' }}>construction</span>
+            <h3 className="serif" style={{ color: '#fff', fontSize: 22, margin: '0 0 12px' }}>
+              {vi ? 'Sắp ra mắt' : 'Coming Soon'}
+            </h3>
+            <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.6, margin: '0 0 24px' }}>
+              {vi ? 'Tính năng thanh toán đang được hoàn thiện. Vui lòng quay lại sau nhé!' : 'Payment is still being built. Please check back soon!'}
+            </p>
+            <button onClick={() => setShowComingSoon(false)} className="btn-pill" style={{ width: '100%', justifyContent: 'center' }}>
+              {vi ? 'Đã hiểu' : 'Got it'}
+            </button>
+          </div>
+        </div>
+      )}
       <div className="container">
         {/* Header + Steps */}
         <div style={{ marginBottom: 32 }}>
@@ -182,18 +246,70 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
               </div>
             </div>
 
+            {/* Discount code */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 11, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 18, paddingBottom: 10, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
+                {vi ? 'Mã giảm giá' : 'Discount Code'}
+              </div>
+              {appliedCoupon ? (
+                <div style={{ padding: '12px 16px', borderRadius: 12, border: '1px solid rgba(158,254,253,.4)', background: 'rgba(158,254,253,.08)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--mint)', fontSize: 14, fontWeight: 700 }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 16, verticalAlign: 'middle', marginRight: 6 }}>local_offer</span>
+                      {appliedCoupon.code} · −{appliedCoupon.percent}%
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--muted)' }}
+                    >
+                      {vi ? 'Xóa' : 'Remove'}
+                    </button>
+                  </div>
+                  {appliedCoupon.maxSeats && (
+                    <p style={{ fontSize: 12, color: 'var(--muted)', margin: '6px 0 0' }}>
+                      {vi
+                        ? `Áp dụng cho ${discountApplyCount}/${seatsCount} vé có giá cao nhất trong đơn.`
+                        : `Applied to the ${discountApplyCount}/${seatsCount} highest-priced seats in this order.`}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <input
+                      type="text"
+                      value={discountInput}
+                      onChange={e => { setDiscountInput(e.target.value); setCouponError(''); }}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleApplyCoupon(); } }}
+                      className="mfc-input"
+                      placeholder={vi ? 'Nhập mã giảm giá (nếu có)' : 'Enter code (optional)'}
+                    // style={{ textTransform: 'uppercase' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      disabled={couponLoading || !discountInput.trim()}
+                      className="btn-outline-pill"
+                      style={{ flexShrink: 0, opacity: couponLoading || !discountInput.trim() ? 0.5 : 1 }}
+                    >
+                      {couponLoading ? (vi ? 'Đang kiểm tra...' : 'Checking...') : (vi ? 'Áp dụng' : 'Apply')}
+                    </button>
+                  </div>
+                  {couponError && (
+                    <p style={{ color: '#ff6b6b', fontSize: 12, marginTop: 8, marginBottom: 0 }}>{couponError}</p>
+                  )}
+                </>
+              )}
+            </div>
+
             {/* Submit */}
             <button
               type="submit"
-              disabled={loading}
               className="btn-pill"
               style={{ width: '100%', justifyContent: 'center', fontSize: 16, padding: '16px 20px' }}
             >
-              {loading ? (
-                <><span className="material-symbols-outlined animate-spin" style={{ fontSize: 18 }}>sync</span> {vi ? 'Đang xử lý...' : 'Processing...'}</>
-              ) : (
-                <><span className="material-symbols-outlined" style={{ fontSize: 18 }}>verified_user</span> {vi ? 'Xác nhận & Thanh toán' : 'Confirm & Pay'}</>
-              )}
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>verified_user</span> {vi ? 'Xác nhận & Thanh toán' : 'Confirm & Pay'}
             </button>
           </form>
 
@@ -219,12 +335,22 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
 
             {/* Seats list */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
-              {bookingDetails.selectedSeats.map((s, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
-                  <span style={{ color: 'var(--muted)' }}>{s.seatId}</span>
-                  <span style={{ color: '#fff', fontWeight: 600 }}>{formatPrice(s.price)}</span>
-                </div>
-              ))}
+              {bookingDetails.selectedSeats.map((s, i) => {
+                const isDiscounted = appliedCoupon && discountedSeatIds.has(s.seatId);
+                return (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
+                    <span style={{ color: 'var(--muted)' }}>
+                      {s.seatId}
+                      {isDiscounted && (
+                        <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: 'var(--mint)' }}>
+                          −{appliedCoupon.percent}%
+                        </span>
+                      )}
+                    </span>
+                    <span style={{ color: '#fff', fontWeight: 600 }}>{formatPrice(s.price)}</span>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Totals */}
@@ -233,11 +359,17 @@ const CheckoutPage = ({ event, bookingDetails, user, setCompletedBookingId }) =>
                 <span style={{ color: 'var(--muted)' }}>{vi ? `Tạm tính (${seatsCount} vé)` : `Subtotal (${seatsCount} seats)`}</span>
                 <span style={{ color: '#fff' }}>{formatPrice(subtotal)}</span>
               </div>
+              {appliedCoupon && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <span style={{ color: 'var(--mint)' }}>{vi ? `Mã ${appliedCoupon.code} (−${appliedCoupon.percent}%)` : `Code ${appliedCoupon.code} (−${appliedCoupon.percent}%)`}</span>
+                  <span style={{ color: 'var(--mint)' }}>−{formatPrice(discountAmount)}</span>
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 8, paddingTop: 12, borderTop: '1px solid rgba(168,150,246,.18)' }}>
                 <span style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.12em' }}>
                   {vi ? 'Tổng thanh toán' : 'Total'}
                 </span>
-                <span className="serif" style={{ fontSize: 32, color: 'var(--purple)', fontWeight: 700 }}>{formatPrice(subtotal)}</span>
+                <span className="serif" style={{ fontSize: 32, color: 'var(--purple)', fontWeight: 700 }}>{formatPrice(finalTotal)}</span>
               </div>
             </div>
           </div>
