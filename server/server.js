@@ -242,6 +242,30 @@ app.delete('/api/users/:id', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+app.put('/api/users/:id', async (req, res) => {
+  try {
+    const { fullName } = req.body;
+    if (!fullName || !fullName.trim()) return res.status(400).json({ error: 'Full name is required.' });
+    const user = await User.findByIdAndUpdate(req.params.id, { fullName: fullName.trim() }, { new: true }).select('-password');
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+    res.json(user);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/users/:id/password', async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Missing required fields.' });
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) return res.status(400).json({ error: 'Current password is incorrect.' });
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+    res.json({ message: 'Password updated successfully.' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // 1. SETTINGS
 app.get('/api/settings', async (req, res) => {
   try {

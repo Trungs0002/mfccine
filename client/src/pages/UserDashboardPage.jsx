@@ -14,10 +14,20 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
   const [activeTab, setActiveTab] = useState('tickets');
   const [qrReveal, setQrReveal]   = useState(null);
 
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword]         = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordMsg, setPasswordMsg]         = useState(null); // { type: 'error' | 'success', text }
+
   const savedUser = useMemo(() => JSON.parse(localStorage.getItem('user') || '{}'), []);
   const email = userEmail || savedUser.email || '';
   const name  = (savedUser.fullName || email.split('@')[0])
     .split(' ').map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' ');
+
+  const [fullName, setFullName] = useState(name);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileMsg, setProfileMsg] = useState(null); // { type: 'error' | 'success', text }
 
   const l = useCallback((field) => {
     if (!field) return '';
@@ -46,6 +56,68 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.location.href = '/';
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setProfileMsg(null);
+    if (!fullName.trim()) {
+      setProfileMsg({ type: 'error', text: vi ? 'Họ và tên không được để trống.' : 'Full name cannot be empty.' });
+      return;
+    }
+    setSavingProfile(true);
+    try {
+      const res = await fetch(`${API_URL}/api/users/${savedUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName: fullName.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('user', JSON.stringify({ ...savedUser, fullName: data.fullName }));
+        setProfileMsg({ type: 'success', text: vi ? 'Cập nhật thành công.' : 'Updated successfully.' });
+      } else {
+        setProfileMsg({ type: 'error', text: data.error || (vi ? 'Cập nhật thất bại.' : 'Update failed.') });
+      }
+    } catch {
+      setProfileMsg({ type: 'error', text: vi ? 'Lỗi kết nối máy chủ.' : 'Server connection error.' });
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setPasswordMsg(null);
+    if (newPassword.length < 6) {
+      setPasswordMsg({ type: 'error', text: vi ? 'Mật khẩu mới phải có ít nhất 6 ký tự.' : 'New password must be at least 6 characters.' });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMsg({ type: 'error', text: vi ? 'Mật khẩu xác nhận không khớp.' : 'Password confirmation does not match.' });
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const res = await fetch(`${API_URL}/api/users/${savedUser.id}/password`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPasswordMsg({ type: 'success', text: vi ? 'Đổi mật khẩu thành công.' : 'Password changed successfully.' });
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        setPasswordMsg({ type: 'error', text: data.error || (vi ? 'Đổi mật khẩu thất bại.' : 'Failed to change password.') });
+      }
+    } catch {
+      setPasswordMsg({ type: 'error', text: vi ? 'Lỗi kết nối máy chủ.' : 'Server connection error.' });
+    } finally {
+      setChangingPassword(false);
+    }
   };
 
   const TABS = [
@@ -269,33 +341,71 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
               {vi ? 'Tài khoản' : 'Your Account'}
             </h3>
             <div className="mfc-card profile-card">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                {[
-                  { labelVi: 'Họ và tên', labelEn: 'Full Name', value: name },
-                  { labelVi: 'Email',     labelEn: 'Email',     value: email },
-                  { labelVi: 'Vai trò',   labelEn: 'Role',      value: savedUser.role || 'Member', highlight: true },
-                ].map(f => (
-                  <div key={f.labelEn}>
-                    <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
-                      {vi ? f.labelVi : f.labelEn}
-                    </label>
-                    <div style={{ padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(168,150,246,.28)', background: 'rgba(1,1,10,.4)', color: f.highlight ? 'var(--mint)' : '#fff', fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10, wordBreak: 'break-all' }}>
-                      {f.highlight && <span className="material-symbols-outlined" style={{ color: 'var(--mint)', fontSize: 18, flexShrink: 0 }}>verified</span>}
-                      {f.value}
-                    </div>
+              <h4 style={{ fontSize: 11, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '.12em', margin: '0 0 20px', paddingBottom: 10, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
+                {vi ? 'Đổi Thông Tin Cá Nhân' : 'Change Personal Information'}
+              </h4>
+              <form onSubmit={handleUpdateProfile} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
+                    {vi ? 'Họ và tên' : 'Full Name'}
+                  </label>
+                  <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} className="mfc-input" required />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
+                    Email
+                  </label>
+                  <div style={{ padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(168,150,246,.28)', background: 'rgba(1,1,10,.4)', color: 'var(--muted)', fontSize: 14, fontWeight: 600, wordBreak: 'break-all' }}>
+                    {email}
                   </div>
-                ))}
-              </div>
+                </div>
 
-              <button
-                onClick={handleLogout}
-                style={{ marginTop: 28, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px 20px', borderRadius: 12, border: '1px solid rgba(255,107,107,.3)', background: 'none', color: '#ff6b6b', cursor: 'pointer', fontSize: 14, fontWeight: 600, transition: 'background .2s' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,107,107,.1)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'none'}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>logout</span>
-                {vi ? 'Đăng xuất khỏi tài khoản' : 'Sign out of account'}
-              </button>
+                {profileMsg && (
+                  <p style={{ margin: 0, fontSize: 13, color: profileMsg.type === 'success' ? 'var(--mint)' : '#ff6b6b' }}>
+                    {profileMsg.text}
+                  </p>
+                )}
+
+                <button type="submit" disabled={savingProfile} className="btn-pill" style={{ justifyContent: 'center', marginTop: 4 }}>
+                  {savingProfile ? (vi ? 'Đang lưu...' : 'Saving...') : (vi ? 'Cập nhật' : 'Update')}
+                </button>
+              </form>
+            </div>
+
+            <div className="mfc-card profile-card" style={{ marginTop: 20 }}>
+              <h4 style={{ fontSize: 11, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '.12em', margin: '0 0 20px', paddingBottom: 10, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
+                {vi ? 'Đổi mật khẩu' : 'Change Password'}
+              </h4>
+              <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
+                    {vi ? 'Mật khẩu hiện tại' : 'Current Password'}
+                  </label>
+                  <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="mfc-input" required />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
+                    {vi ? 'Mật khẩu mới' : 'New Password'}
+                  </label>
+                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="mfc-input" required minLength={6} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
+                    {vi ? 'Xác nhận mật khẩu mới' : 'Confirm New Password'}
+                  </label>
+                  <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="mfc-input" required minLength={6} />
+                </div>
+
+                {passwordMsg && (
+                  <p style={{ margin: 0, fontSize: 13, color: passwordMsg.type === 'success' ? 'var(--mint)' : '#ff6b6b' }}>
+                    {passwordMsg.text}
+                  </p>
+                )}
+
+                <button type="submit" disabled={changingPassword} className="btn-pill" style={{ justifyContent: 'center', marginTop: 4 }}>
+                  {changingPassword ? (vi ? 'Đang lưu...' : 'Saving...') : (vi ? 'Cập nhật mật khẩu' : 'Update Password')}
+                </button>
+              </form>
             </div>
           </div>
         )}

@@ -567,7 +567,12 @@ const AboutPage = () => {
       <DepartmentsSection vi={vi} />
 
       {/* ── CTA BANNER ────────────────────────────────────────────── */}
-      <section style={{ padding: '0 0 72px', marginTop: '64px', display: 'flex', justifyContent: 'center' }}>
+      <section style={{ padding: '0 0 72px', marginTop: '64px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+        <div className="section-eyebrow" style={{ margin: 0, width: '100%', padding: '0 16px', display: 'flex', justifyContent: 'center' }}>
+          <span className="gradient-title-hero" style={{ fontSize: 'clamp(24px, 6vw, 40px)', fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'transparent', WebkitTextFillColor: 'transparent' }}>
+            {vi ? 'Vậy còn chần chờ gì nữa hãy' : 'So What Are You Waiting For?'}
+          </span>
+        </div>
         <button className="btn-pill btn-radiate" onClick={() => navigate('/seating')} style={{ fontSize: 16, padding: '16px 44px' }}>
           {vi ? 'Sở hữu ngay tấm vé của ĐỘC' : 'Secure Your Pass'}
         </button>

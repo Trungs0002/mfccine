@@ -5,7 +5,7 @@ import { API_URL } from '../apiConfig';
 
 /* ─── Seat generation ──────────────────────────────────────── */
 const ZONE = {
-  Standard: { color: '#10b981', label: (vi) => vi ? 'Khu phổ thông' : 'Standard' },
+  Standard: { color: '#10b981', label: (vi) => vi ? 'Khu Standard' : 'Standard' },
   Premium: { color: '#5aaddc', label: (vi) => vi ? 'Khu Premium' : 'Premium' },
   VIP: { color: '#a896f6', label: (vi) => vi ? 'Khu VIP' : 'VIP' },
 };
@@ -421,42 +421,36 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                       {vi ? 'Xóa tất cả' : 'Clear all'}
                     </button>
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {selectedSeats.map(seat => (
-                      <button
+                      <div
                         key={seat.id}
-                        onClick={() => handleSeatClick(seat)}
                         style={{
-                          padding: '5px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700,
-                          border: '1px solid rgba(168,150,246,.45)',
-                          background: 'rgba(168,150,246,.1)',
-                          color: '#fff', cursor: 'pointer',
-                          transition: 'background .15s, border-color .15s',
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
+                          padding: '8px 8px 8px 12px', borderRadius: 10, fontSize: 13,
+                          border: '1px solid rgba(168,150,246,.3)',
+                          background: 'rgba(168,150,246,.06)',
                         }}
-                        title={vi ? 'Nhấn để bỏ chọn' : 'Click to deselect'}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,107,107,.1)'; e.currentTarget.style.borderColor = 'rgba(255,107,107,.5)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(168,150,246,.1)'; e.currentTarget.style.borderColor = 'rgba(168,150,246,.45)'; }}
                       >
-                        {seat.num} · {seat.type}
-                      </button>
+                        <span style={{ color: 'var(--muted)' }}>{seat.num} · {seat.type}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span style={{ color: '#e0dcff' }}>{formatPrice(seat.price)}</span>
+                          <button
+                            onClick={() => handleSeatClick(seat)}
+                            title={vi ? 'Bỏ chọn ghế' : 'Remove seat'}
+                            style={{
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                              border: '1px solid rgba(255,107,107,.4)', background: 'rgba(255,107,107,.1)',
+                              color: '#ff6b6b', cursor: 'pointer', padding: 0,
+                            }}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>close</span>
+                          </button>
+                        </div>
+                      </div>
                     ))}
                   </div>
-                </div>
-
-                {/* Price breakdown */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 9, fontSize: 13 }}>
-                  {[...new Set(selectedSeats.map(s => s.type))].map(type => {
-                    const sameType = selectedSeats.filter(s => s.type === type);
-                    const priceEach = sameType[0].price;
-                    return (
-                      <div key={type} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: 'var(--muted)' }}>
-                          {sameType[0].zoneName} × {sameType.length}
-                        </span>
-                        <span style={{ color: '#e0dcff' }}>{formatPrice(priceEach * sameType.length)}</span>
-                      </div>
-                    );
-                  })}
                 </div>
 
                 {/* Total */}
