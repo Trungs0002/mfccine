@@ -6,6 +6,14 @@ import QrScannerOverlay from '../components/QrScannerOverlay';
 const fieldLabelStyle = { display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 };
 const sectionLabelStyle = { fontSize: 11, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 18, paddingBottom: 10, borderBottom: '1px solid rgba(168,150,246,.18)' };
 
+// The event's date is always entered/displayed as Vietnam wall-clock time (UTC+7, no DST),
+// regardless of the admin's or server's own timezone - otherwise the datetime-local input
+// (which has no timezone of its own) silently gets read/written as UTC and the saved time
+// drifts by 7 hours from what was actually typed.
+const VN_OFFSET_MS = 7 * 60 * 60 * 1000;
+const toVnDatetimeLocal = (utcDate) => new Date(new Date(utcDate).getTime() + VN_OFFSET_MS).toISOString().slice(0, 16);
+const fromVnDatetimeLocal = (value) => new Date(new Date(`${value}Z`).getTime() - VN_OFFSET_MS).toISOString();
+
 const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const { language, t } = useLanguage();
   const formatPrice = (p) => Number(p).toLocaleString('vi-VN') + (language === 'vi' ? 'đ' : ' VND');
@@ -336,8 +344,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     setDescVi(getVal(evt.description, 'vi'));
 
     if (evt.date) {
-      const d = new Date(evt.date);
-      setDate(d.toISOString().slice(0, 16));
+      setDate(toVnDatetimeLocal(evt.date));
     }
 
     setLocEn(getVal(evt.location, 'en'));
@@ -450,7 +457,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     const eventData = {
       title: { en: titleEn, vi: titleVi },
       description: { en: descEn, vi: descVi },
-      date,
+      date: fromVnDatetimeLocal(date),
       location: { en: locEn, vi: locVi },
       venueName: { en: venueEn, vi: venueVi },
       image,

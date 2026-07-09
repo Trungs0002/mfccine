@@ -97,7 +97,7 @@ const Footer = ({ setIsAdminMode, settings }) => {
               {[
                 { icon: <FacebookIcon />, label: 'Facebook', url: 'https://facebook.com/mfc.ftu' },
                 { icon: <InstagramIcon />, label: 'Instagram', url: 'https://www.instagram.com/mfc.ftu' },
-                { icon: <TiktokIcon />, label: 'TikTok', url: 'https://www.tiktok.com/@mfc.ftu' },
+                { icon: <TiktokIcon />, label: 'TikTok', url: 'https://www.tiktok.com/@emepxi.ftu?_r=1&_t=ZS-97swpuT3zJE' },
               ].map(s => (
                 <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" className="footer-social-icon" title={s.label} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {s.icon}
