@@ -215,6 +215,34 @@ const NhatPage = () => {
         </div>
       </section>
 
+      {/* Đề bài */}
+      <section style={{ padding: '0 0 64px' }}>
+        <div className="container" style={{ maxWidth: 760 }}>
+          <div className="section-eyebrow" style={{ marginBottom: 28 }}>
+            <span className="gradient-title-hero" style={{ fontSize: 'clamp(24px, 5vw, 34px)', fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase' }}>
+              {vi ? 'Đề bài' : 'The Brief'}
+            </span>
+          </div>
+          <div className="mfc-card" style={{ padding: '32px 28px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <p style={{ color: '#e0dbff', fontSize: 15, lineHeight: 1.8, margin: 0, fontWeight: 700 }}>
+              {vi
+                ? 'Đề bài: Trong sự tái sinh muôn hình muôn vẻ của nghệ thuật, thời trang của bạn nằm ở đâu?'
+                : 'Prompt: Amid art’s endless reincarnations, where does your fashion stand?'}
+            </p>
+            <p style={{ color: '#ccc8f0', fontSize: 15, lineHeight: 1.8, margin: 0 }}>
+              {vi
+                ? 'Chủ đề "Nhất" tôn vinh sự độc nhất - một dấu ấn khác biệt. Hãy tạo nên một thiết kế thể hiện bản sắc riêng, nói lên rằng "bạn là ai" trong thế giới thời trang. Với tinh thần ấy, chúng tôi tìm kiếm các tác phẩm không chỉ là một bộ trang phục mà còn là tuyên ngôn về cái "nhất" của chính bạn.'
+                : 'The theme "Nhất" celebrates uniqueness - a mark that sets you apart. Create a design that expresses your own identity, one that says "who you are" in the world of fashion. In that spirit, we are looking for entries that are not just an outfit, but a statement of your own "nhất".'}
+            </p>
+            <p style={{ color: '#ccc8f0', fontSize: 15, lineHeight: 1.8, margin: 0 }}>
+              {vi
+                ? 'Trang phục được thiết kế dựa trên chủ đề "Nhất", khai thác ý nghĩa của sự độc nhất và khác biệt. Thiết kế khuyến khích thể hiện được tinh thần của các từ khóa: avant-garde và deconstructed. Khuyến khích thí sinh sử dụng bảng màu đa dạng, có sự phối hợp màu sắc sáng tạo nhằm làm nổi bật ý tưởng thiết kế.'
+                : 'Garments should be designed around the theme "Nhất", exploring the meaning of uniqueness and difference. Designs are encouraged to embody the spirit of the keywords: avant-garde and deconstructed. Entrants are encouraged to use a diverse color palette with creative color coordination to highlight the design concept.'}
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Submission form */}
       <section style={{ padding: '0 0 64px' }}>
         <div className="container" style={{ maxWidth: 760 }}>
