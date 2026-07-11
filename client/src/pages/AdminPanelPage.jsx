@@ -129,15 +129,15 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
       .catch(() => { if (!silent) setLoadingBookings(false); });
   };
 
-  const fetchCoupons = () => {
-    setLoadingCoupons(true);
+  const fetchCoupons = (silent = false) => {
+    if (!silent) setLoadingCoupons(true);
     fetch(`${API_URL}/api/coupons`)
       .then(res => res.json())
       .then(data => {
         setCoupons(data);
-        setLoadingCoupons(false);
+        if (!silent) setLoadingCoupons(false);
       })
-      .catch(() => setLoadingCoupons(false));
+      .catch(() => { if (!silent) setLoadingCoupons(false); });
   };
 
   const fetchApplications = (silent = false) => {
@@ -151,26 +151,26 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
       .catch(() => { if (!silent) setLoadingApplications(false); });
   };
 
-  const fetchStaffAccounts = () => {
-    setLoadingStaffAccounts(true);
+  const fetchStaffAccounts = (silent = false) => {
+    if (!silent) setLoadingStaffAccounts(true);
     fetch(`${API_URL}/api/users?role=staff`)
       .then(res => res.json())
       .then(data => {
         setStaffAccounts(data);
-        setLoadingStaffAccounts(false);
+        if (!silent) setLoadingStaffAccounts(false);
       })
-      .catch(() => setLoadingStaffAccounts(false));
+      .catch(() => { if (!silent) setLoadingStaffAccounts(false); });
   };
 
-  const fetchNhatSubmissions = () => {
-    setLoadingNhatSubmissions(true);
+  const fetchNhatSubmissions = (silent = false) => {
+    if (!silent) setLoadingNhatSubmissions(true);
     fetch(`${API_URL}/api/nhat-submissions`)
       .then(res => res.json())
       .then(data => {
         setNhatSubmissions(data);
-        setLoadingNhatSubmissions(false);
+        if (!silent) setLoadingNhatSubmissions(false);
       })
-      .catch(() => setLoadingNhatSubmissions(false));
+      .catch(() => { if (!silent) setLoadingNhatSubmissions(false); });
   };
 
   const handleDeleteNhatSubmission = async (id) => {
@@ -188,13 +188,16 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     if (activeAdminTab === 'nhat') fetchNhatSubmissions();
   }, [events, activeAdminTab]);
 
-  // Auto-sync the history tabs (bookings ledger, CTV applications) every 5s — no manual reload needed.
-  // Uses the silent flag so the periodic refresh swaps data in place instead of
-  // flashing the loading placeholder over the list every 5s (was causing visible jitter).
+  // Auto-sync the history tabs (bookings ledger, CTV applications, coupons, staff, Nhất entries)
+  // every 5s — no manual reload needed. Uses the silent flag so the periodic refresh swaps data
+  // in place instead of flashing the loading placeholder over the list every 5s (was causing visible jitter).
   useEffect(() => {
     let fetchFn = null;
     if (activeAdminTab === 'bookings') fetchFn = () => fetchAllBookings(true);
     if (activeAdminTab === 'applications') fetchFn = () => fetchApplications(true);
+    if (activeAdminTab === 'coupons') fetchFn = () => fetchCoupons(true);
+    if (activeAdminTab === 'staff') fetchFn = () => fetchStaffAccounts(true);
+    if (activeAdminTab === 'nhat') fetchFn = () => fetchNhatSubmissions(true);
     if (!fetchFn) return;
     const interval = setInterval(fetchFn, 5000);
     return () => clearInterval(interval);
@@ -556,7 +559,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     { id: 'applications', icon: 'assignment_ind', label: language === 'vi' ? 'Đơn ứng tuyển CTV' : 'CTV Applications' },
     { id: 'staff', icon: 'badge', label: language === 'vi' ? 'Nhân viên' : 'Staff' },
     { id: 'nhat', icon: 'checkroom', label: language === 'vi' ? 'Bài dự thi Nhất' : 'Nhất Entries' },
-  ].filter(tab => !isStaff || tab.id === 'bookings' || tab.id === 'applications');
+  ].filter(tab => !isStaff || tab.id === 'bookings' || tab.id === 'applications' || tab.id === 'nhat');
 
   const getStatCards = () => {
     if (activeAdminTab === 'events') {
@@ -987,9 +990,6 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
             <div className="mfc-card animate-fade-in" style={{ padding: 32 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 16, marginBottom: 24, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
                 <h3 className="serif" style={{ color: '#fff', fontSize: 22, margin: 0 }}>{language === 'vi' ? 'Mã giảm giá' : 'Discount Codes'}</h3>
-                <button onClick={fetchCoupons} style={{ background: 'none', border: 'none', color: 'var(--purple)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, textTransform: 'uppercase', letterSpacing: '.08em' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>refresh</span> {language === 'vi' ? 'Tải lại' : 'Reload'}
-                </button>
               </div>
 
               <form onSubmit={handleCreateCoupon} className="mfc-card admin-coupon-form" style={{ padding: 20, marginBottom: 24, display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'flex-end' }}>
@@ -1263,9 +1263,6 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                 <h3 className="serif" style={{ color: '#fff', fontSize: 22, margin: 0 }}>
                   {language === 'vi' ? 'Tài khoản nhân viên' : 'Staff Accounts'}
                 </h3>
-                <button onClick={fetchStaffAccounts} style={{ background: 'none', border: 'none', color: 'var(--purple)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, textTransform: 'uppercase', letterSpacing: '.08em' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>refresh</span> {language === 'vi' ? 'Tải lại' : 'Reload'}
-                </button>
               </div>
 
               <p style={{ color: 'var(--muted)', fontSize: 13, marginTop: 0, marginBottom: 20 }}>
@@ -1322,9 +1319,6 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                 <h3 className="serif" style={{ color: '#fff', fontSize: 22, margin: 0 }}>
                   {language === 'vi' ? 'Bài dự thi "Nhất"' : '"Nhất" Entries'}
                 </h3>
-                <button onClick={fetchNhatSubmissions} style={{ background: 'none', border: 'none', color: 'var(--purple)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, textTransform: 'uppercase', letterSpacing: '.08em' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>refresh</span> {language === 'vi' ? 'Tải lại' : 'Reload'}
-                </button>
               </div>
 
               {loadingNhatSubmissions ? (
@@ -1351,9 +1345,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                             <button onClick={() => setExpandedNhatId(isExpanded ? null : s._id)} className="btn-outline-pill" style={{ fontSize: 11, padding: '8px 16px' }}>
                               {isExpanded ? (language === 'vi' ? 'Thu gọn' : 'Collapse') : (language === 'vi' ? 'Xem chi tiết' : 'View details')}
                             </button>
-                            <button onClick={() => handleDeleteNhatSubmission(s._id)} style={{ padding: '8px 10px', borderRadius: 999, border: '1px solid rgba(255,107,107,.3)', background: 'rgba(255,107,107,.08)', color: '#ff6b6b', cursor: 'pointer', display: 'flex' }}>
-                              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
-                            </button>
+                            {!isStaff && (
+                              <button onClick={() => handleDeleteNhatSubmission(s._id)} style={{ padding: '8px 10px', borderRadius: 999, border: '1px solid rgba(255,107,107,.3)', background: 'rgba(255,107,107,.08)', color: '#ff6b6b', cursor: 'pointer', display: 'flex' }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
+                              </button>
+                            )}
                           </div>
                         </div>
 
