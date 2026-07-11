@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
@@ -93,11 +93,14 @@ const JudgeCard = ({ index, vi }) => (
   </div>
 );
 
+const HERO_IMAGES = ['/nhat.jpg', '/nhat2.jpg', '/nhat3.jpg', '/nhat4.jpg'];
+
 const NhatPage = () => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const vi = language === 'vi';
 
+  const [heroImageIndex, setHeroImageIndex] = useState(0);
   const [formData, setFormData] = useState({ fullName: '', email: '', phone: '', school: '', note: '' });
   const [designImage, setDesignImage] = useState(null);
   const [outfitPhoto1, setOutfitPhoto1] = useState(null);
@@ -105,6 +108,13 @@ const NhatPage = () => {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null); // null | 'success' | 'error'
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setHeroImageIndex(i => (i + 1) % HERO_IMAGES.length);
+    }, 3000);
+    return () => clearInterval(intervalId);
+  }, []);
 
   const setField = (key) => (e) => {
     const { value } = e.target;
@@ -184,8 +194,19 @@ const NhatPage = () => {
         </div>
 
         <div className="container" style={{ maxWidth: 900, marginTop: 40 }}>
-          <div style={{ position: 'relative', overflow: 'hidden', border: '1px solid rgba(168,150,246,0.2)', boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(168,150,246,0.1)' }}>
-            <img src="/kv-doc.jpeg" alt="NHẤT - FTU Fashion Show 2026" style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 420, objectFit: 'cover' }} />
+          <div style={{ position: 'relative', overflow: 'hidden', aspectRatio: '900 / 420', maxHeight: 420, border: '1px solid rgba(168,150,246,0.2)', boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(168,150,246,0.1)' }}>
+            {HERO_IMAGES.map((src, i) => (
+              <img
+                key={src}
+                src={src}
+                alt="NHẤT - FTU Fashion Show 2026"
+                style={{
+                  position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+                  opacity: i === heroImageIndex ? 1 : 0,
+                  transition: 'opacity 1s ease-in-out',
+                }}
+              />
+            ))}
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(70,69,215,.08), rgba(1,1,10,.25))', pointerEvents: 'none' }} />
           </div>
         </div>
