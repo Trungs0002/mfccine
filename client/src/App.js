@@ -111,7 +111,8 @@ function AppContent() {
       )}
       <main style={{ minHeight: '100vh' }}>
         <Routes>
-          <Route path="/"          element={<LandingPage events={events} setEvent={setSelectedEvent} settings={settings} />} />
+          <Route path="/"          element={<Navigate to="/about" />} />
+          <Route path="/landing"   element={<LandingPage events={events} setEvent={setSelectedEvent} settings={settings} />} />
           <Route path="/about"     element={<AboutPage />} />
           <Route path="/recruit"   element={<RecruitPage />} />
           <Route path="/nhat"      element={<NhatPage />} />
