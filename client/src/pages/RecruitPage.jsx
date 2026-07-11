@@ -197,20 +197,20 @@ const DEPARTMENTS = [
 ];
 
 const BENEFITS = [
-  'Được tham gia trực tiếp vào quá trình tổ chức một sự kiện thời trang quy mô lớn của sinh viên Thủ đô.',
-  'Được training và làm việc trong môi trường năng động, chuyên nghiệp, có tính thực chiến cao.',
-  'Được rèn luyện kỹ năng làm việc nhóm, quản lý thời gian, giao tiếp và xử lý tình huống.',
-  'Có cơ hội mở rộng networking với các bạn trẻ, thương hiệu, đối tác và ekip trong lĩnh vực thời trang, truyền thông, sự kiện.',
-  'Nhận Giấy chứng nhận Cộng tác viên sau khi hoàn thành tốt nhiệm vụ.',
+  'Được trực tiếp tham gia tổ chức FTU Fashion Show 2026 cùng Ban Tổ chức và các đối tác chuyên nghiệp.',
+  'Có cơ hội nhận điểm rèn luyện mục 3.1 theo quy định của Trường Đại học Ngoại thương (đối với sinh viên FTU).',
+  'Được cấp Giấy chứng nhận Cộng tác viên sau khi hoàn thành tốt nhiệm vụ.',
+  'Được tích lũy kinh nghiệm thực tế và bổ sung vào CV, Portfolio cá nhân.',
+  'Được mở rộng mạng lưới kết nối với doanh nghiệp, thương hiệu và các khách mời trong lĩnh vực sáng tạo.',
   'Có cơ hội trở thành nhân sự nòng cốt trong các dự án tiếp theo của MFC FTU.',
 ];
 
 const BENEFITS_EN = [
-  'Get hands-on experience organizing a large-scale student fashion event in the capital.',
-  'Receive training and work in a dynamic, professional, hands-on environment.',
-  'Build teamwork, time management, communication, and problem-solving skills.',
-  'Expand your network with peers, brands, partners, and crews in fashion, media, and events.',
-  'Receive a Collaborator Certificate upon successful completion.',
+  'Directly help organize FTU Fashion Show 2026 alongside the Organizing Team and professional partners.',
+  'A chance to receive conduct-training points under section 3.1 per Foreign Trade University regulations (for FTU students).',
+  'Receive a Collaborator Certificate upon successful completion of your duties.',
+  'Gain hands-on experience to add to your CV and personal portfolio.',
+  'Expand your network with businesses, brands, and guests in the creative industry.',
   "Have a chance to become a core member for MFC FTU's future projects.",
 ];
 

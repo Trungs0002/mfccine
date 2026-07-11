@@ -600,7 +600,7 @@ const AboutPage = () => {
             )}
           </span>
         </div>
-        <button className="btn-pill btn-radiate" onClick={() => navigate('/seating')} style={{ fontSize: 16, padding: '16px 44px' }}>
+        <button className="btn-pill btn-radiate" onClick={() => navigate('/landing')} style={{ fontSize: 16, padding: '16px 44px' }}>
           {vi ? 'Sở hữu ngay tấm vé của ĐỘC' : 'Secure Your Pass'}
         </button>
       </section>

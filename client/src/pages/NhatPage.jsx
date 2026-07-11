@@ -148,6 +148,7 @@ const NhatPage = () => {
     if (!designImage) newErrors.designImage = vi ? 'Vui lòng tải lên ảnh bản vẽ thiết kế.' : 'Please upload your design sketch image.';
     if (!outfitPhoto1) newErrors.outfitPhoto1 = vi ? 'Vui lòng tải lên ảnh chụp bộ đồ (1).' : 'Please upload outfit photo (1).';
     if (!outfitPhoto2) newErrors.outfitPhoto2 = vi ? 'Vui lòng tải lên ảnh chụp bộ đồ (2).' : 'Please upload outfit photo (2).';
+    if (!formData.note.trim()) newErrors.note = vi ? 'Vui lòng nhập ghi chú thêm.' : 'Please enter additional notes.';
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -233,6 +234,38 @@ const NhatPage = () => {
                 <p style={{ color: '#e0dbff', fontSize: 14, lineHeight: 1.65, margin: 0 }}>{vi ? h.vi : h.en}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Thể lệ */}
+      <section style={{ padding: '0 0 64px' }}>
+        <div className="container" style={{ maxWidth: 760 }}>
+          <div className="section-eyebrow" style={{ marginBottom: 28 }}>
+            <span className="gradient-title-hero" style={{ fontSize: 'clamp(24px, 5vw, 34px)', fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase' }}>
+              {vi ? 'Thể lệ' : 'Rules'}
+            </span>
+          </div>
+          <div className="mfc-card" style={{ padding: '32px 28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <p style={{ color: '#e0dbff', fontSize: 15, lineHeight: 1.8, margin: 0, fontWeight: 700 }}>
+              {vi ? 'Thí sinh nộp 02 hình ảnh, bao gồm:' : 'Each contestant submits 02 images, including:'}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 22, color: 'var(--mint)', flexShrink: 0, marginTop: 1 }}>looks_one</span>
+                <p style={{ color: '#ccc8f0', fontSize: 15, lineHeight: 1.8, margin: 0 }}>
+                  {vi
+                    ? '01 ảnh phác thảo (sketch) ý tưởng trang phục, trong đó đính kèm: nguồn cảm hứng, ý nghĩa, màu sắc, chất liệu (nếu có) - ghi rõ tại mục 03 "Ghi chú thêm" trong đơn.'
+                    : '01 sketch of the outfit concept, including: inspiration, meaning, color, and material (if any) - to be written in section 03 "Additional Notes" of the application form.'}
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 22, color: 'var(--mint)', flexShrink: 0, marginTop: 1 }}>looks_two</span>
+                <p style={{ color: '#ccc8f0', fontSize: 15, lineHeight: 1.8, margin: 0 }}>
+                  {vi ? '01 ảnh thiết kế/trang phục sơ bộ.' : '01 preliminary design/outfit photo.'}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -391,7 +424,7 @@ const NhatPage = () => {
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 18, paddingBottom: 10, borderBottom: '1px dashed rgba(168,150,246,.25)' }}>
                     <span className="serif" style={{ fontSize: 22, color: 'rgba(168,150,246,.4)', fontWeight: 700 }}>03</span>
                     <span style={{ fontSize: 11, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '.12em' }}>
-                      {vi ? 'Ghi chú thêm (nếu có)' : 'Additional Notes (if any)'}
+                      {vi ? 'Ghi chú thêm *' : 'Additional Notes *'}
                     </span>
                   </div>
                   <textarea
@@ -400,8 +433,9 @@ const NhatPage = () => {
                     placeholder={vi ? 'Chia sẻ thêm về ý tưởng thiết kế của bạn...' : 'Share more about your design idea...'}
                     value={formData.note}
                     onChange={setField('note')}
-                    style={{ resize: 'vertical' }}
+                    style={{ resize: 'vertical', borderColor: errors.note ? '#ff6b6b' : undefined }}
                   />
+                  {errors.note && <p style={errorTextStyle}>{errors.note}</p>}
                 </div>
 
                 {submitStatus === 'error' && (
