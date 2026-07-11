@@ -64,7 +64,7 @@ const HIGHLIGHTS = [
 ];
 
 const JUDGES_ROUND_1 = [
-  { key: 'r1-1' }, { key: 'r1-2' }, { key: 'r1-3' },
+  { key: 'r1-1' }, { key: 'r1-2' },
 ];
 const JUDGES_ROUND_2 = [
   { key: 'r2-1' }, { key: 'r2-2' }, { key: 'r2-3' },

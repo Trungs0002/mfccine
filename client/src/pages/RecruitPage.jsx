@@ -43,12 +43,14 @@ const DEPARTMENTS = [
       'Bạn đã từng có kinh nghiệm liên quan đến đối ngoại, tài trợ, bán hàng, chăm sóc khách hàng hoặc tổ chức sự kiện chưa? Nếu có, hãy chia sẻ ngắn gọn.',
       'Nếu đã liên hệ với một doanh nghiệp nhưng sau nhiều ngày chưa nhận được phản hồi, bạn sẽ xử lý như thế nào để tăng khả năng kết nối mà vẫn giữ được sự chuyên nghiệp?',
       'Trong một tuần, bạn có thể dành bao nhiêu thời gian cho chương trình? Bạn có thể tham gia các buổi họp, training và hoạt động trực tiếp khi được phân công không?',
+      'Bạn biết đến đợt tuyển cộng tác viên này từ đâu?',
     ],
     questionsEn: [
       'Why do you want to become an External Relations collaborator for FTU Fashion Show 2026?',
       'Have you had any experience in external relations, sponsorship, sales, customer care, or event organizing? If so, please briefly describe it.',
       "If you've reached out to a business but received no response after several days, how would you follow up in a way that improves your odds while staying professional?",
       'How much time can you commit to the program each week? Can you attend meetings, training sessions, and in-person activities when assigned?',
+      'Where did you hear about this collaborator recruitment drive?',
     ],
   },
   {
@@ -88,12 +90,14 @@ const DEPARTMENTS = [
       'Bạn đã từng có kinh nghiệm viết content, quản lý fanpage, lên kế hoạch truyền thông, chụp ảnh hoặc quay dựng chưa? Nếu có, hãy chia sẻ ngắn gọn hoặc đính kèm sản phẩm.',
       'Nếu một bài đăng quan trọng cần lên sóng trong 2 tiếng nữa nhưng visual gặp sự cố và chưa thể hoàn thiện, bạn sẽ xử lý và phối hợp với các bên liên quan như thế nào?',
       'Trong một tuần, bạn có thể dành bao nhiêu thời gian cho chương trình? Bạn có thể tham gia các buổi họp, training và hoạt động trực tiếp khi được phân công không?',
+      'Bạn biết đến đợt tuyển cộng tác viên này từ đâu?',
     ],
     questionsEn: [
       'Why do you want to become a Media & Communications collaborator for FTU Fashion Show 2026?',
       'Have you had experience writing content, managing a fanpage, planning communications, taking photos, or editing video? If so, please briefly describe it or attach samples.',
       "If an important post needs to go live in 2 hours but the visuals aren't ready due to an issue, how would you handle it and coordinate with everyone involved?",
       'How much time can you commit to the program each week? Can you attend meetings, training sessions, and in-person activities when assigned?',
+      'Where did you hear about this collaborator recruitment drive?',
     ],
   },
   {
@@ -133,12 +137,14 @@ const DEPARTMENTS = [
       'Bạn đã từng tham gia tổ chức hoạt động, sự kiện hoặc dự án nào chưa? Nếu có, hãy chia sẻ vai trò của bạn và điều bạn học được.',
       'Nếu một người mẫu đến muộn khiến timeline có nguy cơ bị ảnh hưởng, bạn sẽ xử lý như thế nào trong phạm vi vai trò của mình?',
       'Trong một tuần, bạn có thể dành bao nhiêu thời gian cho chương trình? Bạn có thể tham gia họp, training, tổng duyệt và ngày chạy sự kiện trực tiếp không?',
+      'Bạn biết đến đợt tuyển cộng tác viên này từ đâu?',
     ],
     questionsEn: [
       'Why do you want to become an Organizing Team collaborator for FTU Fashion Show 2026?',
       'Have you helped organize any activities, events, or projects before? If so, share your role and what you learned.',
       'If a model arrives late and puts the timeline at risk, how would you handle it within the scope of your role?',
       'How much time can you commit to the program each week? Can you attend meetings, training, rehearsals, and the live event day in person?',
+      'Where did you hear about this collaborator recruitment drive?',
     ],
   },
   {
@@ -178,12 +184,14 @@ const DEPARTMENTS = [
       'Bạn đã từng có kinh nghiệm styling, thiết kế, makeup, đồ họa, làm mẫu hoặc tham gia dự án nghệ thuật/thời trang nào chưa? Nếu có, hãy chia sẻ ngắn gọn hoặc đính kèm portfolio.',
       'Nếu chỉ còn vài phút trước khi người mẫu ra sân khấu nhưng trang phục gặp sự cố như bung khóa, rách gấu hoặc lệch phụ kiện, bạn sẽ xử lý như thế nào?',
       'Trong một tuần, bạn có thể dành bao nhiêu thời gian cho chương trình? Bạn có thể tham gia họp, training, fitting, tổng duyệt và hoạt động trực tiếp khi được phân công không?',
+      'Bạn biết đến đợt tuyển cộng tác viên này từ đâu?',
     ],
     questionsEn: [
       'Why do you want to become a Creative Team collaborator for FTU Fashion Show 2026?',
       'Have you had experience in styling, design, makeup, graphic design, modeling, or any art/fashion project? If so, please briefly describe it or attach your portfolio.',
       'If a model is about to walk on stage in a few minutes but their outfit has an issue — a broken zipper, a torn hem, a misplaced accessory — how would you fix it?',
       'How much time can you commit to the program each week? Can you attend meetings, training, fittings, rehearsals, and in-person activities when assigned?',
+      'Where did you hear about this collaborator recruitment drive?',
     ],
   },
 ];
@@ -211,7 +219,7 @@ const errorTextStyle = { color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' };
 
 const buildInitialForm = (deptName) => ({
   name: '', dob: '', phone: '', email: '', school: '',
-  department: deptName, facebook: '', portfolio: '', answers: ['', '', '', ''],
+  department: deptName, facebook: '', portfolio: '', answers: ['', '', '', '', ''],
 });
 
 /* ─── Small shared bits (reusing the site's existing patterns) ─────────── */
@@ -610,7 +618,7 @@ const RecruitPage = () => {
     const newDept = DEPARTMENTS.find(d => d.name === deptName);
     const hidesPortfolio = newDept && (newDept.id === 'doi-ngoai' || newDept.id === 'to-chuc');
     setSelectedDepartment(deptName);
-    setFormData(f => ({ ...f, department: deptName, answers: ['', '', '', ''], portfolio: hidesPortfolio ? '' : f.portfolio }));
+    setFormData(f => ({ ...f, department: deptName, answers: ['', '', '', '', ''], portfolio: hidesPortfolio ? '' : f.portfolio }));
     setErrors(er => ({ ...er, department: undefined }));
   };
 
