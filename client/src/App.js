@@ -5,6 +5,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LanguageModal from './components/LanguageModal';
+import UpdateBanner from './components/UpdateBanner';
 import { LanguageProvider } from './context/LanguageContext';
 import { API_URL } from './apiConfig';
 
@@ -69,23 +70,42 @@ function AppContent() {
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) setUser(JSON.parse(savedUser));
+  }, []);
 
-    fetch(`${API_URL}/api/events`)
+  useEffect(() => {
+    const fetchEvents = () => fetch(`${API_URL}/api/events`)
       .then(res => res.ok ? res.json() : Promise.reject())
       .then(data => {
         if (data && data.length > 0) {
           setEvents(data);
-          setSelectedEvent(data[0]);
+          setSelectedEvent(prev => data.find(e => e._id === prev?._id) || data[0]);
         } else {
           setSelectedEvent(FALLBACK_EVENTS[0]);
         }
       })
-      .catch(() => setSelectedEvent(FALLBACK_EVENTS[0]));
+      .catch(() => setSelectedEvent(prev => prev || FALLBACK_EVENTS[0]));
 
-    fetch(`${API_URL}/api/settings`)
+    const fetchSettings = () => fetch(`${API_URL}/api/settings`)
       .then(res => res.json())
       .then(data => { if (data) setSettings(data); })
       .catch(() => {});
+
+    const refresh = () => { fetchEvents(); fetchSettings(); };
+
+    refresh();
+
+    // Data can change server-side (admin edits) while a tab stays open, so keep
+    // it fresh in the background instead of requiring a manual reload.
+    const intervalId = setInterval(refresh, 60000);
+    const onVisibility = () => { if (document.visibilityState === 'visible') refresh(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('focus', refresh);
+
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('focus', refresh);
+    };
   }, []);
 
   const handleLogout = () => {
@@ -99,6 +119,7 @@ function AppContent() {
   return (
     <>
       <LanguageModal />
+      <UpdateBanner />
       {!hideNav && (
         <Navbar
           isAdminMode={isAdminMode}
