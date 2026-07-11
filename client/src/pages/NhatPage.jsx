@@ -415,7 +415,7 @@ const NhatPage = () => {
               <div className="serif" style={{ color: '#fff', fontSize: 18, fontWeight: 700, marginBottom: 6 }}>
                 {vi ? 'Vòng đơn' : 'Round 1'}
               </div>
-              <div style={{ color: 'var(--mint)', fontSize: 13, letterSpacing: '.04em' }}>9/7 – 22/7</div>
+              <div style={{ color: 'var(--mint)', fontSize: 13, letterSpacing: '.04em' }}>11/7 – 22/7</div>
             </div>
             <div style={{ height: 1, flex: '1 1 60px', background: 'var(--line)', marginTop: 7 }} />
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '0 1 220px' }}>
