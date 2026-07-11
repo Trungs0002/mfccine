@@ -13,10 +13,10 @@ const Footer = ({ setIsAdminMode, settings }) => {
 
   const quickLinks = [
     { label: vi ? 'Giới thiệu' : 'About', path: '/about' },
-    { label: vi ? 'Mua vé' : 'Tickets', path: '/' },
+    { label: vi ? 'Mua vé' : 'Tickets', path: '/landing' },
     { label: vi ? 'Cộng tác viên' : 'Collaborate', path: '/recruit' },
-    { label: '"Nhất"', path: '#' },
-    { label: 'Casting Call', path: '#' },
+    { label: '"Nhất"', path: '/nhat' },
+    { label: 'Casting Call', path: '/casting-call' },
   ];
 
   return (

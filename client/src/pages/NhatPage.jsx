@@ -157,6 +157,7 @@ const NhatPage = () => {
       setSubmitStatus('error');
     } finally {
       setSubmitting(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 

@@ -27,7 +27,7 @@ const UpdateBanner = () => {
             setUpdateAvailable(true);
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     };
 
     checkForUpdate();
@@ -53,7 +53,7 @@ const UpdateBanner = () => {
       color: '#fff', padding: '12px 20px', borderRadius: 10,
       boxShadow: '0 8px 30px rgba(0,0,0,.5)', fontSize: 14, backdropFilter: 'blur(8px)',
     }}>
-      <span>{vi ? 'Đã có bản cập nhật mới' : 'A new version is available'}</span>
+      <span>{vi ? 'Đã có bản cập nhật mới, xin vui lòng tải lại trang!' : 'A new version is available, please reload the page!'}</span>
       <button
         onClick={() => window.location.reload()}
         style={{

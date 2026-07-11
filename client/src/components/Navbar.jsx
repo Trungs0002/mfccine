@@ -14,7 +14,7 @@ const Navbar = ({ isAdminMode, user, onLogout, settings, selectedEvent }) => {
     ? null
     : [
       { label: language === 'vi' ? 'Giới thiệu' : 'About', path: '/about' },
-      { label: language === 'vi' ? 'Mua vé' : 'Tickets', path: '/' },
+      { label: language === 'vi' ? 'Mua vé' : 'Tickets', path: '/landing' },
       { label: language === 'vi' ? 'Cộng tác viên' : 'Collaborate', path: '/recruit' },
       { label: language === 'vi' ? '"Nhất"' : '"Nhất"', path: '/nhat' },
       { label: language === 'vi' ? 'Casting Call' : 'Casting Call', path: '/casting-call' },
