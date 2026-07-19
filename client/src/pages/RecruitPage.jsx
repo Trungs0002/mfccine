@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { API_URL } from '../apiConfig';
 
 /* ─── Data (Vietnamese copy is canonical/kept verbatim for identity + submission;
    "*En" sibling fields hold the English display translation) ───────── */
@@ -351,7 +350,6 @@ const RegistrationForm = ({
   submitStatus, setSubmitStatus, onBack, onDepartmentChange,
 }) => {
   const navigate = useNavigate();
-  const [submitting, setSubmitting] = useState(false);
   const dobPickerRef = useRef(null);
   const dept = departments.find(d => d.name === formData.department) || departments[0];
   const showPortfolio = dept.id !== 'doi-ngoai' && dept.id !== 'to-chuc';
@@ -557,13 +555,9 @@ const RegistrationForm = ({
         <button type="button" onClick={onBack} className="btn-outline-pill" style={{ flex: '1 1 160px', justifyContent: 'center' }}>
           {vi ? '← Quay lại' : '← Back'}
         </button>
-        <button type="submit" disabled={submitting} className="btn-pill" style={{ flex: '2 1 240px', justifyContent: 'center', gap: 6, opacity: submitting ? .6 : 1 }}>
-          {submitting ? (vi ? 'Đang gửi...' : 'Submitting...') : (
-            <>
-              {vi ? 'Gửi đăng ký' : 'Submit'}
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_outward</span>
-            </>
-          )}
+        <button type="submit" className="btn-pill" style={{ flex: '2 1 240px', justifyContent: 'center', gap: 6 }}>
+          {vi ? 'Gửi đăng ký' : 'Submit'}
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_outward</span>
         </button>
       </div>
 
