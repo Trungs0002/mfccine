@@ -406,7 +406,7 @@ const RegistrationForm = ({
 
   if (submitStatus === 'closed') {
     return (
-      <div className="mfc-card" style={{ padding: '48px 32px', textAlign: 'center' }}>
+      <div className="mfc-card" style={{ padding: '48px 24px', textAlign: 'center' }}>
         <span className="material-symbols-outlined" style={{ fontSize: 52, color: '#f87171', marginBottom: 16, display: 'block' }}>inventory_2</span>
         <h3 className="serif" style={{ color: '#fff', fontSize: 24, margin: '0 0 12px' }}>
           {vi ? 'Đã đóng đơn tuyển dụng' : 'Recruitment Closed'}
@@ -416,11 +416,11 @@ const RegistrationForm = ({
             ? 'Rất tiếc, đợt tuyển dụng cộng tác viên hiện tại đã kết thúc. Hẹn gặp lại bạn ở những dự án tiếp theo của MFC nhé!'
             : 'Unfortunately, the current recruitment drive has ended. See you in the next projects of MFC!'}
         </p>
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-          <button type="button" className="btn-outline-pill" onClick={onBack}>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button type="button" className="btn-outline-pill" onClick={onBack} style={{ flex: '1 1 180px', justifyContent: 'center' }}>
             {vi ? '← Về trang thông tin' : '← Back to info'}
           </button>
-          <button type="button" className="btn-pill btn-radiate" onClick={() => { navigate('/about'); window.scrollTo(0, 0); }}>
+          <button type="button" className="btn-pill btn-radiate" onClick={() => { navigate('/about'); window.scrollTo(0, 0); }} style={{ flex: '1 1 180px', justifyContent: 'center' }}>
             {vi ? 'Tìm hiểu về MFC →' : 'About MFC →'}
           </button>
         </div>
