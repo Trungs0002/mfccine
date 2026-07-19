@@ -350,6 +350,7 @@ const RegistrationForm = ({
   vi, departments, formData, setFormData, errors, setErrors,
   submitStatus, setSubmitStatus, onBack, onDepartmentChange,
 }) => {
+  const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const dobPickerRef = useRef(null);
   const dept = departments.find(d => d.name === formData.department) || departments[0];
@@ -399,50 +400,33 @@ const RegistrationForm = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = vi ? 'Vui lòng nhập họ và tên.' : 'Please enter your full name.';
-    if (!formData.dob.trim()) newErrors.dob = vi ? 'Vui lòng nhập ngày sinh.' : 'Please enter your date of birth.';
-    if (!formData.phone.trim()) newErrors.phone = vi ? 'Vui lòng nhập số điện thoại.' : 'Please enter your phone number.';
-    if (!formData.email.trim()) newErrors.email = vi ? 'Vui lòng nhập email.' : 'Please enter your email.';
-    if (!formData.department) newErrors.department = vi ? 'Vui lòng chọn ban ứng tuyển.' : 'Please select a department.';
-    if (!formData.facebook.trim()) newErrors.facebook = vi ? 'Vui lòng nhập link Facebook cá nhân.' : 'Please enter your Facebook link.';
-    dept.questions.forEach((_, i) => {
-      if (!(formData.answers[i] || '').trim()) {
-        newErrors[`answer${i}`] = vi ? 'Vui lòng trả lời câu hỏi này.' : 'Please answer this question.';
-      }
-    });
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      setSubmitStatus(null);
-      return;
-    }
-    setErrors({});
-    setSubmitting(true);
-    // Bundle each question alongside its answer so the admin dashboard can show both later.
-    const payload = {
-      ...formData,
-      answers: (vi ? dept.questions : dept.questionsEn).map((q, i) => ({ question: q, answer: formData.answers[i] || '' })),
-    };
-    try {
-      const res = await fetch(`${API_URL}/api/applications`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
-        console.log('Recruitment application:', payload);
-        setSubmitStatus('success');
-      } else {
-        setSubmitStatus('error');
-      }
-    } catch {
-      setSubmitStatus('error');
-    } finally {
-      setSubmitting(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    setSubmitStatus('closed');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (submitStatus === 'closed') {
+    return (
+      <div className="mfc-card" style={{ padding: '48px 32px', textAlign: 'center' }}>
+        <span className="material-symbols-outlined" style={{ fontSize: 52, color: '#f87171', marginBottom: 16, display: 'block' }}>inventory_2</span>
+        <h3 className="serif" style={{ color: '#fff', fontSize: 24, margin: '0 0 12px' }}>
+          {vi ? 'Đã đóng đơn tuyển dụng' : 'Recruitment Closed'}
+        </h3>
+        <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.75, maxWidth: 440, margin: '0 auto 28px' }}>
+          {vi
+            ? 'Rất tiếc, đợt tuyển dụng cộng tác viên hiện tại đã kết thúc. Hẹn gặp lại bạn ở những dự án tiếp theo của MFC nhé!'
+            : 'Unfortunately, the current recruitment drive has ended. See you in the next projects of MFC!'}
+        </p>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+          <button type="button" className="btn-outline-pill" onClick={onBack}>
+            {vi ? '← Về trang thông tin' : '← Back to info'}
+          </button>
+          <button type="button" className="btn-pill btn-radiate" onClick={() => { navigate('/about'); window.scrollTo(0, 0); }}>
+            {vi ? 'Tìm hiểu về MFC →' : 'About MFC →'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (submitStatus === 'success') {
     return (
