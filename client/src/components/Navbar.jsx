@@ -182,7 +182,7 @@ const Navbar = ({ isAdminMode, user, onLogout, settings, selectedEvent }) => {
                 {language === 'vi' ? 'Đăng nhập' : 'Sign In'}
               </button>
               <button
-                onClick={() => { setIsMobileMenuOpen(false); navigate('/seating'); }}
+                onClick={() => { setIsMobileMenuOpen(false); navigate('/seating'); window.scrollTo(0, 0); }}
                 className="btn-pill btn-pill-sm hidden sm:inline-flex"
               >
                 {language === 'vi' ? 'Mua vé ngay ✦' : 'Buy Tickets ✦'}
@@ -325,7 +325,7 @@ const Navbar = ({ isAdminMode, user, onLogout, settings, selectedEvent }) => {
                   {language === 'vi' ? 'Đăng nhập' : 'Sign In'}
                 </button>
                 <button
-                  onClick={() => { setIsMobileMenuOpen(false); navigate('/seating'); }}
+                  onClick={() => { setIsMobileMenuOpen(false); navigate('/seating'); window.scrollTo(0, 0); }}
                   className="btn-pill" style={{ justifyContent: 'center' }}
                 >
                   {language === 'vi' ? 'Mua vé ngay ✦' : 'Buy Tickets ✦'}

@@ -122,6 +122,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const vi = language === 'vi';
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
   const activeEvent = events?.[0] ?? null;
 
@@ -133,7 +134,18 @@ const LandingPage = ({ events, setEvent, settings }) => {
 
   useEffect(() => { if (activeEvent) setEvent(activeEvent); }, [activeEvent, setEvent]);
 
-  const handleBook = () => { navigate('/seating'); window.scrollTo(0, 0); };
+  const handleBook = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (settings?.ticketSalesEnabled === false) {
+      setShowComingSoon(true);
+    } else {
+      navigate('/seating');
+      window.scrollTo(0, 0);
+    }
+  };
 
   const formatPrice = (p) =>
     Number(p).toLocaleString('vi-VN') + (vi ? 'đ' : ' VND');
@@ -163,7 +175,24 @@ const LandingPage = ({ events, setEvent, settings }) => {
     + eventDt.toLocaleDateString(vi ? 'vi-VN' : 'en-US', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
   return (
-    <div className="animate-fade-in" style={{ paddingTop: 96 }}>
+    <>
+      {showComingSoon && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+          <div className="mfc-card" style={{ padding: '32px 24px', maxWidth: 400, textAlign: 'center', position: 'relative', margin: '0 16px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 48, color: 'var(--mint)', marginBottom: 16 }}>hourglass_empty</span>
+            <h3 className="serif" style={{ color: '#fff', fontSize: 24, margin: '0 0 12px' }}>
+              {vi ? 'Sắp mở bán' : 'Coming Soon'}
+            </h3>
+            <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.6, margin: '0 0 24px' }}>
+              {vi ? 'Hệ thống đặt vé hiện chưa mở. Hãy theo dõi các kênh thông tin của MFC để cập nhật thời gian mở bán sớm nhất nhé!' : 'Ticket booking is not open yet. Please follow MFC information channels for the earliest updates!'}
+            </p>
+            <button className="btn-pill" onClick={() => setShowComingSoon(false)} style={{ width: '100%', justifyContent: 'center' }}>
+              {vi ? 'Đã hiểu' : 'Got it'}
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="animate-fade-in" style={{ paddingTop: 96 }}>
 
       {/* ── 1. HERO ────────────────────────────────────────────── */}
       <section style={{ padding: '36px 0 52px' }}>
@@ -242,7 +271,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
         <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 'clamp(16px, 5vw, 48px)' }}>
           <Countdown targetDate={activeEvent.date} vi={vi} />
           <div style={{ display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
-            <button className="btn-pill btn-radiate" onClick={handleBook} style={{ fontSize: 16, padding: '16px 36px' }}>
+            <button type="button" className="btn-pill btn-radiate" onClick={handleBook} style={{ fontSize: 16, padding: '16px 36px' }}>
               {vi ? 'Đặt vé ngay →' : 'Book Now →'}
             </button>
           </div>
@@ -436,6 +465,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
         }
       `}</style>
     </div>
+    </>
   );
 };
 
