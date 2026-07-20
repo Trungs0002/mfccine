@@ -93,6 +93,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const [applications, setApplications] = useState([]);
   const [loadingApplications, setLoadingApplications] = useState(false);
   const [applicationDeptFilter, setApplicationDeptFilter] = useState('all');
+  const [applicationStatusFilter, setApplicationStatusFilter] = useState('all');
   const [expandedApplicationId, setExpandedApplicationId] = useState(null);
   const [noteDrafts, setNoteDrafts] = useState({}); // { [applicationId]: draft text }
   const staffName = user?.fullName || user?.email || '';
@@ -1092,13 +1093,22 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
 
               {(() => {
                 const deptOptions = ['all', ...Array.from(new Set(applications.map(a => a.department)))];
-                const filteredApplications = applicationDeptFilter === 'all'
+                let filteredApplications = applicationDeptFilter === 'all'
                   ? applications
                   : applications.filter(a => a.department === applicationDeptFilter);
 
+                filteredApplications = applicationStatusFilter === 'all'
+                  ? filteredApplications
+                  : filteredApplications.filter(a => {
+                      if (applicationStatusFilter === 'passed') return a.status === 'passed' || a.resolved;
+                      if (applicationStatusFilter === 'failed') return a.status === 'failed';
+                      if (applicationStatusFilter === 'pending') return a.status !== 'passed' && a.status !== 'failed' && !a.resolved;
+                      return true;
+                    });
+
                 return (
                   <>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
                       {deptOptions.map(d => (
                         <button
                           key={d}
@@ -1111,8 +1121,31 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                             cursor: 'pointer', transition: 'all .2s',
                           }}
                         >
-                          {d === 'all' ? (language === 'vi' ? 'Tất cả' : 'All') : d}
+                          {d === 'all' ? (language === 'vi' ? 'Tất cả ban' : 'All Depts') : d}
                           {' '}({d === 'all' ? applications.length : applications.filter(a => a.department === d).length})
+                        </button>
+                      ))}
+                    </div>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+                      {[
+                        { id: 'all', label: language === 'vi' ? 'Tất cả trạng thái' : 'All Statuses' },
+                        { id: 'pending', label: language === 'vi' ? 'Chưa xử lý' : 'Pending' },
+                        { id: 'passed', label: language === 'vi' ? 'Đậu' : 'Passed' },
+                        { id: 'failed', label: language === 'vi' ? 'Trượt' : 'Failed' }
+                      ].map(st => (
+                        <button
+                          key={st.id}
+                          onClick={() => setApplicationStatusFilter(st.id)}
+                          style={{
+                            padding: '9px 18px', borderRadius: 999, fontSize: 11, textTransform: 'uppercase', letterSpacing: '.06em',
+                            border: applicationStatusFilter === st.id ? '1px solid rgba(168,150,246,.8)' : '1px solid var(--line)',
+                            background: applicationStatusFilter === st.id ? 'linear-gradient(135deg, var(--ultra), var(--purple))' : 'rgba(1,1,10,.4)',
+                            color: applicationStatusFilter === st.id ? '#fff' : 'var(--muted)',
+                            cursor: 'pointer', transition: 'all .2s',
+                          }}
+                        >
+                          {st.label}
                         </button>
                       ))}
                     </div>
