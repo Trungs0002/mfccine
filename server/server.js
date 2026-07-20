@@ -597,12 +597,7 @@ app.get('/api/applications', async (req, res) => {
 
 app.post('/api/applications', async (req, res) => {
   try {
-    const { name, dob, phone, email, school, department, facebook, portfolio, answers } = req.body;
-    if (!name || !dob || !phone || !email || !department) {
-      return res.status(400).json({ error: 'Missing required fields.' });
-    }
-    const application = await RecruitApplication.create({ name, dob, phone, email, school, department, facebook, portfolio, answers });
-    res.status(201).json({ message: 'Application submitted', applicationId: application._id });
+    return res.status(403).json({ error: 'Đợt tuyển cộng tác viên đã kết thúc.' });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
