@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { API_URL } from '../apiConfig';
 
 /* ─── Data (Vietnamese copy is canonical/kept verbatim for identity + submission;
    "*En" sibling fields hold the English display translation) ───────── */
@@ -347,7 +348,7 @@ const DepartmentQuestions = ({ dept, answers, onChange, vi, errors }) => (
 /* ─── Registration form (Tab 2) ─────────────────────────────────────────── */
 const RegistrationForm = ({
   vi, departments, formData, setFormData, errors, setErrors,
-  submitStatus, setSubmitStatus, onBack, onDepartmentChange,
+  submitStatus, setSubmitStatus, onBack, onDepartmentChange, settings
 }) => {
   const navigate = useNavigate();
   const dobPickerRef = useRef(null);
@@ -396,10 +397,64 @@ const RegistrationForm = ({
     setErrors(er => (er[`answer${idx}`] ? { ...er, [`answer${idx}`]: undefined } : er));
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = vi ? 'Vui lòng nhập họ tên' : 'Name is required';
+    if (!formData.dob.trim()) newErrors.dob = vi ? 'Vui lòng nhập ngày sinh' : 'Date of birth is required';
+    if (!formData.phone.trim()) newErrors.phone = vi ? 'Vui lòng nhập số điện thoại' : 'Phone is required';
+    if (!formData.email.trim()) {
+      newErrors.email = vi ? 'Vui lòng nhập email' : 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = vi ? 'Email không hợp lệ' : 'Invalid email format';
+    }
+    if (!formData.facebook.trim()) newErrors.facebook = vi ? 'Vui lòng nhập link Facebook' : 'Facebook link is required';
+    
+    formData.answers.forEach((ans, i) => {
+      if (!ans.trim()) newErrors[`answer${i}`] = vi ? 'Vui lòng trả lời câu hỏi này' : 'Please answer this question';
+    });
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitStatus('closed');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (!settings?.recruitFormEnabled) {
+      setSubmitStatus('closed');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      const payload = {
+        ...formData,
+        answers: formData.answers.map((ans, i) => ({
+          question: vi ? dept.questions[i] : dept.questionsEn[i],
+          answer: ans
+        }))
+      };
+
+      const res = await fetch(`${API_URL}/api/applications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.status === 201 || res.ok) {
+        setSubmitStatus('success');
+      } else if (res.status === 403) {
+        setSubmitStatus('closed');
+      } else {
+        setSubmitStatus('error');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      setSubmitStatus('error');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   if (submitStatus === 'closed') {
@@ -446,7 +501,7 @@ const RegistrationForm = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mfc-card" style={{ padding: '32px 28px' }}>
+    <form onSubmit={handleSubmit} noValidate className="mfc-card" style={{ padding: '32px 28px' }}>
       {/* Personal info */}
       <div style={{ marginBottom: 28 }}>
         <div style={{ fontSize: 11, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 18, paddingBottom: 10, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
@@ -571,7 +626,7 @@ const RegistrationForm = ({
 };
 
 /* ─── Page ───────────────────────────────────────────────────────────── */
-const RecruitPage = () => {
+const RecruitPage = ({ settings }) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const vi = language === 'vi';
@@ -743,6 +798,7 @@ const RecruitPage = () => {
             setSubmitStatus={setSubmitStatus}
             onBack={goBackToInfo}
             onDepartmentChange={handleDepartmentChange}
+            settings={settings}
           />
         </div>
       )}

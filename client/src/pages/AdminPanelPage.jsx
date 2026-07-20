@@ -36,10 +36,10 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   });
 
   // Site Branding states
-  const [siteName, setSiteName] = useState(settings?.siteName || '');
-  const [siteTagline, setSiteTagline] = useState(settings?.siteTagline || '');
-  const [contactEmail] = useState(settings?.contactEmail || '');
+  const [siteName, setSiteName] = useState(settings?.siteName || 'MFC & FASHION CLUB');
+  const [siteTagline, setSiteTagline] = useState(settings?.siteTagline || 'FOREIGN TRADE UNIVERSITY');
   const [ticketSalesEnabled, setTicketSalesEnabled] = useState(settings?.ticketSalesEnabled !== false);
+  const [recruitFormEnabled, setRecruitFormEnabled] = useState(settings?.recruitFormEnabled || false);
   const [updatingSettings, setUpdatingSettings] = useState(false);
 
   // Bilingual Event Management states
@@ -320,7 +320,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     fetch(`${API_URL}/api/settings`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ siteName, siteTagline, contactEmail, ticketSalesEnabled })
+      body: JSON.stringify({ siteName, siteTagline, contactEmail: 'support@ftufashionshow.com', ticketSalesEnabled, recruitFormEnabled })
     })
       .then(res => res.json())
       .then(data => {
@@ -732,6 +732,34 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                   <div style={{ flex: '1 1 260px' }}>
                     <label style={fieldLabelStyle}>{language === 'vi' ? 'Chữ phụ (dưới tên site)' : 'Tagline (below site name)'}</label>
                     <input type="text" value={siteTagline} onChange={(e) => setSiteTagline(e.target.value)} placeholder="FOREIGN TRADE UNIVERSITY" className="mfc-input" required />
+                  </div>
+
+                  <div style={{ flex: '1 1 100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(168,150,246,.28)', background: 'rgba(1,1,10,.4)' }}>
+                    <div>
+                      <div style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>
+                        {language === 'vi' ? 'Nhận đơn Tuyển CTV' : 'Accept CTV Applications'}
+                      </div>
+                      <div style={{ color: 'var(--muted)', fontSize: 11, marginTop: 2 }}>
+                        {language === 'vi'
+                          ? 'Mở để cho phép gửi đơn ở trang Tuyển dụng. Tắt để đóng form và hiện thông báo kết thúc đợt tuyển.'
+                          : 'Turn on to allow submissions on the Recruitment page. Turn off to close the form and show the expired message.'}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setRecruitFormEnabled(v => !v)}
+                      style={{
+                        position: 'relative', width: 48, height: 26, borderRadius: 999, border: 'none', cursor: 'pointer', transition: 'all .3s',
+                        background: recruitFormEnabled ? 'linear-gradient(135deg, var(--ultra), var(--purple))' : 'rgba(255,255,255,.15)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: 'absolute', top: 3, left: recruitFormEnabled ? 25 : 3, width: 20, height: 20, borderRadius: '50%',
+                          background: '#fff', transition: 'all .3s', boxShadow: '0 2px 5px rgba(0,0,0,.2)'
+                        }}
+                      />
+                    </button>
                   </div>
 
                   <div style={{ flex: '1 1 100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(168,150,246,.28)', background: 'rgba(1,1,10,.4)' }}>

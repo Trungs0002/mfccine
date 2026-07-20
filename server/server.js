@@ -45,8 +45,9 @@ const User = mongoose.model('User', UserSchema);
 const SettingsSchema = new mongoose.Schema({
   siteName: { type: String, default: 'EVENT TICKETING PRO' },
   siteTagline: { type: String, default: 'FOREIGN TRADE UNIVERSITY' },
-  contactEmail: { type: String, default: 'support@eventpro.com' },
-  ticketSalesEnabled: { type: Boolean, default: true }
+  contactEmail: { type: String, default: 'support@ftufashionshow.com' },
+  ticketSalesEnabled: { type: Boolean, default: true },
+  recruitFormEnabled: { type: Boolean, default: false }
 });
 
 const Settings = mongoose.model('Settings', SettingsSchema);
@@ -296,13 +297,14 @@ app.get('/api/settings', async (req, res) => {
 
 app.put('/api/settings', async (req, res) => {
   try {
-    const { siteName, siteTagline, contactEmail, ticketSalesEnabled } = req.body;
+    const { siteName, siteTagline, contactEmail, ticketSalesEnabled, recruitFormEnabled } = req.body;
     let settings = await Settings.findOne();
     if (!settings) settings = new Settings();
-    settings.siteName = siteName || settings.siteName;
-    settings.siteTagline = siteTagline || settings.siteTagline;
-    settings.contactEmail = contactEmail || settings.contactEmail;
+    if (siteName) settings.siteName = siteName;
+    if (siteTagline) settings.siteTagline = siteTagline;
+    if (contactEmail) settings.contactEmail = contactEmail;
     if (typeof ticketSalesEnabled === 'boolean') settings.ticketSalesEnabled = ticketSalesEnabled;
+    if (typeof recruitFormEnabled === 'boolean') settings.recruitFormEnabled = recruitFormEnabled;
     await settings.save();
     res.json(settings);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -597,7 +599,16 @@ app.get('/api/applications', async (req, res) => {
 
 app.post('/api/applications', async (req, res) => {
   try {
-    return res.status(403).json({ error: 'Đợt tuyển cộng tác viên đã kết thúc.' });
+    const settings = await Settings.findOne();
+    if (settings && settings.recruitFormEnabled === false) {
+      return res.status(403).json({ error: 'Đợt tuyển cộng tác viên đã kết thúc.' });
+    }
+    const { name, dob, phone, email, school, department, facebook, portfolio, answers } = req.body;
+    if (!name || !dob || !phone || !email || !department) {
+      return res.status(400).json({ error: 'Missing required fields.' });
+    }
+    const application = await RecruitApplication.create({ name, dob, phone, email, school, department, facebook, portfolio, answers });
+    res.status(201).json({ message: 'Application submitted', applicationId: application._id });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
