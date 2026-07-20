@@ -144,6 +144,7 @@ const RecruitApplicationSchema = new mongoose.Schema({
   portfolio: { type: String, default: '' },
   answers: { type: [{ question: String, answer: String }], default: [] }, // each entry keeps the question text alongside the answer
   resolved: { type: Boolean, default: false },
+  status: { type: String, enum: ['pending', 'passed', 'failed'], default: 'pending' },
   resolvedBy: { type: String, default: null },
   resolvedAt: { type: Date, default: null },
   notes: {
@@ -627,15 +628,16 @@ app.post('/api/applications/:id/notes', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Mark an application as processed, or reopen it
+// Mark an application as processed (passed/failed), or reopen it (pending)
 app.put('/api/applications/:id/resolve', async (req, res) => {
   try {
-    const { resolved, resolvedBy } = req.body;
+    const { status, resolvedBy } = req.body;
     const application = await RecruitApplication.findById(req.params.id);
     if (!application) return res.status(404).json({ error: 'Application not found' });
-    application.resolved = !!resolved;
-    application.resolvedBy = resolved ? (resolvedBy || null) : null;
-    application.resolvedAt = resolved ? new Date() : null;
+    application.status = status;
+    application.resolved = status === 'passed'; // backward compat
+    application.resolvedBy = status !== 'pending' ? (resolvedBy || null) : null;
+    application.resolvedAt = status !== 'pending' ? new Date() : null;
     await application.save();
     res.json(application);
   } catch (err) { res.status(500).json({ error: err.message }); }

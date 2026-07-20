@@ -255,12 +255,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     }
   };
 
-  const handleToggleResolved = async (application) => {
-    const resolved = !application.resolved;
+  const handleUpdateStatus = async (application, status) => {
     const res = await fetch(`${API_URL}/api/applications/${application._id}/resolve`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resolved, resolvedBy: resolved ? staffName : null }),
+      body: JSON.stringify({ status, resolvedBy: status !== 'pending' ? staffName : null }),
     });
     if (res.ok) {
       const updated = await res.json();
@@ -589,11 +588,14 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
       ];
     }
     if (activeAdminTab === 'applications') {
-      const resolvedCount = applications.filter(a => a.resolved).length;
+      const passedCount = applications.filter(a => a.status === 'passed' || a.resolved).length;
+      const failedCount = applications.filter(a => a.status === 'failed').length;
+      const pendingCount = applications.length - passedCount - failedCount;
       return [
-        { label: language === 'vi' ? 'Tổng số CTV đã nộp đơn' : 'Total Applications', value: applications.length, icon: 'assignment_ind', color: 'var(--purple)' },
-        { label: language === 'vi' ? 'Chưa xử lý' : 'Pending', value: applications.length - resolvedCount, icon: 'pending', color: '#ffb800' },
-        { label: language === 'vi' ? 'Đã xử lý' : 'Processed', value: resolvedCount, icon: 'task_alt', color: 'var(--mint)' },
+        { label: language === 'vi' ? 'Tổng số' : 'Total Applications', value: applications.length, icon: 'assignment_ind', color: 'var(--purple)' },
+        { label: language === 'vi' ? 'Chưa xử lý' : 'Pending', value: pendingCount, icon: 'pending', color: '#ffb800' },
+        { label: language === 'vi' ? 'Đậu' : 'Passed', value: passedCount, icon: 'task_alt', color: 'var(--mint)' },
+        { label: language === 'vi' ? 'Trượt' : 'Failed', value: failedCount, icon: 'cancel', color: '#ff6b6b' },
       ];
     }
     if (activeAdminTab === 'nhat') {
@@ -689,7 +691,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
           {(() => {
             const statCards = getStatCards();
             return statCards.length > 0 && (
-              <div className="admin-analytics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
+              <div className="admin-analytics-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${statCards.length}, 1fr)`, gap: 16, marginBottom: 32 }}>
                 {statCards.map((c, i) => (
                   <div
                     key={i}
@@ -1138,13 +1140,13 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                   <span
                                     style={{
                                       padding: '3px 10px', borderRadius: 999, fontSize: 9, fontWeight: 700, textTransform: 'uppercase',
-                                      border: `1px solid ${a.resolved ? 'rgba(158,254,253,.3)' : 'rgba(255,184,0,.3)'}`,
-                                      color: a.resolved ? 'var(--mint)' : '#ffb800',
-                                      background: a.resolved ? 'rgba(158,254,253,.08)' : 'rgba(255,184,0,.08)',
+                                      border: `1px solid ${a.status === 'passed' || a.resolved ? 'rgba(158,254,253,.3)' : a.status === 'failed' ? 'rgba(255,107,107,.3)' : 'rgba(255,184,0,.3)'}`,
+                                      color: a.status === 'passed' || a.resolved ? 'var(--mint)' : a.status === 'failed' ? '#ff6b6b' : '#ffb800',
+                                      background: a.status === 'passed' || a.resolved ? 'rgba(158,254,253,.08)' : a.status === 'failed' ? 'rgba(255,107,107,.08)' : 'rgba(255,184,0,.08)',
                                     }}
-                                    title={a.resolved ? `${language === 'vi' ? 'Xử lý bởi' : 'Processed by'} ${a.resolvedBy || '—'}` : ''}
+                                    title={(a.status === 'passed' || a.status === 'failed' || a.resolved) ? `${language === 'vi' ? 'Xử lý bởi' : 'Processed by'} ${a.resolvedBy || '—'}` : ''}
                                   >
-                                    {a.resolved ? (language === 'vi' ? 'Đã xử lý' : 'Processed') : (language === 'vi' ? 'Chưa xử lý' : 'Pending')}
+                                    {a.status === 'passed' || a.resolved ? (language === 'vi' ? 'Đậu' : 'Passed') : a.status === 'failed' ? (language === 'vi' ? 'Trượt' : 'Failed') : (language === 'vi' ? 'Chưa xử lý' : 'Pending')}
                                   </span>
                                   <span style={{ color: 'var(--muted)', fontSize: 11 }}>
                                     {new Date(a.createdAt).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')}
@@ -1194,13 +1196,32 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                       <p style={{ color: 'var(--muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.08em', margin: 0 }}>
                                         {language === 'vi' ? 'Ghi chú' : 'Notes'}
                                       </p>
+                                    {(a.status === 'passed' || a.status === 'failed' || a.resolved) ? (
                                       <button
-                                        onClick={() => handleToggleResolved(a)}
-                                        className={a.resolved ? 'btn-outline-pill' : 'btn-pill'}
+                                        onClick={() => handleUpdateStatus(a, 'pending')}
+                                        className="btn-outline-pill"
                                         style={{ fontSize: 10, padding: '7px 14px' }}
                                       >
-                                        {a.resolved ? (language === 'vi' ? '↺ Đánh dấu chưa xử lý' : '↺ Mark Unprocessed') : (language === 'vi' ? '✓ Đánh dấu đã xử lý' : '✓ Mark Processed')}
+                                        {language === 'vi' ? '↺ Hoàn tác' : '↺ Undo'}
                                       </button>
+                                    ) : (
+                                      <div style={{ display: 'flex', gap: 8 }}>
+                                        <button
+                                          onClick={() => handleUpdateStatus(a, 'passed')}
+                                          className="btn-pill"
+                                          style={{ fontSize: 10, padding: '7px 14px', background: 'var(--mint)', color: '#000', border: 'none' }}
+                                        >
+                                          {language === 'vi' ? '✓ Đánh Đậu' : '✓ Mark Passed'}
+                                        </button>
+                                        <button
+                                          onClick={() => handleUpdateStatus(a, 'failed')}
+                                          className="btn-pill"
+                                          style={{ fontSize: 10, padding: '7px 14px', background: 'rgba(255,107,107,.15)', color: '#ff6b6b', border: '1px solid rgba(255,107,107,.5)' }}
+                                        >
+                                          {language === 'vi' ? '✗ Đánh trượt' : '✗ Mark Failed'}
+                                        </button>
+                                      </div>
+                                    )}
                                     </div>
 
                                     {(a.notes || []).length > 0 && (
@@ -1219,11 +1240,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                       </div>
                                     )}
 
-                                    {a.resolved ? (
-                                      <p style={{ color: 'var(--mint)', fontSize: 12, fontStyle: 'italic', margin: 0 }}>
+                                    {(a.status === 'passed' || a.status === 'failed' || a.resolved) ? (
+                                      <p style={{ color: a.status === 'failed' ? '#ff6b6b' : 'var(--mint)', fontSize: 12, fontStyle: 'italic', margin: 0 }}>
                                         {language === 'vi'
-                                          ? `Đã được xử lý xong bởi ${a.resolvedBy || '—'}${a.resolvedAt ? ` lúc ${new Date(a.resolvedAt).toLocaleString('vi-VN')}` : ''}. Bấm "Đánh dấu chưa xử lý" để mở lại.`
-                                          : `Processed by ${a.resolvedBy || '—'}${a.resolvedAt ? ` at ${new Date(a.resolvedAt).toLocaleString('en-US')}` : ''}. Click "Mark Unprocessed" to reopen.`}
+                                          ? `Đã được đánh ${a.status === 'failed' ? 'trượt' : 'đậu'} bởi ${a.resolvedBy || '—'}${a.resolvedAt ? ` lúc ${new Date(a.resolvedAt).toLocaleString('vi-VN')}` : ''}. Bấm "Hoàn tác" để mở lại.`
+                                          : `Marked as ${a.status === 'failed' ? 'failed' : 'passed'} by ${a.resolvedBy || '—'}${a.resolvedAt ? ` at ${new Date(a.resolvedAt).toLocaleString('en-US')}` : ''}. Click "Undo" to reopen.`}
                                       </p>
                                     ) : (
                                       <div style={{ display: 'flex', gap: 8 }}>
