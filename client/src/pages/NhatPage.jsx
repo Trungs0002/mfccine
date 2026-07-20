@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
@@ -108,6 +109,7 @@ const NhatPage = () => {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null); // null | 'success' | 'error'
+  const [showPopup, setShowPopup] = useState(true);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -174,6 +176,44 @@ const NhatPage = () => {
 
   return (
     <div className="animate-fade-in nhat-page" style={{ paddingTop: 96, paddingBottom: 64 }}>
+      {showPopup && createPortal(
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(0,0,0,0.8)', padding: 20
+        }}>
+          <div className="mfc-card" style={{ maxWidth: 500, width: '100%', position: 'relative', padding: 32, textAlign: 'center', borderTop: '2px solid var(--mint)' }}>
+            <button
+              onClick={() => setShowPopup(false)}
+              style={{ position: 'absolute', top: 16, right: 16, background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex' }}
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+            <h2 className="gradient-title-hero" style={{ fontSize: 24, marginBottom: 16, textTransform: 'uppercase' }}>
+              {vi ? 'Gia hạn vòng tuyển chọn!' : 'Selection Round Extended!'}
+            </h2>
+            <p style={{ color: '#ccc8f0', fontSize: 16, lineHeight: 1.6, marginBottom: 24 }}>
+              {vi ? (
+                <>
+                  Vòng tuyển chọn đã được gia hạn đến <strong style={{ color: 'var(--mint)' }}>30/7</strong>.<br />
+                  Hãy nhanh tay tham gia ngay để không bỏ lỡ cơ hội tỏa sáng nào!
+                </>
+              ) : (
+                <>
+                  The selection round has been extended to <strong style={{ color: 'var(--mint)' }}>July 30th</strong>.<br />
+                  Join now so you don't miss your chance to shine!
+                </>
+              )}
+            </p>
+            <button className="btn-pill btn-radiate" onClick={() => {
+              setShowPopup(false);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }} style={{ padding: '12px 24px', fontSize: 16 }}>
+              {vi ? 'Tham gia ngay' : 'Join now'}
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
       {/* Hero */}
       <section style={{ padding: '0 0 56px' }}>
         <div className="container" style={{ maxWidth: 760, textAlign: 'center' }}>
@@ -499,7 +539,7 @@ const NhatPage = () => {
               <div className="serif" style={{ color: '#fff', fontSize: 18, fontWeight: 700, marginBottom: 6 }}>
                 {vi ? 'Vòng đơn' : 'Round 1'}
               </div>
-              <div style={{ color: 'var(--mint)', fontSize: 13, letterSpacing: '.04em' }}>11/7 – 22/7</div>
+              <div style={{ color: 'var(--mint)', fontSize: 13, letterSpacing: '.04em' }}>11/7 – 30/7</div>
             </div>
             <div style={{ height: 1, flex: '1 1 60px', background: 'var(--line)', marginTop: 7 }} />
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '0 1 220px' }}>
@@ -507,7 +547,7 @@ const NhatPage = () => {
               <div className="serif" style={{ color: '#fff', fontSize: 18, fontWeight: 700, marginBottom: 6 }}>
                 {vi ? 'Vòng tuyển chọn' : 'Round 2'}
               </div>
-              <div style={{ color: 'var(--mint)', fontSize: 13, letterSpacing: '.04em' }}>25/7</div>
+              <div style={{ color: 'var(--mint)', fontSize: 13, letterSpacing: '.04em' }}>{vi ? 'Coming soon' : 'Coming soon'}</div>
             </div>
           </div>
         </div>
