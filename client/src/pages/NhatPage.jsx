@@ -176,7 +176,7 @@ const NhatPage = () => {
 
   return (
     <div className="animate-fade-in nhat-page" style={{ paddingTop: 96, paddingBottom: 64 }}>
-      {showPopup && createPortal(
+      {showPopup && language && createPortal(
         <div style={{
           position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center',
           background: 'rgba(0,0,0,0.8)', padding: 20

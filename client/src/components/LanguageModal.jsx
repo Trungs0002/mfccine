@@ -27,8 +27,8 @@ const LanguageModal = () => {
 
         <div style={{ display: 'flex', gap: 16, width: '100%' }}>
           {[
-            { lang: 'vi', flag: '🇻🇳', label: 'Tiếng Việt' },
-            { lang: 'en', flag: '🇬🇧', label: 'English' },
+            { lang: 'vi', flag: 'VN', label: 'Tiếng Việt' },
+            { lang: 'en', flag: 'EN', label: 'English' },
           ].map(({ lang, flag, label }) => (
             <button
               key={lang}
