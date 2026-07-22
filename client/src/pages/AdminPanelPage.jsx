@@ -1451,23 +1451,34 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                               <p style={{ color: '#e0dbff', margin: 0, lineHeight: 1.6 }}>{s.note || (language === 'vi' ? 'Không có' : 'None')}</p>
                             </div>
 
-                            <div className="admin-form-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                              {[
-                                { label: language === 'vi' ? 'Bản vẽ thiết kế' : 'Design Sketch', src: s.designImage, name: `${s.fullName}-design-sketch` },
-                                { label: language === 'vi' ? 'Ảnh bộ đồ (1)' : 'Outfit Photo (1)', src: s.outfitPhoto1, name: `${s.fullName}-outfit-1` },
-                                { label: language === 'vi' ? 'Ảnh bộ đồ (2)' : 'Outfit Photo (2)', src: s.outfitPhoto2, name: `${s.fullName}-outfit-2` },
-                              ].map((img, i) => (
-                                <div key={i}>
-                                  <p style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '0 0 6px' }}>{img.label}</p>
-                                  <img
-                                    src={img.src}
-                                    alt={img.label}
-                                    onClick={() => setZoomedImage({ src: img.src, name: img.name })}
-                                    style={{ width: '100%', maxHeight: 180, objectFit: 'cover', border: '1px solid var(--line)', display: 'block', cursor: 'zoom-in' }}
-                                  />
+                            {(s.outfits && s.outfits.length > 0 ? s.outfits : [{ designImage: s.designImage, outfitPhoto1: s.outfitPhoto1, outfitPhoto2: s.outfitPhoto2 }]).map((outfit, index) => (
+                              <div key={index} style={{ marginBottom: 16 }}>
+                                <div style={{ fontSize: 11, color: 'var(--mint)', textTransform: 'uppercase', letterSpacing: '.12em', fontWeight: 700, marginBottom: 8 }}>
+                                  {language === 'vi' ? `Bộ đồ ${index + 1}` : `Outfit ${index + 1}`}
                                 </div>
-                              ))}
-                            </div>
+                                <div className="admin-form-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                                  {[
+                                    { label: language === 'vi' ? 'Bản vẽ thiết kế' : 'Design Sketch', src: outfit.designImage, name: `${s.fullName}-outfit${index+1}-sketch` },
+                                    { label: language === 'vi' ? 'Ảnh bộ đồ (1)' : 'Outfit Photo (1)', src: outfit.outfitPhoto1, name: `${s.fullName}-outfit${index+1}-photo1` },
+                                    { label: language === 'vi' ? 'Ảnh bộ đồ (2)' : 'Outfit Photo (2)', src: outfit.outfitPhoto2, name: `${s.fullName}-outfit${index+1}-photo2` },
+                                  ].map((img, i) => (
+                                    <div key={i}>
+                                      <p style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '0 0 6px' }}>{img.label}</p>
+                                      {img.src ? (
+                                        <img
+                                          src={img.src}
+                                          alt={img.label}
+                                          onClick={() => setZoomedImage({ src: img.src, name: img.name })}
+                                          style={{ width: '100%', maxHeight: 180, objectFit: 'cover', border: '1px solid var(--line)', display: 'block', cursor: 'zoom-in' }}
+                                        />
+                                      ) : (
+                                        <div style={{ height: 180, border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}>N/A</div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
                             <p style={{ color: 'var(--muted)', fontSize: 10, margin: 0 }}>
                               {new Date(s.createdAt).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')}
                             </p>

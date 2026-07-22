@@ -165,9 +165,20 @@ const NhatSubmissionSchema = new mongoose.Schema({
   phone: { type: String, required: true },
   school: { type: String, default: '' },
   note: { type: String, default: '' },
-  designImage: { type: String, required: true },
-  outfitPhoto1: { type: String, required: true },
-  outfitPhoto2: { type: String, required: true },
+  outfits: {
+    type: [{
+      designImage: { type: String, required: true },
+      outfitPhoto1: { type: String, required: true },
+      outfitPhoto2: { type: String, required: true }
+    }],
+    default: []
+  },
+  designImage: { type: String },
+  outfitPhoto1: { type: String },
+  outfitPhoto2: { type: String },
+  designImage2: { type: String },
+  outfitPhoto1_2: { type: String },
+  outfitPhoto2_2: { type: String },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -661,26 +672,58 @@ const isJpegOrPngDataUri = (str) => typeof str === 'string' && /^data:image\/(jp
 
 app.post('/api/nhat-submissions', async (req, res) => {
   try {
-    const { fullName, email, phone, school, note, designImage, outfitPhoto1, outfitPhoto2 } = req.body;
-    if (!fullName || !email || !phone || !designImage || !outfitPhoto1 || !outfitPhoto2) {
-      return res.status(400).json({ error: 'Missing required fields.' });
+    const { fullName, email, phone, school, note, outfits } = req.body;
+    if (!fullName || !email || !phone || !outfits || !Array.isArray(outfits) || outfits.length === 0) {
+      return res.status(400).json({ error: 'Missing required fields or outfits.' });
     }
-    if (![designImage, outfitPhoto1, outfitPhoto2].every(isJpegOrPngDataUri)) {
+
+    const imagesToValidate = [];
+    for (const outfit of outfits) {
+      if (!outfit.designImage || !outfit.outfitPhoto1 || !outfit.outfitPhoto2) {
+        return res.status(400).json({ error: 'Missing images in one of the outfits.' });
+      }
+      imagesToValidate.push(outfit.designImage, outfit.outfitPhoto1, outfit.outfitPhoto2);
+    }
+
+    if (!imagesToValidate.every(isJpegOrPngDataUri)) {
       return res.status(400).json({ error: 'Only JPG, JPEG, or PNG images are accepted.' });
     }
     // Upload original-quality images to Cloudinary instead of embedding base64 in MongoDB
     // (a MongoDB document is capped at 16MB, which 3 full-resolution photos can easily exceed).
-    const [designUpload, outfit1Upload, outfit2Upload] = await Promise.all([
-      cloudinary.uploader.upload(designImage, { folder: 'nhat_entries' }),
-      cloudinary.uploader.upload(outfitPhoto1, { folder: 'nhat_entries' }),
-      cloudinary.uploader.upload(outfitPhoto2, { folder: 'nhat_entries' }),
-    ]);
-    const submission = await NhatSubmission.create({
-      fullName, email, phone, school, note,
-      designImage: designUpload.secure_url,
-      outfitPhoto1: outfit1Upload.secure_url,
-      outfitPhoto2: outfit2Upload.secure_url,
-    });
+    const uploadPromises = [];
+    for (const outfit of outfits) {
+      uploadPromises.push(
+        cloudinary.uploader.upload(outfit.designImage, { folder: 'nhat_entries' }),
+        cloudinary.uploader.upload(outfit.outfitPhoto1, { folder: 'nhat_entries' }),
+        cloudinary.uploader.upload(outfit.outfitPhoto2, { folder: 'nhat_entries' })
+      );
+    }
+
+    const uploadedResults = await Promise.all(uploadPromises);
+    const uploadedOutfits = [];
+    for (let i = 0; i < outfits.length; i++) {
+      uploadedOutfits.push({
+        designImage: uploadedResults[i * 3].secure_url,
+        outfitPhoto1: uploadedResults[i * 3 + 1].secure_url,
+        outfitPhoto2: uploadedResults[i * 3 + 2].secure_url
+      });
+    }
+
+    const submissionData = {
+      fullName, email, phone, school, note, outfits: uploadedOutfits,
+    };
+    if (uploadedOutfits.length > 0) {
+      submissionData.designImage = uploadedOutfits[0].designImage;
+      submissionData.outfitPhoto1 = uploadedOutfits[0].outfitPhoto1;
+      submissionData.outfitPhoto2 = uploadedOutfits[0].outfitPhoto2;
+    }
+    if (uploadedOutfits.length > 1) {
+      submissionData.designImage2 = uploadedOutfits[1].designImage;
+      submissionData.outfitPhoto1_2 = uploadedOutfits[1].outfitPhoto1;
+      submissionData.outfitPhoto2_2 = uploadedOutfits[1].outfitPhoto2;
+    }
+
+    const submission = await NhatSubmission.create(submissionData);
     res.status(201).json({ message: 'Submission received', submissionId: submission._id });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });

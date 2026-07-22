@@ -103,9 +103,7 @@ const NhatPage = () => {
 
   const [heroImageIndex, setHeroImageIndex] = useState(0);
   const [formData, setFormData] = useState({ fullName: '', email: '', phone: '', school: '', note: '' });
-  const [designImage, setDesignImage] = useState(null);
-  const [outfitPhoto1, setOutfitPhoto1] = useState(null);
-  const [outfitPhoto2, setOutfitPhoto2] = useState(null);
+  const [outfits, setOutfits] = useState([{ designImage: null, outfitPhoto1: null, outfitPhoto2: null }]);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null); // null | 'success' | 'error'
@@ -127,17 +125,20 @@ const NhatPage = () => {
   const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
   const ALLOWED_EXTENSIONS = /\.(jpe?g|png)$/i;
 
-  const handleFileChange = (setter, key) => async (e) => {
+  const handleOutfitFileChange = (index, field) => async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const isAllowed = ALLOWED_TYPES.includes(file.type) || ALLOWED_EXTENSIONS.test(file.name);
+    const key = `${field}_${index}`;
     if (!isAllowed) {
       setErrors(er => ({ ...er, [key]: vi ? 'Chỉ chấp nhận ảnh định dạng JPG, JPEG hoặc PNG.' : 'Only JPG, JPEG, or PNG images are accepted.' }));
       e.target.value = '';
       return;
     }
     const base64 = await fileToBase64(file);
-    setter(base64);
+    const newOutfits = [...outfits];
+    newOutfits[index][field] = base64;
+    setOutfits(newOutfits);
     setErrors(er => (er[key] ? { ...er, [key]: undefined } : er));
   };
 
@@ -145,11 +146,17 @@ const NhatPage = () => {
     e.preventDefault();
     const newErrors = {};
     if (!formData.fullName.trim()) newErrors.fullName = vi ? 'Vui lòng nhập họ và tên.' : 'Please enter your full name.';
-    if (!formData.email.trim()) newErrors.email = vi ? 'Vui lòng nhập email.' : 'Please enter your email.';
+    if (!formData.email.trim()) {
+      newErrors.email = vi ? 'Vui lòng nhập email.' : 'Please enter your email.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      newErrors.email = vi ? 'Vui lòng nhập một email hợp lệ.' : 'Please enter a valid email.';
+    }
     if (!formData.phone.trim()) newErrors.phone = vi ? 'Vui lòng nhập số điện thoại.' : 'Please enter your phone number.';
-    if (!designImage) newErrors.designImage = vi ? 'Vui lòng tải lên ảnh bản vẽ thiết kế.' : 'Please upload your design sketch image.';
-    if (!outfitPhoto1) newErrors.outfitPhoto1 = vi ? 'Vui lòng tải lên ảnh chụp bộ đồ (1).' : 'Please upload outfit photo (1).';
-    if (!outfitPhoto2) newErrors.outfitPhoto2 = vi ? 'Vui lòng tải lên ảnh chụp bộ đồ (2).' : 'Please upload outfit photo (2).';
+    outfits.forEach((outfit, i) => {
+      if (!outfit.designImage) newErrors[`designImage_${i}`] = vi ? `Vui lòng tải lên ảnh bản vẽ thiết kế (bộ ${i + 1}).` : `Please upload design sketch image (outfit ${i + 1}).`;
+      if (!outfit.outfitPhoto1) newErrors[`outfitPhoto1_${i}`] = vi ? `Vui lòng tải lên ảnh chụp bộ đồ ${i + 1} (1).` : `Please upload outfit ${i + 1} photo (1).`;
+      if (!outfit.outfitPhoto2) newErrors[`outfitPhoto2_${i}`] = vi ? `Vui lòng tải lên ảnh chụp bộ đồ ${i + 1} (2).` : `Please upload outfit ${i + 1} photo (2).`;
+    });
     if (!formData.note.trim()) newErrors.note = vi ? 'Vui lòng nhập ghi chú thêm.' : 'Please enter additional notes.';
 
     if (Object.keys(newErrors).length > 0) {
@@ -163,14 +170,20 @@ const NhatPage = () => {
       const res = await fetch(`${API_URL}/api/nhat-submissions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, designImage, outfitPhoto1, outfitPhoto2 }),
+        body: JSON.stringify({ ...formData, outfits }),
       });
       setSubmitStatus(res.ok ? 'success' : 'error');
     } catch {
       setSubmitStatus('error');
     } finally {
       setSubmitting(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const section = document.getElementById('submission-section');
+      if (section) {
+        const topOffset = section.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo({ top: topOffset, behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   };
 
@@ -339,7 +352,7 @@ const NhatPage = () => {
       </section>
 
       {/* Submission form */}
-      <section style={{ padding: '0 0 64px' }}>
+      <section id="submission-section" style={{ padding: '0 0 64px' }}>
         <div className="container" style={{ maxWidth: 760 }}>
           <div className="section-eyebrow" style={{ marginBottom: 28 }}>
             <span className="gradient-title-hero" style={{ fontSize: 'clamp(24px, 5vw, 34px)', fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase' }}>
@@ -366,7 +379,7 @@ const NhatPage = () => {
                 background: 'radial-gradient(ellipse at center, rgba(158,254,253,.3), rgba(168,150,246,.18) 45%, transparent 72%)',
                 filter: 'blur(40px)',
               }} />
-              <form onSubmit={handleSubmit} className="mfc-card" style={{
+              <form onSubmit={handleSubmit} noValidate className="mfc-card" style={{
                 position: 'relative', zIndex: 1, overflow: 'hidden', padding: '32px 24px 28px',
                 background: `
                 radial-gradient(ellipse 140% 55% at 50% -10%, rgba(225,220,255,.4), transparent 62%),
@@ -434,29 +447,51 @@ const NhatPage = () => {
                       {vi ? 'Hình ảnh bài dự thi' : 'Entry Images'}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                    <ImageUploadField
-                      label={vi ? 'Ảnh bản vẽ thiết kế' : 'Design Sketch Image'}
-                      value={designImage}
-                      onChange={handleFileChange(setDesignImage, 'designImage')}
-                      onRemove={() => setDesignImage(null)}
-                      error={errors.designImage}
-                    />
-                    <ImageUploadField
-                      label={vi ? 'Ảnh chụp sơ bộ bộ đồ (1)' : 'Preliminary Outfit Photo (1)'}
-                      value={outfitPhoto1}
-                      onChange={handleFileChange(setOutfitPhoto1, 'outfitPhoto1')}
-                      onRemove={() => setOutfitPhoto1(null)}
-                      error={errors.outfitPhoto1}
-                    />
-                    <ImageUploadField
-                      label={vi ? 'Ảnh chụp sơ bộ bộ đồ (2)' : 'Preliminary Outfit Photo (2)'}
-                      value={outfitPhoto2}
-                      onChange={handleFileChange(setOutfitPhoto2, 'outfitPhoto2')}
-                      onRemove={() => setOutfitPhoto2(null)}
-                      error={errors.outfitPhoto2}
-                    />
-                  </div>
+                  {outfits.map((outfit, index) => (
+                    <div key={index} style={{ marginBottom: index < outfits.length - 1 ? 32 : 0, paddingBottom: index < outfits.length - 1 ? 24 : 0, borderBottom: index < outfits.length - 1 ? '1px dashed rgba(168,150,246,.25)' : 'none', position: 'relative' }}>
+                      {index > 0 && (
+                        <button type="button" onClick={() => {
+                          const newOutfits = [...outfits];
+                          newOutfits.splice(index, 1);
+                          setOutfits(newOutfits);
+                        }} style={{ position: 'absolute', top: 0, right: 0, background: 'none', border: 'none', color: '#ff6b6b', cursor: 'pointer', fontSize: 12, textTransform: 'uppercase', letterSpacing: '.05em', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span> {vi ? `Hủy bộ ${index + 1}` : `Remove Outfit ${index + 1}`}
+                        </button>
+                      )}
+                      <div style={{ fontSize: 11, color: 'var(--mint)', textTransform: 'uppercase', letterSpacing: '.12em', fontWeight: 700, marginBottom: 16 }}>
+                        {vi ? `Bộ đồ ${index + 1}` : `Outfit ${index + 1}`}
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                        <ImageUploadField
+                          label={vi ? `Ảnh bản vẽ thiết kế (bộ ${index + 1})` : `Design Sketch Image (Outfit ${index + 1})`}
+                          value={outfit.designImage}
+                          onChange={handleOutfitFileChange(index, 'designImage')}
+                          onRemove={() => { const newO = [...outfits]; newO[index].designImage = null; setOutfits(newO); }}
+                          error={errors[`designImage_${index}`]}
+                        />
+                        <ImageUploadField
+                          label={vi ? `Ảnh chụp sơ bộ bộ đồ ${index + 1} (1)` : `Preliminary Outfit ${index + 1} Photo (1)`}
+                          value={outfit.outfitPhoto1}
+                          onChange={handleOutfitFileChange(index, 'outfitPhoto1')}
+                          onRemove={() => { const newO = [...outfits]; newO[index].outfitPhoto1 = null; setOutfits(newO); }}
+                          error={errors[`outfitPhoto1_${index}`]}
+                        />
+                        <ImageUploadField
+                          label={vi ? `Ảnh chụp sơ bộ bộ đồ ${index + 1} (2)` : `Preliminary Outfit ${index + 1} Photo (2)`}
+                          value={outfit.outfitPhoto2}
+                          onChange={handleOutfitFileChange(index, 'outfitPhoto2')}
+                          onRemove={() => { const newO = [...outfits]; newO[index].outfitPhoto2 = null; setOutfits(newO); }}
+                          error={errors[`outfitPhoto2_${index}`]}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  <button type="button" className="btn-outline-pill" onClick={() => {
+                    setOutfits([...outfits, { designImage: null, outfitPhoto1: null, outfitPhoto2: null }]);
+                  }} style={{ marginTop: 20, width: '100%', justifyContent: 'center' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>add</span>
+                    {vi ? 'Thêm một bộ đồ khác (Tùy chọn)' : 'Add another outfit (Optional)'}
+                  </button>
                 </div>
 
                 {/* Note */}
