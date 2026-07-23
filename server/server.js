@@ -167,6 +167,7 @@ const NhatSubmissionSchema = new mongoose.Schema({
   note: { type: String, default: '' },
   outfits: {
     type: [{
+      name: { type: String, required: true },
       designImage: { type: String, required: true },
       outfitPhoto1: { type: String, required: true },
       outfitPhoto2: { type: String, required: true }
@@ -679,8 +680,8 @@ app.post('/api/nhat-submissions', async (req, res) => {
 
     const imagesToValidate = [];
     for (const outfit of outfits) {
-      if (!outfit.designImage || !outfit.outfitPhoto1 || !outfit.outfitPhoto2) {
-        return res.status(400).json({ error: 'Missing images in one of the outfits.' });
+      if (!outfit.name || !outfit.name.trim() || !outfit.designImage || !outfit.outfitPhoto1 || !outfit.outfitPhoto2) {
+        return res.status(400).json({ error: 'Missing outfit name or images.' });
       }
       imagesToValidate.push(outfit.designImage, outfit.outfitPhoto1, outfit.outfitPhoto2);
     }
@@ -703,6 +704,7 @@ app.post('/api/nhat-submissions', async (req, res) => {
     const uploadedOutfits = [];
     for (let i = 0; i < outfits.length; i++) {
       uploadedOutfits.push({
+        name: outfits[i].name.trim(),
         designImage: uploadedResults[i * 3].secure_url,
         outfitPhoto1: uploadedResults[i * 3 + 1].secure_url,
         outfitPhoto2: uploadedResults[i * 3 + 2].secure_url

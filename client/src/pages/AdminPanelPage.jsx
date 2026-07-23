@@ -1454,7 +1454,9 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                             {(s.outfits && s.outfits.length > 0 ? s.outfits : [{ designImage: s.designImage, outfitPhoto1: s.outfitPhoto1, outfitPhoto2: s.outfitPhoto2 }]).map((outfit, index) => (
                               <div key={index} style={{ marginBottom: 16 }}>
                                 <div style={{ fontSize: 11, color: 'var(--mint)', textTransform: 'uppercase', letterSpacing: '.12em', fontWeight: 700, marginBottom: 8 }}>
-                                  {language === 'vi' ? `Bộ đồ ${index + 1}` : `Outfit ${index + 1}`}
+                                  {language === 'vi' 
+                                    ? `Bộ đồ ${index + 1}${outfit.name ? `: ${outfit.name}` : ''}` 
+                                    : `Outfit ${index + 1}${outfit.name ? `: ${outfit.name}` : ''}`}
                                 </div>
                                 <div className="admin-form-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
                                   {[

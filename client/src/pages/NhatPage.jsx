@@ -103,7 +103,7 @@ const NhatPage = () => {
 
   const [heroImageIndex, setHeroImageIndex] = useState(0);
   const [formData, setFormData] = useState({ fullName: '', email: '', phone: '', school: '', note: '' });
-  const [outfits, setOutfits] = useState([{ designImage: null, outfitPhoto1: null, outfitPhoto2: null }]);
+  const [outfits, setOutfits] = useState([{ name: '', designImage: null, outfitPhoto1: null, outfitPhoto2: null }]);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null); // null | 'success' | 'error'
@@ -124,6 +124,15 @@ const NhatPage = () => {
 
   const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
   const ALLOWED_EXTENSIONS = /\.(jpe?g|png)$/i;
+
+  const handleOutfitNameChange = (index) => (e) => {
+    const { value } = e.target;
+    const newOutfits = [...outfits];
+    newOutfits[index].name = value;
+    setOutfits(newOutfits);
+    const key = `outfitName_${index}`;
+    setErrors(er => (er[key] ? { ...er, [key]: undefined } : er));
+  };
 
   const handleOutfitFileChange = (index, field) => async (e) => {
     const file = e.target.files[0];
@@ -153,6 +162,7 @@ const NhatPage = () => {
     }
     if (!formData.phone.trim()) newErrors.phone = vi ? 'Vui lòng nhập số điện thoại.' : 'Please enter your phone number.';
     outfits.forEach((outfit, i) => {
+      if (!outfit.name || !outfit.name.trim()) newErrors[`outfitName_${i}`] = vi ? `Vui lòng nhập tên bộ đồ (bộ ${i + 1}).` : `Please enter outfit name (outfit ${i + 1}).`;
       if (!outfit.designImage) newErrors[`designImage_${i}`] = vi ? `Vui lòng tải lên ảnh bản vẽ thiết kế (bộ ${i + 1}).` : `Please upload design sketch image (outfit ${i + 1}).`;
       if (!outfit.outfitPhoto1) newErrors[`outfitPhoto1_${i}`] = vi ? `Vui lòng tải lên ảnh chụp bộ đồ ${i + 1} (1).` : `Please upload outfit ${i + 1} photo (1).`;
       if (!outfit.outfitPhoto2) newErrors[`outfitPhoto2_${i}`] = vi ? `Vui lòng tải lên ảnh chụp bộ đồ ${i + 1} (2).` : `Please upload outfit ${i + 1} photo (2).`;
@@ -461,6 +471,17 @@ const NhatPage = () => {
                       <div style={{ fontSize: 11, color: 'var(--mint)', textTransform: 'uppercase', letterSpacing: '.12em', fontWeight: 700, marginBottom: 16 }}>
                         {vi ? `Bộ đồ ${index + 1}` : `Outfit ${index + 1}`}
                       </div>
+                      <div style={{ marginBottom: 18 }}>
+                        <label style={fieldLabelStyle}>{vi ? 'Tên bộ đồ *' : 'Outfit Name *'}</label>
+                        <input
+                          className="mfc-input"
+                          value={outfit.name || ''}
+                          onChange={handleOutfitNameChange(index)}
+                          placeholder={vi ? 'Nhập tên bộ đồ của bạn' : 'Enter your outfit name'}
+                          style={{ borderColor: errors[`outfitName_${index}`] ? '#ff6b6b' : undefined }}
+                        />
+                        {errors[`outfitName_${index}`] && <p style={errorTextStyle}>{errors[`outfitName_${index}`]}</p>}
+                      </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                         <ImageUploadField
                           label={vi ? `Ảnh bản vẽ thiết kế (bộ ${index + 1})` : `Design Sketch Image (Outfit ${index + 1})`}
@@ -487,7 +508,7 @@ const NhatPage = () => {
                     </div>
                   ))}
                   <button type="button" className="btn-outline-pill" onClick={() => {
-                    setOutfits([...outfits, { designImage: null, outfitPhoto1: null, outfitPhoto2: null }]);
+                    setOutfits([...outfits, { name: '', designImage: null, outfitPhoto1: null, outfitPhoto2: null }]);
                   }} style={{ marginTop: 20, width: '100%', justifyContent: 'center' }}>
                     <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>add</span>
                     {vi ? 'Thêm một bộ đồ khác (Tùy chọn)' : 'Add another outfit (Optional)'}
