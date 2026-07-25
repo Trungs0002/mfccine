@@ -28,8 +28,6 @@ const ZONE = {
 
 /* ── Dimensions ── */
 const S  = 16;              // seat diameter (circle)
-const SW = S;               // alias: seat width
-const SH = S;               // alias: seat height
 const TOP_COL_PITCH = 28;   // horizontal pitch for top 8×20 blocks (spread wider)
 const COL_PITCH     = 20;   // horizontal pitch for bottom 6×25 blocks
 const ROW_PITCH     = 20;   // vertical pitch between seats (shared)
@@ -81,9 +79,9 @@ const BOT_RIGHT_X = CX + CENTER_AISLE_W / 2;
 const STAGE_Y    = 16;
 const STAGE_BOT  = STAGE_Y + STAGE_H + STAGE_RISER;
 const TOP_SECT_Y = STAGE_BOT + 10;                                           // top of 8×20 blocks
-const TOP_SECT_H = TOP_ROWS * ROW_PITCH - (ROW_PITCH - SH);
+const TOP_SECT_H = TOP_ROWS * ROW_PITCH - (ROW_PITCH - S);
 const BOT_SECT_Y = TOP_SECT_Y + TOP_SECT_H + TOP_BOT_GAP;                   // top of 6×25 blocks
-const BOT_SECT_H = BOT_ROWS * ROW_PITCH - (ROW_PITCH - SH);
+const BOT_SECT_H = BOT_ROWS * ROW_PITCH - (ROW_PITCH - S);
 const CANVAS_H   = BOT_SECT_Y + BOT_SECT_H + 60;
 
 /* ── Zone assignment helpers ── */
