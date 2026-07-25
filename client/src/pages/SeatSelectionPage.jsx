@@ -3,118 +3,162 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
 
-/* ─── Seat generation ──────────────────────────────────────── */
+/* ─── Layout constants ──────────────────────────────────────── */
+/*
+  NEW VENUE LAYOUT (matches the diagram):
+  ┌─────────────────────────────────────────────────────┐
+  │               [SÂN KHẤU CHỮ T]                     │
+  │         [RUNWAY — vertical bar of the T]            │
+  │  [TOP-LEFT 8×20]         [TOP-RIGHT 8×20]           │
+  │  (8 cols × 20 rows)      (8 cols × 20 rows)         │
+  │                                                      │
+  │  [BOT-LEFT 6×25] [AISLE] [BOT-RIGHT 6×25]          │
+  │  (6 rows × 25 cols)      (6 rows × 25 cols)         │
+  └─────────────────────────────────────────────────────┘
+
+  Top sections: 8 columns × 20 rows each (left & right of runway)
+  Bottom sections: 6 rows × 25 columns each (left & right of center aisle)
+*/
+
 const ZONE = {
   Standard: { color: '#10b981', label: (vi) => vi ? 'Khu Standard' : 'Standard' },
-  Premium: { color: '#5aaddc', label: (vi) => vi ? 'Khu Premium' : 'Premium' },
-  VIP: { color: '#a896f6', label: (vi) => vi ? 'Khu VIP' : 'VIP' },
+  Premium:  { color: '#5aaddc', label: (vi) => vi ? 'Khu Premium'  : 'Premium'  },
+  VIP:      { color: '#a896f6', label: (vi) => vi ? 'Khu VIP'      : 'VIP'      },
 };
 
-const SEAT_SIZE = 20; // seat button diameter
-const SEAT_GAP = 24; // seatGap: normal pitch between seats inside a vertical strip (top → bottom)
-const AISLE_GAP = 46; // aisleGap: pitch between every adjacent column — real seat-strip or runway slot alike
-const ENTRY_AISLE = 10; // walking gap between the vertical strips and the bottom U-section
-const H_ROW_GAP = 30; // pitch between the 5 bottom horizontal rows
-const X0 = 40;  // left margin (x of column A) — also doubles as the row-number gutter width
-const STAGE_TOP = 16;
-const RUNWAY_TOP = 80;
-const Y0 = 110; // top y of seat 1 in every vertical strip (below the stage)
-const FOOTER_GAP = 16; // gap between the last seat row and the column-letter footer
+/* ── Dimensions ── */
+const S  = 16;              // seat diameter (circle)
+const SW = S;               // alias: seat width
+const SH = S;               // alias: seat height
+const TOP_COL_PITCH = 28;   // horizontal pitch for top 8×20 blocks (spread wider)
+const COL_PITCH     = 20;   // horizontal pitch for bottom 6×25 blocks
+const ROW_PITCH     = 20;   // vertical pitch between seats (shared)
+const ROW_LABEL_W   = 24;   // width reserved for row-number gutter on left
 
-/* One unified 17-column grid (A → Q), shared by the vertical strips and the bottom rows, so every
-   seat is addressed as ColumnLetter + RowNumber (e.g. "C15", "J29") — same axis meaning everywhere:
-   columns = letters (horizontal axis), rows = numbers (vertical axis).
-   Columns A-G and K-Q carry real seats top → bottom for rows 1-26. Columns H, I, J are the runway:
-   empty for rows 1-26, and become real seats — aligned under the runway — for rows 27-31. */
-const COL_LABELS = 'ABCDEFGHIJKLMNOPQ'.split('');
-const COL_TYPE = {
-  A: 'Standard', B: 'Standard', C: 'Premium', D: 'Premium', E: 'Premium', F: 'VIP', G: 'VIP',
-  K: 'VIP', L: 'VIP', M: 'Premium', N: 'Premium', O: 'Premium', P: 'Standard', Q: 'Standard',
+/* ── Top sections (8 cols × 20 rows) ── */
+const TOP_COLS = 8;
+const TOP_ROWS = 20;
+
+/* ── Bottom sections (6 rows × 25 cols) ── */
+const BOT_ROWS = 6;
+const BOT_COLS = 25;
+
+/* ── Runway / Stage dimensions ── */
+const RUNWAY_W  = 70;   // width of the T vertical bar
+const STAGE_W   = 200;  // width of the T horizontal bar (top)
+const STAGE_H   = 44;   // height of stage box
+const STAGE_RISER = 12; // riser below stage
+
+/* ── Spacing ── */
+const RUNWAY_SEAT_GAP = 16;  // gap between runway and top seat blocks
+const TOP_BOT_GAP    = 32;   // vertical gap between top section bottom and bottom section top
+const CENTER_AISLE_W = RUNWAY_W; // same width as T-stage runway column
+
+/* ── Origin / canvas ── */
+const CANVAS_MARGIN = 40; // left & right margin
+
+// Width of one top block (uses wider TOP_COL_PITCH)
+const TOP_BLOCK_W = TOP_COLS * TOP_COL_PITCH - (TOP_COL_PITCH - S);
+// Width of one bottom block
+const BOT_BLOCK_W = BOT_COLS * COL_PITCH - (COL_PITCH - S);
+
+// Total canvas width: max of top or bottom layout
+const TOP_TOTAL_W = TOP_BLOCK_W * 2 + RUNWAY_W + RUNWAY_SEAT_GAP * 2;
+const BOT_TOTAL_W = BOT_BLOCK_W * 2 + CENTER_AISLE_W;
+const INNER_W = Math.max(TOP_TOTAL_W, BOT_TOTAL_W);
+const CANVAS_W = INNER_W + CANVAS_MARGIN * 2;
+
+// X positions for top blocks (symmetric around canvas center)
+const CX = CANVAS_W / 2;
+const TOP_LEFT_X  = CX - RUNWAY_W / 2 - RUNWAY_SEAT_GAP - TOP_BLOCK_W;
+const TOP_RIGHT_X = CX + RUNWAY_W / 2 + RUNWAY_SEAT_GAP;
+
+// X positions for bottom blocks (symmetric around canvas center)
+const BOT_LEFT_X  = CX - CENTER_AISLE_W / 2 - BOT_BLOCK_W;
+const BOT_RIGHT_X = CX + CENTER_AISLE_W / 2;
+
+// Y positions
+const STAGE_Y    = 16;
+const STAGE_BOT  = STAGE_Y + STAGE_H + STAGE_RISER;
+const TOP_SECT_Y = STAGE_BOT + 10;                                           // top of 8×20 blocks
+const TOP_SECT_H = TOP_ROWS * ROW_PITCH - (ROW_PITCH - SH);
+const BOT_SECT_Y = TOP_SECT_Y + TOP_SECT_H + TOP_BOT_GAP;                   // top of 6×25 blocks
+const BOT_SECT_H = BOT_ROWS * ROW_PITCH - (ROW_PITCH - SH);
+const CANVAS_H   = BOT_SECT_Y + BOT_SECT_H + 60;
+
+/* ── Zone assignment helpers ── */
+// Top block: inner 3 cols = VIP, next 2 = Premium, outer 3 = Standard
+//   Left block cols 0-7: outer=0,1,2 → Standard; mid=3,4 → Premium; inner=5,6,7 → VIP
+//   Right block cols 0-7: inner=0,1,2 → VIP; mid=3,4 → Premium; outer=5,6,7 → Standard
+const topLeftType = (col) => {
+  if (col >= 5) return 'VIP';
+  if (col >= 3) return 'Premium';
+  return 'Standard';
 };
-const V_SEATS_PER_STRIP = 26; // rows 1-26
-
-/* every column sits one AISLE_GAP apart — this also widens the runway (H-I-J) enough to fit 3 seats */
-const COL_X = {};
-COL_LABELS.forEach((col, i) => { COL_X[col] = X0 + i * AISLE_GAP; });
-
-const H_ROWS_START = V_SEATS_PER_STRIP + 1; // row 27
-const H_ROW_COUNT = 5; // rows 27-31
-
-/* Bottom U-section tier map, per exact seat position (not a uniform per-row color):
-   rows 27-28: 2 Standard, 3 Premium, 7 VIP (F-L), 3 Premium, 2 Standard
-   rows 29-30: 2 Standard, 13 Premium (C-O), 2 Standard
-   row 31: all Standard */
-const bottomTypeAt = (rowNum, colIndex) => {
-  if (rowNum === 27 || rowNum === 28) {
-    if (colIndex <= 1 || colIndex >= 15) return 'Standard'; // A,B / P,Q
-    if (colIndex <= 4 || colIndex >= 12) return 'Premium';  // C,D,E / M,N,O
-    return 'VIP';                                            // F-L
-  }
-  if (rowNum === 29 || rowNum === 30) {
-    if (colIndex <= 1 || colIndex >= 15) return 'Standard'; // A,B / P,Q
-    return 'Premium';                                        // C-O
-  }
-  return 'Standard'; // row 31
+const topRightType = (col) => {
+  if (col <= 2) return 'VIP';
+  if (col <= 4) return 'Premium';
+  return 'Standard';
 };
 
-const V_BLOCK_RIGHT = COL_X['Q'] + SEAT_SIZE;
-const V_BLOCK_BOTTOM = Y0 + (V_SEATS_PER_STRIP - 1) * SEAT_GAP + SEAT_SIZE; // bottom edge of the vertical strips
+// Bottom block: inner cols closer to aisle = VIP, then Premium, outer = Standard
+// Left block cols 0-24: col 0=leftmost(outer), col 24=rightmost(inner, closest to aisle)
+const botLeftType = (col) => {
+  if (col >= 18) return 'VIP';        // cols 18-24: closest to center aisle
+  if (col >= 10) return 'Premium';    // cols 10-17: middle
+  return 'Standard';                  // cols 0-9: outermost
+};
+// Right block cols 0-24: col 0=leftmost(inner, closest to aisle), col 24=outermost
+const botRightType = (col) => {
+  if (col <= 6) return 'VIP';         // cols 0-6: closest to center aisle
+  if (col <= 14) return 'Premium';    // cols 7-14: middle
+  return 'Standard';                  // cols 15-24: outermost
+};
 
-const H_STRIP_Y = [V_BLOCK_BOTTOM + ENTRY_AISLE];
-for (let j = 1; j < H_ROW_COUNT; j++) {
-  H_STRIP_Y.push(H_STRIP_Y[j - 1] + H_ROW_GAP);
-}
-
-/* y position for every row number 1-31, for the row-number axis gutter */
-const ROW_Y = [];
-for (let r = 0; r < V_SEATS_PER_STRIP; r++) ROW_Y.push(Y0 + r * SEAT_GAP);
-H_STRIP_Y.forEach((y) => ROW_Y.push(y));
-
-/* column-letter footer sits below the last seat row */
-const FOOTER_Y = H_STRIP_Y[H_STRIP_Y.length - 1] + SEAT_SIZE + FOOTER_GAP;
-
-const CANVAS_W = V_BLOCK_RIGHT + X0; // symmetric right margin
-const CANVAS_H = FOOTER_Y + 30;
-
-/* Runway visual: the widened gap spanning columns H-I-J, between the two innermost VIP strips G and K */
-const RUNWAY_LEFT = COL_X['G'] + SEAT_SIZE;
-const RUNWAY_RIGHT = COL_X['K'];
-const RUNWAY_WIDTH = RUNWAY_RIGHT - RUNWAY_LEFT;
-const RUNWAY_HEIGHT = V_BLOCK_BOTTOM - RUNWAY_TOP;
-
-/* T-stage top bar — widened along with the runway so the "T" keeps a clear, proportioned flare */
-const STAGE_WIDTH = RUNWAY_WIDTH + 176;
-
+/* ── Build all seats ── */
 const buildSeats = (vi, vipPrice, premiumPrice, standardPrice) => {
   const list = [];
   const priceOf = { Standard: standardPrice, Premium: premiumPrice, VIP: vipPrice };
 
-  const pushSeat = (col, rowNum, type, x, y) => {
-    const { color, label: zoneLabel } = ZONE[type];
-    const id = `${col}${rowNum}`;
-    list.push({
-      id, num: id, col, type,
-      zoneName: zoneLabel(vi), price: priceOf[type], color, x, y,
-    });
+  const push = (id, type, x, y) => {
+    const { color, label } = ZONE[type];
+    list.push({ id, num: id, type, zoneName: label(vi), price: priceOf[type], color, x, y });
   };
 
-  // Vertical strips: columns A-G and K-Q, seats numbered top → bottom (rows 1-26)
-  COL_LABELS.forEach((col) => {
-    const type = COL_TYPE[col];
-    if (!type) return; // H, I, J are the runway — no seats here
-    const x = COL_X[col];
-    for (let r = 0; r < V_SEATS_PER_STRIP; r++) {
-      pushSeat(col, r + 1, type, x, Y0 + r * SEAT_GAP);
+  // Top-Left block (8 cols × 20 rows) — wider horizontal spacing
+  for (let r = 0; r < TOP_ROWS; r++) {
+    for (let c = 0; c < TOP_COLS; c++) {
+      const x = TOP_LEFT_X + c * TOP_COL_PITCH;
+      const y = TOP_SECT_Y + r * ROW_PITCH;
+      push(`TL-${r + 1}-${c + 1}`, topLeftType(c), x, y);
     }
-  });
+  }
 
-  // Bottom U-section: rows 27-31, seated across all 17 columns (incl. runway columns H, I, J)
-  for (let j = 0; j < H_ROW_COUNT; j++) {
-    const y = H_STRIP_Y[j];
-    const rowNum = H_ROWS_START + j;
-    COL_LABELS.forEach((col, colIndex) => {
-      pushSeat(col, rowNum, bottomTypeAt(rowNum, colIndex), COL_X[col], y);
-    });
+  // Top-Right block (8 cols × 20 rows) — wider horizontal spacing
+  for (let r = 0; r < TOP_ROWS; r++) {
+    for (let c = 0; c < TOP_COLS; c++) {
+      const x = TOP_RIGHT_X + c * TOP_COL_PITCH;
+      const y = TOP_SECT_Y + r * ROW_PITCH;
+      push(`TR-${r + 1}-${c + 1}`, topRightType(c), x, y);
+    }
+  }
+
+  // Bottom-Left block (6 rows × 25 cols)
+  for (let r = 0; r < BOT_ROWS; r++) {
+    for (let c = 0; c < BOT_COLS; c++) {
+      const x = BOT_LEFT_X + c * COL_PITCH;
+      const y = BOT_SECT_Y + r * ROW_PITCH;
+      push(`BL-${r + 1}-${c + 1}`, botLeftType(c), x, y);
+    }
+  }
+
+  // Bottom-Right block (6 rows × 25 cols)
+  for (let r = 0; r < BOT_ROWS; r++) {
+    for (let c = 0; c < BOT_COLS; c++) {
+      const x = BOT_RIGHT_X + c * COL_PITCH;
+      const y = BOT_SECT_Y + r * ROW_PITCH;
+      push(`BR-${r + 1}-${c + 1}`, botRightType(c), x, y);
+    }
   }
 
   return list;
@@ -130,6 +174,158 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [loading, setLoading] = useState(true);
   const containerRef = React.useRef(null);
+  const [mapScale, setMapScale] = useState(1);
+  const mapScaleRef = React.useRef(1); // mirror of mapScale for use inside event closures
+
+  // ── Zoom/pan stored in refs (no re-render during gesture) ──
+  const zoomRef  = React.useRef(1);
+  const panXRef  = React.useRef(0);
+  const panYRef  = React.useRef(0);
+  const [zoom, setZoom] = useState(1); // only used for zoom buttons re-render
+  const canvasRef = React.useRef(null);
+  const touchRef  = React.useRef({});
+
+  // Apply transform directly to DOM (fast, no React re-render)
+  const applyTransform = React.useCallback(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const s = mapScaleRef.current * zoomRef.current;
+    el.style.transform =
+      `scale(${s}) translate(${panXRef.current / s}px, ${panYRef.current / s}px)`;
+  }, []);
+
+  // Auto-scale to fit card width
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver(() => {
+      const available = el.clientWidth - 40;
+      const scale = Math.min(1, available / CANVAS_W);
+      mapScaleRef.current = scale;
+      setMapScale(scale);
+      // reset pan/zoom on resize
+      zoomRef.current = 1; panXRef.current = 0; panYRef.current = 0;
+      setZoom(1);
+      applyTransform();
+    });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [applyTransform]);
+
+  // ── Attach non-passive touch listeners directly to canvas DOM node ──
+  useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;   // canvas only exists when loading=false
+
+    const getTouchDist = (t) =>
+      Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+
+    const onTouchStart = (e) => {
+      const t = e.touches;
+      if (t.length === 2) {
+        touchRef.current = {
+          mode: 'pinch',
+          startDist: getTouchDist(t),
+          startZoom: zoomRef.current,
+          midX: (t[0].clientX + t[1].clientX) / 2,
+          midY: (t[0].clientY + t[1].clientY) / 2,
+          startPanX: panXRef.current,
+          startPanY: panYRef.current,
+        };
+      } else if (t.length === 1) {
+        touchRef.current = {
+          mode: 'pan',
+          startX: t[0].clientX - panXRef.current,
+          startY: t[0].clientY - panYRef.current,
+        };
+      }
+    };
+
+    const onTouchMove = (e) => {
+      e.preventDefault();
+      const t = e.touches;
+      const ref = touchRef.current;
+      if (ref.mode === 'pinch' && t.length === 2) {
+        const ratio = getTouchDist(t) / ref.startDist;
+        zoomRef.current = Math.min(3, Math.max(0.5, ref.startZoom * ratio));
+        const dx = (t[0].clientX + t[1].clientX) / 2 - ref.midX;
+        const dy = (t[0].clientY + t[1].clientY) / 2 - ref.midY;
+        panXRef.current = ref.startPanX + dx;
+        panYRef.current = ref.startPanY + dy;
+      } else if (ref.mode === 'pan' && t.length === 1) {
+        panXRef.current = t[0].clientX - ref.startX;
+        panYRef.current = t[0].clientY - ref.startY;
+      }
+      applyTransform();
+    };
+
+    const onTouchEnd = () => { touchRef.current = {}; };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove',  onTouchMove,  { passive: false });
+    el.addEventListener('touchend',   onTouchEnd,   { passive: true });
+
+    // ── Mouse drag (desktop) ──
+    // mousedown on canvas, but move/up on document so drag stays live
+    const onMouseDown = (e) => {
+      if (e.button !== 0 || e.target.tagName === 'BUTTON') return;
+      e.preventDefault();
+      touchRef.current = {
+        mode: 'mouse',
+        startX: e.clientX - panXRef.current,
+        startY: e.clientY - panYRef.current,
+      };
+      el.style.cursor = 'grabbing';
+    };
+    const onMouseMove = (e) => {
+      if (touchRef.current.mode !== 'mouse') return;
+      panXRef.current = e.clientX - touchRef.current.startX;
+      panYRef.current = e.clientY - touchRef.current.startY;
+      applyTransform();
+    };
+    const onMouseUp = () => {
+      if (touchRef.current.mode !== 'mouse') return;
+      touchRef.current = {};
+      el.style.cursor = zoomRef.current > 1 ? 'grab' : 'default';
+    };
+
+    // ── Wheel zoom (desktop) ──
+    const onWheel = (e) => {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 0.15 : -0.15;
+      zoomRef.current = Math.min(3, Math.max(0.5, zoomRef.current + delta));
+      applyTransform();
+    };
+
+    el.addEventListener('mousedown', onMouseDown);
+    el.addEventListener('wheel',     onWheel, { passive: false });
+    // move + up on document so drag works even outside canvas bounds
+    document.addEventListener('mousemove',  onMouseMove);
+    document.addEventListener('mouseup',    onMouseUp);
+
+    return () => {
+      el.removeEventListener('touchstart',  onTouchStart);
+      el.removeEventListener('touchmove',   onTouchMove);
+      el.removeEventListener('touchend',    onTouchEnd);
+      el.removeEventListener('mousedown',   onMouseDown);
+      el.removeEventListener('wheel',       onWheel);
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup',   onMouseUp);
+    };
+  }, [applyTransform, loading]); // re-run when loading→false so canvasRef is set
+
+
+  const changeZoom = (delta) => {
+    zoomRef.current = Math.min(3, Math.max(0.5, zoomRef.current + delta));
+    setZoom(zoomRef.current); // trigger re-render for cursor style
+    applyTransform();
+  };
+  const resetZoom = () => {
+    zoomRef.current = 1; panXRef.current = 0; panYRef.current = 0;
+    setZoom(1);
+    applyTransform();
+  };
+
 
   const vipPrice = event?.pricingTiers?.vip?.price || 500000;
   const premiumPrice = event?.pricingTiers?.premium?.price || 250000;
@@ -256,70 +452,213 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                 </span>
               </div>
             ) : (
-              <div style={{ overflowX: 'auto', margin: '0 -20px', padding: '0 20px 20px' }}>
+              /* ── Touch-enabled canvas wrapper ── */
+              <div style={{ position: 'relative', margin: '0 -20px' }}>
+
+                {/* Zoom controls */}
                 <div style={{
-                  width: `${CANVAS_W}px`, height: `${CANVAS_H}px`,
-                  position: 'relative', margin: '0 auto',
+                  position: 'absolute', top: 8, right: 8, zIndex: 50,
+                  display: 'flex', flexDirection: 'column', gap: 4,
                 }}>
-
-                  {/* Row-number gutter (vertical axis) */}
-                  {ROW_Y.map((y, idx) => (
-                    <div key={`row-${idx}`} style={{
-                      position: 'absolute', top: y, left: 0, width: X0 - 6, height: SEAT_SIZE,
-                      display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                      fontSize: 9, fontWeight: 600, color: 'rgba(168,150,246,.55)',
-                      zIndex: 25, pointerEvents: 'none',
-                    }}>
-                      {idx + 1}
-                    </div>
+                  {[{label:'+', delta:.3},{label:'−', delta:-.3},{label:'⊙', delta:0}].map(({label,delta}) => (
+                    <button key={label}
+                      onClick={() => delta === 0 ? resetZoom() : changeZoom(delta)}
+                      style={{
+                        width: 30, height: 30, borderRadius: 8,
+                        background: 'rgba(168,150,246,.18)',
+                        border: '1px solid rgba(168,150,246,.35)',
+                        color: 'var(--purple)', fontSize: label==='⊙'?14:18,
+                        fontWeight: 700, cursor: 'pointer', lineHeight: 1,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}
+                    >{label}</button>
                   ))}
+                </div>
 
-                  {/* Column-letter footer (horizontal axis) — placed below the last seat row */}
-                  {COL_LABELS.map((col) => (
-                    <div key={`col-${col}`} style={{
-                      position: 'absolute', top: FOOTER_Y + 12, left: COL_X[col], width: SEAT_SIZE,
-                      textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'rgba(168,150,246,.7)',
-                      zIndex: 25, pointerEvents: 'none',
-                    }}>
-                      {col}
-                    </div>
-                  ))}
+                {/* Overflow clip viewport */}
+                <div style={{ overflow: 'hidden', padding: '0 20px 20px' }}>
+                  {/* Outer sizer — collapses to auto-scaled size */}
+                  <div style={{
+                    width: `${CANVAS_W * mapScale}px`,
+                    height: `${CANVAS_H * mapScale}px`,
+                    margin: '0 auto',
+                    position: 'relative',
+                  }}>
+                    {/* Inner canvas — touch listeners & transform applied via useEffect/ref */}
+                    <div
+                      ref={canvasRef}
+                      style={{
+                        width: `${CANVAS_W}px`, height: `${CANVAS_H}px`,
+                        position: 'absolute', top: 0, left: 0,
+                        transformOrigin: 'top left',
+                        transform: `scale(${mapScale})`,  /* initial; overwritten by applyTransform */
+                        touchAction: 'none',
+                        cursor: zoom > 1 ? 'grab' : 'default',
+                      }}
+                    >
 
-                  {/* Stage — a small raised 3D platform: angled top face + a front riser edge */}
-                  <div style={{ position: 'absolute', top: STAGE_TOP, left: '50%', transform: 'translateX(-50%)', width: STAGE_WIDTH, zIndex: 20 }}>
+                  {/* ── Stage (horizontal T-bar) ── */}
+                  <div style={{
+                    position: 'absolute', top: STAGE_Y, left: '50%',
+                    transform: 'translateX(-50%)', width: STAGE_W, zIndex: 20,
+                  }}>
                     <div style={{
-                      height: 44,
+                      height: STAGE_H,
                       background: 'linear-gradient(135deg, rgba(30,32,70,.95), rgba(70,69,215,.3))',
-                      border: '1px solid rgba(168,150,246,.4)',
-                      borderBottom: 'none',
-                      clipPath: 'polygon(7% 0, 93% 0, 100% 100%, 0% 100%)',
+                      border: '1px solid rgba(168,150,246,.4)', borderBottom: 'none',
+                      clipPath: 'polygon(4% 0, 96% 0, 100% 100%, 0% 100%)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       boxShadow: 'inset 0 12px 18px -12px rgba(168,150,246,.4)',
+                      overflow: 'hidden', padding: '0 12px',
                     }}>
-                      <span className="serif" style={{ color: 'var(--purple)', letterSpacing: '.6em', fontWeight: 800, fontSize: 13, textTransform: 'uppercase' }}>
-                        {vi ? 'SÂN KHẤU' : 'STAGE'}
+                      <span className="serif" style={{
+                        color: 'var(--purple)', letterSpacing: '.15em',
+                        fontWeight: 800, fontSize: 11, textTransform: 'uppercase',
+                        overflow: 'hidden', whiteSpace: 'nowrap',
+                        maxWidth: '100%', textAlign: 'center',
+                      }}>
+                        {vi ? 'SÂN KHẤU CHỮ T' : 'T-STAGE'}
                       </span>
                     </div>
                     <div style={{
-                      height: 12,
+                      height: STAGE_RISER,
                       background: 'linear-gradient(180deg, rgba(70,69,215,.35), rgba(10,11,30,.95))',
                       borderLeft: '1px solid rgba(168,150,246,.4)',
                       borderRight: '1px solid rgba(168,150,246,.4)',
                       borderBottom: '1px solid rgba(168,150,246,.4)',
-                      borderRadius: '0 0 8px 8px',
+                      borderRadius: '0 0 6px 6px',
                     }} />
                   </div>
 
-                  {/* Runway (T-shape vertical bar, ends where the vertical strips end) */}
+                  {/* ── Runway (T-bar vertical stem) ── */}
                   <div style={{
-                    position: 'absolute', top: RUNWAY_TOP, left: '50%', transform: 'translateX(-50%)',
-                    width: RUNWAY_WIDTH, height: RUNWAY_HEIGHT,
-                    background: 'linear-gradient(180deg, rgba(14,16,44,.9), rgba(70,69,215,.2))',
-                    border: '1px solid rgba(168,150,246,.35)',
+                    position: 'absolute',
+                    top: STAGE_BOT,
+                    left: CX - RUNWAY_W / 2,
+                    width: RUNWAY_W,
+                    height: TOP_SECT_H + 8,
+                    background: 'linear-gradient(180deg, rgba(14,16,44,.88), rgba(70,69,215,.18))',
+                    border: '1px solid rgba(168,150,246,.3)',
                     borderTop: 'none',
-                    borderRadius: '0 0 10px 10px',
+                    borderRadius: '0 0 8px 8px',
                     zIndex: 15,
                   }} />
+
+                  {/* ── Row number labels — Top-Left block (left side) ── */}
+                  {Array.from({ length: TOP_ROWS }, (_, r) => (
+                    <div key={`tl-row-${r}`} style={{
+                      position: 'absolute',
+                      top: TOP_SECT_Y + r * ROW_PITCH + (S - 10) / 2,
+                      left: TOP_LEFT_X - ROW_LABEL_W,
+                      width: ROW_LABEL_W - 4,
+                      height: 10,
+                      display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                      fontSize: 9, fontWeight: 600, color: 'rgba(168,150,246,.55)',
+                      pointerEvents: 'none',
+                    }}>
+                      {r + 1}
+                    </div>
+                  ))}
+
+                  {/* ── Row number labels — Top-Right block (right side) ── */}
+                  {Array.from({ length: TOP_ROWS }, (_, r) => (
+                    <div key={`tr-row-${r}`} style={{
+                      position: 'absolute',
+                      top: TOP_SECT_Y + r * ROW_PITCH + (S - 10) / 2,
+                      left: TOP_RIGHT_X + TOP_BLOCK_W + 4,
+                      width: ROW_LABEL_W - 4,
+                      height: 10,
+                      display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
+                      fontSize: 9, fontWeight: 600, color: 'rgba(168,150,246,.55)',
+                      pointerEvents: 'none',
+                    }}>
+                      {r + 1}
+                    </div>
+                  ))}
+
+                  {/* ── Row number labels — Bottom-Left block (left side) ── */}
+                  {Array.from({ length: BOT_ROWS }, (_, r) => (
+                    <div key={`bl-row-${r}`} style={{
+                      position: 'absolute',
+                      top: BOT_SECT_Y + r * ROW_PITCH + (S - 10) / 2,
+                      left: BOT_LEFT_X - ROW_LABEL_W,
+                      width: ROW_LABEL_W - 4,
+                      height: 10,
+                      display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                      fontSize: 9, fontWeight: 600, color: 'rgba(168,150,246,.55)',
+                      pointerEvents: 'none',
+                    }}>
+                      {r + 1}
+                    </div>
+                  ))}
+
+                  {/* ── Row number labels — Bottom-Right block (right side) ── */}
+                  {Array.from({ length: BOT_ROWS }, (_, r) => (
+                    <div key={`br-row-${r}`} style={{
+                      position: 'absolute',
+                      top: BOT_SECT_Y + r * ROW_PITCH + (S - 10) / 2,
+                      left: BOT_RIGHT_X + BOT_BLOCK_W + 4,
+                      width: ROW_LABEL_W - 4,
+                      height: 10,
+                      display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
+                      fontSize: 9, fontWeight: 600, color: 'rgba(168,150,246,.55)',
+                      pointerEvents: 'none',
+                    }}>
+                      {r + 1}
+                    </div>
+                  ))}
+
+                  {/* ── Col number labels — Bottom-Left block (below) ── */}
+                  {Array.from({ length: BOT_COLS }, (_, c) => (
+                    <div key={`bl-col-${c}`} style={{
+                      position: 'absolute',
+                      top: BOT_SECT_Y + BOT_SECT_H + 4,
+                      left: BOT_LEFT_X + c * COL_PITCH,
+                      width: S,
+                      textAlign: 'center',
+                      fontSize: 7, fontWeight: 600, color: 'rgba(168,150,246,.45)',
+                      pointerEvents: 'none',
+                    }}>
+                      {c + 1}
+                    </div>
+                  ))}
+
+                  {/* ── Col number labels — Bottom-Right block (below) ── */}
+                  {Array.from({ length: BOT_COLS }, (_, c) => (
+                    <div key={`br-col-${c}`} style={{
+                      position: 'absolute',
+                      top: BOT_SECT_Y + BOT_SECT_H + 4,
+                      left: BOT_RIGHT_X + c * COL_PITCH,
+                      width: S,
+                      textAlign: 'center',
+                      fontSize: 7, fontWeight: 600, color: 'rgba(168,150,246,.45)',
+                      pointerEvents: 'none',
+                    }}>
+                      {c + 1}
+                    </div>
+                  ))}
+
+                  {/* ── Center aisle divider (bottom section) ── */}
+                  <div style={{
+                    position: 'absolute',
+                    top: BOT_SECT_Y - 6,
+                    left: CX - CENTER_AISLE_W / 2,
+                    width: CENTER_AISLE_W,
+                    height: BOT_SECT_H + 12,
+                    borderLeft: '1px dashed rgba(168,150,246,.3)',
+                    borderRight: '1px dashed rgba(168,150,246,.3)',
+                    zIndex: 5,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    pointerEvents: 'none',
+                  }}>
+                    <span style={{
+                      fontSize: 9, color: 'rgba(168,150,246,.5)',
+                      fontWeight: 600, letterSpacing: '.08em',
+                      textTransform: 'uppercase', textAlign: 'center', lineHeight: 1.3,
+                    }}>
+                      {vi ? 'LỐI ĐI\nGIỮA' : 'AISLE'}
+                    </span>
+                  </div>
 
                   {/* Seats */}
                   {seats.map(seat => {
@@ -339,7 +678,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                         style={{
                           position: 'absolute',
                           left: seat.x, top: seat.y,
-                          width: 20, height: 20,
+                          width: S, height: S,
                           borderRadius: '50%',
                           background: seatColor,
                           border: isOccupied
@@ -352,12 +691,12 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: 6, fontWeight: 900,
                           color: isOccupied ? '#3a3a58' : isSelected ? '#000' : 'rgba(0,0,0,.5)',
-                          transform: isSelected ? 'scale(1.15)' : undefined,
+                          transform: isSelected ? 'scale(1.18)' : undefined,
                           boxShadow: isSelected
                             ? '0 0 14px rgba(255,59,59,.8)'
                             : isOccupied
                               ? 'none'
-                              : `0 0 6px ${seat.color}55`,
+                              : `0 0 5px ${seat.color}44`,
                           zIndex: 20,
                           transition: 'transform .1s, box-shadow .1s',
                         }}
@@ -366,6 +705,8 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                       </button>
                     );
                   })}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
