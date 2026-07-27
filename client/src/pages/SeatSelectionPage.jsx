@@ -99,11 +99,24 @@ const topRightType = (col) => {
   return 'Standard';
 };
 
-// Bottom block: rows 1-2 = VIP (Pink), 3-4 = Premium (Blue), 5-6 = Standard (Green)
-const botType = (row) => {
-  if (row <= 1) return 'VIP';         // rows 0, 1
-  if (row <= 3) return 'Premium';     // rows 2, 3
-  return 'Standard';                  // rows 4, 5
+// Bottom-Left block (Khu 3)
+// A1-F10 (cols 0-9): Standard (Green)
+// A11-C25 (cols 10-24, rows 0-2): VIP (Purple)
+// D11-F25 (cols 10-24, rows 3-5): Premium (Blue)
+const botLeftType = (row, col) => {
+  if (col < 10) return 'Standard';
+  if (row <= 2) return 'VIP';
+  return 'Premium';
+};
+
+// Bottom-Right block (Khu 4) - Symmetric to Khu 3
+// A16-F25 (cols 15-24): Standard (Green)
+// A1-C15 (cols 0-14, rows 0-2): VIP (Purple)
+// D1-F15 (cols 0-14, rows 3-5): Premium (Blue)
+const botRightType = (row, col) => {
+  if (col >= 15) return 'Standard';
+  if (row <= 2) return 'VIP';
+  return 'Premium';
 };
 
 /* ── Build all seats ── */
@@ -151,7 +164,7 @@ const buildSeats = (vi, vipPrice, premiumPrice, standardPrice) => {
       const y = BOT_SECT_Y + r * ROW_PITCH;
       const rowLetter = getColLetter(r); // A, B, etc.
       const rawNum = `${rowLetter}${c + 1}`;
-      const type = botType(r);
+      const type = botLeftType(r, c);
       const seatNum = `Khu 3 · ${rawNum}`;
       push(seatNum, seatNum, type, x, y);
     }
@@ -164,7 +177,7 @@ const buildSeats = (vi, vipPrice, premiumPrice, standardPrice) => {
       const y = BOT_SECT_Y + r * ROW_PITCH;
       const rowLetter = getColLetter(r); // A, B, etc.
       const rawNum = `${rowLetter}${BOT_COLS + c + 1}`;
-      const type = botType(r);
+      const type = botRightType(r, c);
       const seatNum = `Khu 4 · ${rawNum}`;
       push(seatNum, seatNum, type, x, y);
     }
