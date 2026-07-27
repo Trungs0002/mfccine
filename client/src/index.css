@@ -742,3 +742,20 @@ img { display: block; max-width: 100%; }
   .nav-brand-text strong { font-size: 11px; }
   .nav-brand-text span { font-size: 7px; }
 }
+
+@media (max-width: 768px) {
+  .minimap-container {
+    transform: scale(0.85);
+    transform-origin: top left;
+    transition: opacity 0.2s;
+    top: 48px !important;
+    left: 8px !important;
+  }
+  .minimap-container:not(.mobile-open) {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .mobile-minimap-toggle {
+    display: flex !important;
+  }
+}

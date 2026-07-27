@@ -465,8 +465,8 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
                 const isDiscounted = appliedCoupon && discountedSeatIds.has(s.seatId);
                 return (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
-                    <span style={{ color: 'var(--muted)' }}>
-                      {s.seatId} · {s.type}
+                    <span style={{ color: 'var(--muted)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 4 }}>
+                      <span style={{ whiteSpace: 'nowrap' }}>{s.seatId} · {s.type}</span>
                       {isDiscounted && (
                         <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: 'var(--mint)' }}>
                           −{appliedCoupon.percent}%

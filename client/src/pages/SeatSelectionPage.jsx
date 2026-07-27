@@ -185,6 +185,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
   const containerRef = React.useRef(null);
   const [mapScale, setMapScale] = useState(1);
   const mapScaleRef = React.useRef(1); // mirror of mapScale for use inside event closures
+  const [showMobileMinimap, setShowMobileMinimap] = useState(false);
 
   // ── Zoom/pan stored in refs (no re-render during gesture) ──
   const zoomRef  = React.useRef(1);
@@ -468,8 +469,25 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
               /* ── Touch-enabled canvas wrapper ── */
               <div style={{ position: 'relative', margin: '0 -20px' }}>
 
+                {/* Mobile Toggle Button */}
+                <button
+                  className="mobile-minimap-toggle"
+                  onClick={() => setShowMobileMinimap(!showMobileMinimap)}
+                  style={{
+                    display: 'none', position: 'absolute', top: 8, left: 8, zIndex: 60,
+                    width: 30, height: 30, borderRadius: 8,
+                    background: showMobileMinimap ? 'rgba(168,150,246,.3)' : 'rgba(168,150,246,.18)',
+                    border: '1px solid rgba(168,150,246,.35)',
+                    color: 'var(--purple)',
+                    alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', transition: 'all 0.2s', padding: 0
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{showMobileMinimap ? 'close' : 'map'}</span>
+                </button>
+
                 {/* Minimap (Area Guide) */}
-                <div style={{
+                <div className={`minimap-container ${showMobileMinimap ? 'mobile-open' : ''}`} style={{
                   position: 'absolute', top: 8, left: 28, zIndex: 50,
                   background: 'rgba(1,1,10,.75)',
                   border: '1px solid rgba(168,150,246,.25)',
@@ -851,7 +869,10 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                           background: 'rgba(168,150,246,.06)',
                         }}
                       >
-                        <span style={{ color: 'var(--muted)' }}>{seat.num} · {seat.zoneName}</span>
+                        <span style={{ color: 'var(--muted)', display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                          <span style={{ whiteSpace: 'nowrap' }}>{seat.num}</span> 
+                          <span>· {seat.zoneName}</span>
+                        </span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <span style={{ color: '#e0dcff' }}>{formatPrice(seat.price)}</span>
                           <button
