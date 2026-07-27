@@ -461,7 +461,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                 <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12 }}>
                   <span style={{
                     width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
-                    background: color,
+                    background: bordered ? '#5a5a72' : color,
                     border: bordered ? '1px solid #44405a' : `1px solid ${color}88`,
                     boxShadow: bordered ? 'none' : `0 0 8px ${color}55`,
                   }} />
@@ -773,11 +773,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                   {seats.map(seat => {
                     const isOccupied = occupiedSeats.includes(seat.id);
                     const isSelected = selectedSeats.some(s => s.id === seat.id);
-                    const seatColor = isOccupied
-                      ? '#1c1c30'
-                      : isSelected
-                        ? '#ff3b3b'
-                        : seat.color;
+                    const seatBg = isOccupied ? '#5a5a72' : isSelected ? '#ff3b3b' : seat.color;
                     return (
                       <button
                         key={seat.id}
@@ -789,17 +785,17 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                           left: seat.x, top: seat.y,
                           width: S, height: S,
                           borderRadius: '50%',
-                          background: seatColor,
+                          background: seatBg,
                           border: isOccupied
-                            ? '1px solid #2e2e44'
+                            ? '1px solid #7a7a92'
                             : isSelected
                               ? '2px solid #ff3b3b'
                               : `1px solid ${seat.color}99`,
-                          opacity: isOccupied ? .45 : 1,
+                          opacity: isOccupied ? .5 : 1,
                           cursor: isOccupied ? 'not-allowed' : 'pointer',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: 6, fontWeight: 900,
-                          color: isOccupied ? '#3a3a58' : isSelected ? '#000' : 'rgba(0,0,0,.5)',
+                          color: isSelected ? '#000' : 'rgba(0,0,0,.5)',
                           transform: isSelected ? 'scale(1.18)' : undefined,
                           boxShadow: isSelected
                             ? '0 0 14px rgba(255,59,59,.8)'
@@ -809,9 +805,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                           zIndex: 20,
                           transition: 'transform .1s, box-shadow .1s',
                         }}
-                      >
-                        {isOccupied ? '×' : null}
-                      </button>
+                      />
                     );
                   })}
                     </div>
