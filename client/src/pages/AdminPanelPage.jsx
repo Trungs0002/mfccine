@@ -540,11 +540,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     const data = await res.json();
     if (res.ok) {
       // status: 'valid' — newly checked in
-      setScanResult({ status: 'valid', message: data.message, details: data.booking });
+      setScanResult({ status: 'valid', message: data.message, details: data.booking, scannedTicketCode: idToScan.trim() });
       fetchAnalytics();
     } else if (data.status === 'already_used') {
       // status: 'already_used' — ticket was already scanned before
-      setScanResult({ status: 'already_used', message: data.error, details: data.booking });
+      setScanResult({ status: 'already_used', message: data.error, details: data.booking, scannedTicketCode: idToScan.trim() });
     } else {
       // not found or server error
       setScanResult({ status: 'not_found', message: data.error || 'Ticket not found' });
@@ -571,14 +571,15 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
       ];
     }
     if (activeAdminTab === 'bookings') {
-      const checkedIn = allBookings.filter(b => b.isCheckedIn).length;
+      const totalTickets = allBookings.reduce((sum, b) => sum + (b.selectedSeats?.length || 0), 0);
+      const checkedInTickets = allBookings.reduce((sum, b) => sum + (b.selectedSeats?.filter(s => s.isCheckedIn).length || 0), 0);
       return [
         {
-          label: language === 'vi' ? 'Tổng số vé đã bán' : 'Total Tickets Sold', value: allBookings.length, icon: 'confirmation_number', color: 'var(--purple)',
+          label: language === 'vi' ? 'Tổng số vé đã bán' : 'Total Tickets Sold', value: totalTickets, icon: 'confirmation_number', color: 'var(--purple)',
           onClick: () => document.getElementById('master-ledger-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
         },
-        { label: language === 'vi' ? 'Chưa check-in' : 'Not Checked-in', value: allBookings.length - checkedIn, icon: 'schedule', color: '#ffb800' },
-        { label: language === 'vi' ? 'Đã check-in' : 'Checked-in', value: checkedIn, icon: 'how_to_reg', color: 'var(--mint)' },
+        { label: language === 'vi' ? 'Chưa check-in' : 'Not Checked-in', value: totalTickets - checkedInTickets, icon: 'schedule', color: '#ffb800' },
+        { label: language === 'vi' ? 'Đã check-in' : 'Checked-in', value: checkedInTickets, icon: 'how_to_reg', color: 'var(--mint)' },
       ];
     }
     if (activeAdminTab === 'coupons') {
@@ -1586,7 +1587,18 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--muted)' }}>qr_code</span>
-                          <span style={{ fontFamily: 'monospace', color: 'var(--purple)', fontWeight: 700, letterSpacing: '.05em' }}>{d.ticketCode}</span>
+                          <div>
+                            {(() => {
+                              const seatMatch = d.selectedSeats?.find(s => s.ticketCode === scanResult.scannedTicketCode);
+                              if (seatMatch) {
+                                return <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--mint)', marginBottom: 2 }}>{seatMatch.seatId} - {seatMatch.type}</div>;
+                              }
+                              return null;
+                            })()}
+                            <div style={{ fontFamily: 'monospace', color: 'var(--purple)', fontWeight: 700, letterSpacing: '.05em' }}>
+                              {scanResult.scannedTicketCode || d.ticketCode}
+                            </div>
+                          </div>
                         </div>
 
                         {d.eventTitle && (
@@ -1610,8 +1622,14 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                             <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--muted)' }}>chair</span>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                               {d.selectedSeats.map((s, i) => (
-                                <span key={i} style={{ padding: '3px 8px', borderRadius: 999, fontSize: 10, fontFamily: 'monospace', background: 'rgba(168,150,246,.12)', border: '1px solid rgba(168,150,246,.25)', color: 'var(--purple)' }}>
-                                  {s.seatId.split('-').slice(2).join(' ')} • {s.type}
+                                <span key={i} style={{ 
+                                  padding: '3px 8px', borderRadius: 999, fontSize: 10, fontFamily: 'monospace', 
+                                  background: s.isCheckedIn ? 'rgba(168,150,246,.12)' : 'transparent', 
+                                  border: `1px solid ${s.isCheckedIn ? 'rgba(168,150,246,.25)' : 'rgba(255,255,255,.15)'}`, 
+                                  color: s.isCheckedIn ? 'var(--purple)' : 'var(--muted)',
+                                  opacity: s.isCheckedIn ? 1 : 0.4
+                                }}>
+                                  {s.seatId} • {s.type}
                                 </span>
                               ))}
                             </div>
@@ -1654,11 +1672,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                 );
               })()}
 
-              {/* ── Check-in overview: two split lists ── */}
+              {/* ── Check-in overview: two split lists (FLATTENED TO INDIVIDUAL TICKETS) ── */}
               <div className="admin-checkin-split" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 32 }}>
                 {[
-                  { key: 'in', title: language === 'vi' ? 'Đã check-in' : 'Checked-in', color: 'var(--mint)', icon: 'check_circle', list: allBookings.filter(b => b.isCheckedIn) },
-                  { key: 'out', title: language === 'vi' ? 'Chưa check-in' : 'Not Checked-in', color: '#ffb800', icon: 'schedule', list: allBookings.filter(b => !b.isCheckedIn) },
+                  { key: 'in', title: language === 'vi' ? 'Đã check-in' : 'Checked-in', color: 'var(--mint)', icon: 'check_circle', list: allBookings.flatMap(b => (b.selectedSeats || []).filter(s => s.isCheckedIn).map(s => ({ ...b, seat: s, ticketId: s.ticketCode || `${b._id.toString().slice(-8).toUpperCase()}-${s.seatId}` }))) },
+                  { key: 'out', title: language === 'vi' ? 'Chưa check-in' : 'Not Checked-in', color: '#ffb800', icon: 'schedule', list: allBookings.flatMap(b => (b.selectedSeats || []).filter(s => !s.isCheckedIn).map(s => ({ ...b, seat: s, ticketId: s.ticketCode || `${b._id.toString().slice(-8).toUpperCase()}-${s.seatId}` }))) },
                 ].map(group => (
                   <div key={group.key}>
                     <h4 style={{ ...sectionLabelStyle, color: group.color }}>{group.title} ({group.list.length})</h4>
@@ -1667,13 +1685,13 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                         <p style={{ color: 'var(--muted)', fontSize: 12, textAlign: 'center', padding: '20px 0' }}>
                           {language === 'vi' ? 'Không có vé nào.' : 'No tickets.'}
                         </p>
-                      ) : group.list.map(b => (
-                        <div key={b._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--line)', background: 'rgba(1,1,10,.3)' }}>
+                      ) : group.list.map(t => (
+                        <div key={t.ticketId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--line)', background: 'rgba(1,1,10,.3)' }}>
                           <div style={{ minWidth: 0 }}>
-                            <div style={{ color: '#fff', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.fullName}</div>
-                            <div style={{ color: 'var(--muted)', fontSize: 11, fontFamily: 'monospace' }}>{b.ticketCode || b._id.toString().slice(-8).toUpperCase()}</div>
+                            <div style={{ color: '#fff', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.fullName} - Ghế {t.seat.seatId}</div>
+                            <div style={{ color: 'var(--muted)', fontSize: 11, fontFamily: 'monospace' }}>{t.ticketId}</div>
                           </div>
-                          <span className="material-symbols-outlined" style={{ color: group.color, fontSize: 18, flexShrink: 0 }}>{group.icon}</span>
+                          <span className="material-symbols-outlined" style={{ color: group.color, fontSize: 20 }}>{group.icon}</span>
                         </div>
                       ))}
                     </div>
@@ -1697,7 +1715,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {allBookings.map(booking => (
-                    <div key={booking._id} className="admin-booking-row" style={{ display: 'grid', gridTemplateColumns: '90px 1.4fr 1fr 100px auto', alignItems: 'center', gap: 16, padding: 16, borderRadius: 14, border: '1px solid var(--line)', background: 'rgba(1,1,10,.35)' }}>
+                    <div key={booking._id} className="admin-booking-row" style={{ display: 'grid', gridTemplateColumns: '90px 1.4fr 1.2fr 110px 120px auto', alignItems: 'center', gap: 16, padding: 16, borderRadius: 14, border: '1px solid var(--line)', background: 'rgba(1,1,10,.35)' }}>
                       <span style={{ fontFamily: 'monospace', color: 'var(--purple)', fontSize: 12 }}>{booking._id.toString().slice(-8).toUpperCase()}</span>
 
                       <div>
@@ -1718,17 +1736,56 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                       <div>
                         <p style={{ margin: 0, color: '#fff' }}>{booking.selectedSeats?.length} Seat(s)</p>
                         <p style={{ margin: '2px 0 0', color: 'var(--purple)', fontWeight: 700 }}>{formatPrice(booking.subtotal)}</p>
-                        <p style={{ margin: '2px 0 0', fontSize: 10, color: 'var(--muted)' }}>{booking.paymentMethod}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '2px 0 0' }}>
+                          <p style={{ margin: 0, fontSize: 10, color: 'var(--muted)' }}>{booking.paymentMethod}</p>
+                          <span style={{ color: 'var(--line)', fontSize: 10 }}>|</span>
+                          <span style={{ color: booking.paymentStatus === 'Completed' ? 'var(--mint)' : (booking.paymentStatus === 'Failed' ? '#ff6b6b' : '#f59e0b'), fontSize: 10, fontWeight: 600 }}>{booking.paymentStatus}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '4px 0 0' }}>
+                          {booking.paymentBillUrl && (
+                            <a href={booking.paymentBillUrl} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 2, color: 'var(--mint)', textDecoration: 'none', fontSize: 10, fontWeight: 600 }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>receipt_long</span> {language === 'vi' ? 'Xem Bill' : 'View Bill'}
+                            </a>
+                          )}
+                          <a href={`/ticket?id=${booking._id}`} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 2, color: 'var(--purple)', textDecoration: 'none', fontSize: 10, fontWeight: 600 }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>qr_code_2</span> {language === 'vi' ? 'Xem Vé & Ghế' : 'View Ticket & Seats'}
+                          </a>
+                        </div>
                       </div>
 
-                      <span style={{
-                        padding: '3px 10px', borderRadius: 999, fontSize: 9, fontWeight: 700, textTransform: 'uppercase', width: 'fit-content',
-                        border: `1px solid ${booking.isCheckedIn ? 'rgba(158,254,253,.3)' : 'rgba(168,150,246,.3)'}`,
-                        color: booking.isCheckedIn ? 'var(--mint)' : 'var(--purple)',
-                        background: booking.isCheckedIn ? 'rgba(158,254,253,.08)' : 'rgba(168,150,246,.08)',
-                      }}>
-                        {booking.isCheckedIn ? t('passUsed') : 'Valid'}
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {booking.selectedSeats?.map(seat => (
+                          <div key={seat.seatId} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', width: 24 }}>{seat.seatId}</span>
+                            <span style={{
+                              padding: '2px 8px', borderRadius: 999, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', width: 'fit-content', whiteSpace: 'nowrap',
+                              border: `1px solid ${seat.isCheckedIn ? 'rgba(158,254,253,.3)' : 'rgba(168,150,246,.3)'}`,
+                              color: seat.isCheckedIn ? 'var(--mint)' : 'var(--purple)',
+                              background: seat.isCheckedIn ? 'rgba(158,254,253,.08)' : 'rgba(168,150,246,.08)',
+                            }}>
+                              {seat.isCheckedIn ? (language === 'vi' ? 'Đã checkin' : 'Checked-in') : (language === 'vi' ? 'Chưa checkin' : 'Not checked-in')}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <button 
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(`${API_URL}/api/bookings/${booking._id}/send-ticket`, { method: 'PUT' });
+                            if (res.ok) fetchAllBookings(true);
+                          } catch (e) { console.error(e); }
+                        }}
+                        style={{
+                          padding: '6px 12px', borderRadius: 999, fontSize: 10, fontWeight: 600, border: 'none', cursor: 'pointer',
+                          background: booking.ticketSent ? 'rgba(168,150,246,.15)' : 'rgba(255,255,255,.05)',
+                          color: booking.ticketSent ? 'var(--purple)' : 'var(--muted)',
+                          display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center'
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{booking.ticketSent ? 'mark_email_read' : 'forward_to_inbox'}</span>
+                        {booking.ticketSent ? (language === 'vi' ? 'Đã gửi vé' : 'Sent') : (language === 'vi' ? 'Chưa gửi' : 'Unsent')}
+                      </button>
 
                       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                         {isStaff ? null : editingBookingId === booking._id ? (

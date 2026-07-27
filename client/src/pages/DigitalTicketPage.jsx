@@ -20,9 +20,13 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
   }, [language]);
 
   useEffect(() => {
-    if (!completedBookingId) return;
+    const params = new URLSearchParams(window.location.search);
+    const idFromUrl = params.get('id');
+    const finalId = completedBookingId || idFromUrl;
+    
+    if (!finalId) return;
     setLoading(true);
-    fetch(`${API_URL}/api/bookings/${completedBookingId}`)
+    fetch(`${API_URL}/api/bookings/${finalId}`)
       .then(res => res.json())
       .then(data => { setBooking(data); setLoading(false); })
       .catch(() => setLoading(false));
@@ -55,7 +59,6 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
 
   const event     = booking.eventId;
   const seats     = booking.selectedSeats || [];
-  const ticketCode = booking.ticketCode || localStorage.getItem('lastTicketCode') || booking._id.toString().toUpperCase().slice(-8);
   const refId     = booking._id.toString().toUpperCase().slice(-8);
   const formatPrice = (p) => Number(p).toLocaleString('vi-VN') + (vi ? 'đ' : ' VND');
 
@@ -77,79 +80,80 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
           ✓ {vi ? 'Xuất vé thành công' : 'Booking Confirmed'}
         </span>
 
-        {/* Ticket card */}
-        <div style={{ width: '100%', background: 'linear-gradient(180deg, rgba(14,16,44,.9), rgba(7,8,24,.85))', border: '1px solid rgba(168,150,246,.4)', borderRadius: 24, overflow: 'hidden', boxShadow: '0 40px 80px -20px rgba(70,69,215,.2)' }}>
-
-          {/* Image header */}
-          <div style={{ height: 160, position: 'relative', overflow: 'hidden' }}>
-            <img src={event?.image} alt="Event" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: .55, filter: 'saturate(1.2)' }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(7,8,24,.95) 0%, transparent 60%)' }} />
-            <div style={{ position: 'absolute', bottom: 20, left: 24, right: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-              <div>
-                <p style={{ color: 'var(--mint)', fontSize: 10, fontWeight: 700, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: 4 }}>ADMIT ONE</p>
-                <h2 className="serif" style={{ color: '#fff', fontSize: 26, margin: 0, lineHeight: .9 }}>{l(event?.title)}</h2>
+        {seats.map((seat, index) => {
+          const seatTicketCode = seat.ticketCode || `${refId}-${seat.seatId}`;
+          return (
+            <div key={index} style={{ width: '100%', background: 'linear-gradient(180deg, rgba(14,16,44,.9), rgba(7,8,24,.85))', border: '1px solid rgba(168,150,246,.4)', borderRadius: 24, overflow: 'hidden', boxShadow: '0 40px 80px -20px rgba(70,69,215,.2)' }}>
+              {/* Image header */}
+              <div style={{ height: 160, position: 'relative', overflow: 'hidden' }}>
+                <img src={event?.image} alt="Event" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: .55, filter: 'saturate(1.2)' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(7,8,24,.95) 0%, transparent 60%)' }} />
+                <div style={{ position: 'absolute', bottom: 20, left: 24, right: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                  <div>
+                    <p style={{ color: 'var(--mint)', fontSize: 10, fontWeight: 700, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: 4 }}>ADMIT ONE</p>
+                    <h2 className="serif" style={{ color: '#fff', fontSize: 26, margin: 0, lineHeight: .9 }}>{l(event?.title)}</h2>
+                  </div>
+                  <span className="material-symbols-outlined" style={{ color: 'var(--purple)', fontSize: 32 }}>local_activity</span>
+                </div>
               </div>
-              <span className="material-symbols-outlined" style={{ color: 'var(--purple)', fontSize: 32 }}>local_activity</span>
-            </div>
-          </div>
 
-          {/* QR section */}
-          <div style={{ padding: '28px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-            <div style={{ background: '#fff', padding: 12, borderRadius: 16, boxShadow: '0 0 40px rgba(168,150,246,.3)' }}>
-              <QRCodeSVG value={ticketCode} size={180} bgColor="#ffffff" fgColor="#01010A" level="H" includeMargin={false} />
-            </div>
+              {/* QR section */}
+              <div style={{ padding: '28px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+                <div style={{ background: '#fff', padding: 12, borderRadius: 16, boxShadow: '0 0 40px rgba(168,150,246,.3)' }}>
+                  <QRCodeSVG value={seatTicketCode} size={180} bgColor="#ffffff" fgColor="#01010A" level="H" includeMargin={false} />
+                </div>
 
-            <div style={{ textAlign: 'center' }}>
-              <p style={{ fontSize: 9, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.18em', marginBottom: 10 }}>
-                {vi ? 'MÃ VÉ' : 'TICKET CODE'}
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(168,150,246,.08)', border: '1px solid rgba(168,150,246,.3)', borderRadius: 12, padding: '12px 20px' }}>
-                <span style={{ fontFamily: 'monospace', fontSize: 20, color: 'var(--purple)', fontWeight: 700, letterSpacing: '.15em' }}>{ticketCode}</span>
-                <button onClick={() => handleCopy(ticketCode)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? 'var(--mint)' : 'var(--muted)', transition: 'color .2s' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{copied ? 'check' : 'content_copy'}</span>
-                </button>
-              </div>
-              <p style={{ fontSize: 9, color: 'rgba(168,150,246,.5)', marginTop: 8, letterSpacing: '.1em', textTransform: 'uppercase' }}>REF: {refId}</p>
-            </div>
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ fontSize: 9, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.18em', marginBottom: 10 }}>
+                    {vi ? 'MÃ VÉ' : 'TICKET CODE'}
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(168,150,246,.08)', border: '1px solid rgba(168,150,246,.3)', borderRadius: 12, padding: '12px 20px' }}>
+                    <span style={{ fontFamily: 'monospace', fontSize: 20, color: 'var(--purple)', fontWeight: 700, letterSpacing: '.15em' }}>{seatTicketCode}</span>
+                    <button onClick={() => handleCopy(seatTicketCode)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? 'var(--mint)' : 'var(--muted)', transition: 'color .2s' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{copied ? 'check' : 'content_copy'}</span>
+                    </button>
+                  </div>
+                  <p style={{ fontSize: 9, color: 'rgba(168,150,246,.5)', marginTop: 8, letterSpacing: '.1em', textTransform: 'uppercase' }}>REF: {refId}</p>
+                </div>
 
-            <p style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'center', letterSpacing: '.08em', textTransform: 'uppercase', maxWidth: 240 }}>
-              {vi ? 'Xuất trình mã QR tại cửa vào sự kiện' : 'Present QR code at the event entrance'}
-            </p>
-          </div>
-
-          {/* Tear line */}
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--black)', position: 'absolute', left: -11, boxShadow: 'inset -3px 0 5px rgba(0,0,0,.4)' }} />
-            <div style={{ flex: 1, margin: '0 12px', borderTop: '2px dashed rgba(168,150,246,.25)' }} />
-            <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--black)', position: 'absolute', right: -11, boxShadow: 'inset 3px 0 5px rgba(0,0,0,.4)' }} />
-          </div>
-
-          {/* Info grid */}
-          <div style={{ padding: '20px 24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
-            {[
-              { labelEn: 'Date & Time', labelVi: 'Ngày & Giờ', value: event?.date ? new Date(event.date).toLocaleDateString(vi ? 'vi-VN' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '—', sub: new Date(event?.date).toLocaleTimeString(vi ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit' }) },
-              { labelEn: 'Venue',       labelVi: 'Địa điểm',  value: l(event?.venueName), sub: l(event?.location), align: 'right' },
-              { labelEn: 'Seats',       labelVi: 'Chỗ ngồi',  value: seats.map(s => s.seatId.split('-').slice(2).join(' ')).join(', ') || '—', sub: '' },
-              { labelEn: 'Tier',        labelVi: 'Hạng vé',   value: l(event?.pricingTiers?.[seats[0]?.type?.toLowerCase()]?.label) || seats[0]?.type || '—', sub: '', align: 'right' },
-            ].map(c => (
-              <div key={c.labelEn} style={{ textAlign: c.align || 'left' }}>
-                <p style={{ fontSize: 9, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.15em', marginBottom: 4 }}>
-                  {vi ? c.labelVi : c.labelEn}
+                <p style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'center', letterSpacing: '.08em', textTransform: 'uppercase', maxWidth: 240 }}>
+                  {vi ? 'Xuất trình mã QR tại cửa vào sự kiện' : 'Present QR code at the event entrance'}
                 </p>
-                <p style={{ color: '#fff', fontSize: 14, fontWeight: 600, margin: 0 }}>{c.value}</p>
-                {c.sub && <p style={{ color: 'var(--muted)', fontSize: 11, margin: '2px 0 0' }}>{c.sub}</p>}
               </div>
-            ))}
-          </div>
 
-          {/* Total */}
-          <div style={{ padding: '14px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(70,69,215,.08)' }}>
-            <span style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.12em' }}>
-              {vi ? 'Tổng thanh toán' : 'Total Paid'}
-            </span>
-            <span className="serif" style={{ fontSize: 24, color: 'var(--purple)', fontWeight: 700 }}>{formatPrice(booking.subtotal)}</span>
-          </div>
-        </div>
+              {/* Tear line */}
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--black)', position: 'absolute', left: -11, boxShadow: 'inset -3px 0 5px rgba(0,0,0,.4)' }} />
+                <div style={{ flex: 1, margin: '0 12px', borderTop: '2px dashed rgba(168,150,246,.25)' }} />
+                <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--black)', position: 'absolute', right: -11, boxShadow: 'inset 3px 0 5px rgba(0,0,0,.4)' }} />
+              </div>
+
+              {/* Info grid */}
+              <div style={{ padding: '20px 24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
+                {[
+                  { labelEn: 'Date & Time', labelVi: 'Ngày & Giờ', value: event?.date ? new Date(event.date).toLocaleDateString(vi ? 'vi-VN' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '—', sub: new Date(event?.date).toLocaleTimeString(vi ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit' }) },
+                  { labelEn: 'Venue',       labelVi: 'Địa điểm',  value: l(event?.venueName), sub: l(event?.location), align: 'right' },
+                  { labelEn: 'Seat',        labelVi: 'Chỗ ngồi',  value: seat.seatId, sub: '' },
+                  { labelEn: 'Tier',        labelVi: 'Hạng vé',   value: l(event?.pricingTiers?.[seat.type?.toLowerCase()]?.label) || seat.type || '—', sub: '', align: 'right' },
+                ].map(c => (
+                  <div key={c.labelEn} style={{ textAlign: c.align || 'left' }}>
+                    <p style={{ fontSize: 9, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.15em', marginBottom: 4 }}>
+                      {vi ? c.labelVi : c.labelEn}
+                    </p>
+                    <p style={{ color: '#fff', fontSize: 14, fontWeight: 600, margin: 0 }}>{c.value}</p>
+                    {c.sub && <p style={{ color: 'var(--muted)', fontSize: 11, margin: '2px 0 0' }}>{c.sub}</p>}
+                  </div>
+                ))}
+              </div>
+
+              {/* Total */}
+              <div style={{ padding: '14px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(70,69,215,.08)' }}>
+                <span style={{ fontSize: 12, color: 'var(--muted)' }}>{vi ? 'Giá vé' : 'Ticket Price'}</span>
+                <span style={{ fontSize: 16, color: '#fff', fontWeight: 700 }}>{formatPrice(seat.price)}</span>
+              </div>
+            </div>
+          );
+        })}
 
         {/* Actions */}
         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -163,7 +167,7 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
               PDF
             </button>
             <button
-              onClick={() => handleCopy(ticketCode)}
+              onClick={() => handleCopy(seats.map(s => s.ticketCode || `${refId}-${s.seatId}`).join(', '))}
               className="btn-outline-pill"
               style={{ flex: 1, justifyContent: 'center', gap: 8 }}
             >

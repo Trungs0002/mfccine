@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const cloudinary = require('cloudinary').v2;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const querystring = require('querystring');
 require('dotenv').config();
 
 const connectDB = require('./connect');
@@ -109,7 +111,9 @@ const BookingSchema = new mongoose.Schema({
     {
       seatId: { type: String, required: true },
       type: { type: String, required: true },
-      price: { type: Number, required: true }
+      price: { type: Number, required: true },
+      ticketCode: { type: String },
+      isCheckedIn: { type: Boolean, default: false }
     }
   ],
   subtotal: { type: Number, required: true },
@@ -117,9 +121,11 @@ const BookingSchema = new mongoose.Schema({
   discountPercent: { type: Number, default: 0 },
   paymentMethod: { type: String, required: true },
   paymentStatus: { type: String, enum: ['Pending', 'Completed', 'Failed'], default: 'Completed' },
+  paymentBillUrl: { type: String }, // User uploaded payment bill screenshot
   bookingDate: { type: Date, default: Date.now },
   isCheckedIn: { type: Boolean, default: false },
-  checkInDate: { type: Date }
+  checkInDate: { type: Date },
+  ticketSent: { type: Boolean, default: false } // Admin confirmed and sent ticket to customer
 });
 
 // 5. Discount Code Model
@@ -133,6 +139,16 @@ const DiscountCodeSchema = new mongoose.Schema({
 });
 
 const DiscountCode = mongoose.model('DiscountCode', DiscountCodeSchema);
+
+// Seat Lock Model (for temporary holding during checkout)
+const SeatLockSchema = new mongoose.Schema({
+  eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true },
+  seatId: { type: String, required: true },
+  lockId: { type: String, required: true },
+  expiresAt: { type: Date, required: true }
+});
+
+const SeatLock = mongoose.model('SeatLock', SeatLockSchema);
 
 // 6. Recruitment Application Model (CTV sign-up form on /recruit)
 const RecruitApplicationSchema = new mongoose.Schema({
@@ -195,6 +211,23 @@ const generateTicketCode = () => {
   }
   return code;
 };
+
+// VNPay Helper Functions
+function sortObject(obj) {
+	let sorted = {};
+	let str = [];
+	let key;
+	for (key in obj){
+		if (obj.hasOwnProperty(key)) {
+		str.push(encodeURIComponent(key));
+		}
+	}
+	str.sort();
+    for (key = 0; key < str.length; key++) {
+        sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, "+");
+    }
+    return sorted;
+}
 
 const Booking = mongoose.model('Booking', BookingSchema);
 
@@ -388,7 +421,24 @@ app.get('/api/bookings', async (req, res) => {
 
 app.post('/api/bookings', async (req, res) => {
   try {
-    const { discountCode, subtotal, selectedSeats, ...rest } = req.body;
+    const { discountCode, subtotal, selectedSeats, paymentMethod, lockId, ...rest } = req.body;
+    
+    // Check if already booked
+    const existingBookings = await Booking.find({ eventId: rest.eventId, paymentStatus: { $ne: 'Failed' } });
+    for (let b of existingBookings) {
+      for (let s of b.selectedSeats) {
+        if (selectedSeats.find(ss => ss.seatId === s.seatId)) return res.status(400).json({ error: `Ghế ${s.seatId} đã có người đặt.` });
+      }
+    }
+
+    // Check if locked by someone else
+    const seatIds = selectedSeats.map(s => s.seatId);
+    const activeLocks = await SeatLock.find({ eventId: rest.eventId, seatId: { $in: seatIds }, expiresAt: { $gt: new Date() } });
+    for (let lock of activeLocks) {
+      if (lock.lockId !== lockId) {
+        return res.status(400).json({ error: `Ghế ${lock.seatId} đang được người khác giữ.` });
+      }
+    }
 
     // Validate the discount code server-side and recompute the final price from it —
     // never trust an already-discounted total sent by the client.
@@ -419,7 +469,7 @@ app.post('/api/bookings', async (req, res) => {
       await coupon.save();
     }
 
-    // Generate a unique ticket code
+    // Generate a unique ticket code for the overall booking (used as order ID)
     let ticketCode;
     let isUnique = false;
     while (!isUnique) {
@@ -427,16 +477,95 @@ app.post('/api/bookings', async (req, res) => {
       const existing = await Booking.findOne({ ticketCode });
       if (!existing) isUnique = true;
     }
+
+    // Generate unique ticket codes for each individual seat
+    for (let i = 0; i < selectedSeats.length; i++) {
+      let seatUnique = false;
+      while (!seatUnique) {
+        let code = generateTicketCode();
+        // Check if code exists in any booking's selectedSeats
+        const existing = await Booking.findOne({ 'selectedSeats.ticketCode': code });
+        if (!existing) {
+          selectedSeats[i].ticketCode = code;
+          selectedSeats[i].isCheckedIn = false;
+          seatUnique = true;
+        }
+      }
+    }
+    let bookingStatus = 'Completed';
+    if (paymentMethod === 'VNPay' || paymentMethod === 'Bank Transfer' || paymentMethod === 'MoMo') {
+      bookingStatus = 'Pending';
+    }
+
     const booking = await Booking.create({
       ...rest,
+      paymentMethod,
+      paymentStatus: bookingStatus,
       selectedSeats,
       subtotal: finalSubtotal,
       discountCode: appliedCode,
       discountPercent,
       ticketCode,
     });
+
     res.status(201).json({ message: 'Booking confirmed', bookingId: booking._id, ticketCode: booking.ticketCode });
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/bookings/vnpay_return', async (req, res) => {
+    let vnp_Params = req.query;
+    let secureHash = vnp_Params['vnp_SecureHash'];
+
+    delete vnp_Params['vnp_SecureHash'];
+    delete vnp_Params['vnp_SecureHashType'];
+
+    vnp_Params = sortObject(vnp_Params);
+
+    let secretKey = process.env.VNP_HASHSECRET || "YOUR_SECRET_KEY";
+    let signData = querystring.stringify(vnp_Params, { encode: false });
+    let hmac = crypto.createHmac("sha512", secretKey);
+    let signed = hmac.update(new Buffer(signData, 'utf-8')).digest("hex");     
+
+    if(secureHash === signed){
+        // Verification success
+        const bookingId = vnp_Params['vnp_TxnRef'];
+        const responseCode = vnp_Params['vnp_ResponseCode'];
+        if(responseCode === '00') {
+           // Payment success
+           await Booking.findByIdAndUpdate(bookingId, { paymentStatus: 'Completed' });
+           // Redirect to frontend ticket page
+           res.redirect(`http://localhost:3000/ticket?id=${bookingId}&success=1`);
+        } else {
+           // Payment failed
+           await Booking.findByIdAndUpdate(bookingId, { paymentStatus: 'Failed' });
+           res.redirect(`http://localhost:3000/checkout?error=vnpay_failed`);
+        }
+    } else{
+        res.status(400).send('Invalid signature');
+    }
+});
+
+// Upload Payment Bill
+app.post('/api/bookings/:id/bill', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { image } = req.body;
+    if (!image) return res.status(400).json({ error: 'No image provided' });
+
+    let imageUrl = '';
+    try {
+      const uploadRes = await cloudinary.uploader.upload(image, { folder: 'mfc/bills' });
+      imageUrl = uploadRes.secure_url;
+    } catch (e) {
+      console.error('Cloudinary upload failed:', e);
+      return res.status(500).json({ error: 'Lỗi tải ảnh. Vui lòng thử lại.' });
+    }
+
+    const booking = await Booking.findByIdAndUpdate(id, { paymentBillUrl: imageUrl, paymentStatus: 'Pending' }, { new: true });
+    res.json({ message: 'Uploaded successfully', booking });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get('/api/bookings/email/:email', async (req, res) => {
@@ -455,11 +584,107 @@ app.get('/api/bookings/:id', async (req, res) => {
 
 app.get('/api/bookings/event/:eventId/occupied-seats', async (req, res) => {
   try {
-    const bookings = await Booking.find({ eventId: req.params.eventId });
+    const bookings = await Booking.find({ 
+      eventId: req.params.eventId,
+      paymentStatus: { $ne: 'Failed' }
+    });
+    
+    // Also include currently locked seats that haven't expired
+    const activeLocks = await SeatLock.find({
+      eventId: req.params.eventId,
+      expiresAt: { $gt: new Date() }
+    });
+
     let occupied = [];
     bookings.forEach(b => { b.selectedSeats.forEach(s => occupied.push(s.seatId)); });
-    res.json(occupied);
+    activeLocks.forEach(l => occupied.push(l.seatId));
+    
+    res.json([...new Set(occupied)]); // return unique
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/bookings/lock', async (req, res) => {
+  try {
+    const { eventId, seats, lockId, holdMinutes = 5 } = req.body;
+    
+    // Check if already booked
+    const existingBookings = await Booking.find({ eventId, paymentStatus: { $ne: 'Failed' } });
+    for (let b of existingBookings) {
+      for (let s of b.selectedSeats) {
+        if (seats.includes(s.seatId)) return res.status(400).json({ error: `Ghế ${s.seatId} đã có người đặt.` });
+      }
+    }
+
+    // Check if locked by someone else
+    const activeLocks = await SeatLock.find({ eventId, seatId: { $in: seats }, expiresAt: { $gt: new Date() } });
+    for (let lock of activeLocks) {
+      if (lock.lockId !== lockId) {
+        return res.status(400).json({ error: `Ghế ${lock.seatId} đang được người khác giữ.` });
+      }
+    }
+
+    // Clear old locks for this lockId
+    await SeatLock.deleteMany({ lockId });
+
+    // Create new locks
+    const expiresAt = new Date(Date.now() + holdMinutes * 60000);
+    for (let seatId of seats) {
+      await SeatLock.create({ eventId, seatId, lockId, expiresAt });
+    }
+
+    res.json({ message: 'Seats locked', expiresAt });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/bookings/unlock', async (req, res) => {
+  try {
+    const { lockId } = req.body;
+    await SeatLock.deleteMany({ lockId });
+    res.json({ message: 'Seats unlocked' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/bookings/:id/cancel', async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ error: 'Booking not found' });
+    if (booking.paymentStatus === 'Completed') return res.status(400).json({ error: 'Cannot cancel a completed booking' });
+    
+    // Hard delete the pending booking to free up seats immediately
+    await Booking.findByIdAndDelete(req.params.id);
+
+    // If a lockId is provided, recreate the SeatLock so the user keeps their seats on the checkout page
+    const { lockId } = req.body;
+    if (lockId) {
+      const expiresAt = new Date(Date.now() + 2 * 60000); // 2 more minutes
+      for (let seat of booking.selectedSeats) {
+        await SeatLock.create({ eventId: booking.eventId, seatId: seat.seatId, lockId, expiresAt });
+      }
+      return res.json({ message: 'Booking cancelled and seats re-locked', expiresAt });
+    }
+
+    res.json({ message: 'Booking cancelled successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/bookings/:id/send-ticket', async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ error: 'Booking not found' });
+    booking.ticketSent = !booking.ticketSent;
+    
+    // Auto complete the payment status when sending the ticket, if it's currently Pending
+    if (booking.ticketSent && booking.paymentStatus === 'Pending') {
+      booking.paymentStatus = 'Completed';
+    }
+    
+    await booking.save();
+    res.json({ message: 'Ticket status updated', booking });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/bookings/check-in/:id', async (req, res) => {
@@ -467,8 +692,13 @@ app.post('/api/bookings/check-in/:id', async (req, res) => {
     const id = req.params.id;
     let booking;
 
-    // 1. Try matching by ticketCode (primary method for QR scanner)
-    booking = await Booking.findOne({ ticketCode: id.toUpperCase() }).populate('eventId');
+    // 1. Try matching by individual seat ticketCode (primary method for QR scanner)
+    booking = await Booking.findOne({ 'selectedSeats.ticketCode': id.toUpperCase() }).populate('eventId');
+    
+    // 1b. Fallback matching by root ticketCode
+    if (!booking) {
+      booking = await Booking.findOne({ ticketCode: id.toUpperCase() }).populate('eventId');
+    }
 
     // 2. Fallback: try MongoDB ObjectId
     if (!booking && mongoose.Types.ObjectId.isValid(id)) {
@@ -502,17 +732,40 @@ app.post('/api/bookings/check-in/:id', async (req, res) => {
       checkInDate: b.checkInDate,
     });
 
-    // Already checked in — return info but with warning status
-    if (booking.isCheckedIn) {
-      return res.status(400).json({
-        status: 'already_used',
-        error: 'Ticket already checked in',
-        booking: buildTicketInfo(booking)
-      });
+    // Check if a specific seat was scanned
+    const scannedSeat = booking.selectedSeats.find(s => s.ticketCode === id.toUpperCase());
+    
+    if (scannedSeat) {
+      if (scannedSeat.isCheckedIn) {
+        return res.status(400).json({
+          status: 'already_used',
+          error: `Ticket for seat ${scannedSeat.seatId} already checked in`,
+          booking: buildTicketInfo(booking)
+        });
+      }
+      scannedSeat.isCheckedIn = true;
+      
+      // Update root status if all seats are checked in
+      const allCheckedIn = booking.selectedSeats.every(s => s.isCheckedIn);
+      if (allCheckedIn) {
+        booking.isCheckedIn = true;
+        booking.checkInDate = new Date();
+      }
+    } else {
+      // Legacy root check-in (e.g. they scanned the booking ID or root ticketCode)
+      if (booking.isCheckedIn) {
+        return res.status(400).json({
+          status: 'already_used',
+          error: 'Ticket already checked in',
+          booking: buildTicketInfo(booking)
+        });
+      }
+      booking.isCheckedIn = true;
+      booking.checkInDate = new Date();
+      // Mark all seats as checked in
+      booking.selectedSeats.forEach(s => s.isCheckedIn = true);
     }
 
-    booking.isCheckedIn = true;
-    booking.checkInDate = new Date();
     await booking.save();
     res.json({
       status: 'valid',

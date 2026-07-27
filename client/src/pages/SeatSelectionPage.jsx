@@ -334,13 +334,17 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
 
   const formatPrice = (p) => Number(p).toLocaleString('vi-VN') + (vi ? 'đ' : ' VND');
 
-  useEffect(() => {
+  const fetchOccupied = () => {
     if (!event) return;
     setLoading(true);
     fetch(`${API_URL}/api/bookings/event/${event._id}/occupied-seats`)
       .then(res => res.json())
       .then(data => { setOccupiedSeats(data); setLoading(false); })
       .catch(() => { setOccupiedSeats([]); setLoading(false); });
+  };
+
+  useEffect(() => {
+    fetchOccupied();
   }, [event]);
 
   const seats = buildSeats(vi, vipPrice, premiumPrice, standardPrice);
@@ -358,8 +362,9 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
 
   const handleClearAll = () => setSelectedSeats([]);
 
-  const handleProceed = () => {
+  const handleProceed = async () => {
     if (!selectedSeats.length) return;
+    
     setBookingDetails({
       selectedSeats: selectedSeats.map(s => ({ seatId: s.id, type: s.zoneName || s.type, price: s.price })),
       subtotal: selectedSeats.reduce((sum, s) => sum + s.price, 0),
