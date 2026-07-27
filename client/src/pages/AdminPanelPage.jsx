@@ -59,9 +59,9 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
 
   // Custom Bilingual Tier states
   const [tiers, setTiers] = useState({
-    standard: { labelEn: 'STANDARD ENTRY', labelVi: 'HẠNG PHỔ THÔNG', descEn: 'General admission pass.', descVi: 'Vé vào cửa tiêu chuẩn.', price: 100 },
-    premium: { labelEn: 'SILVER ATTIRE', labelVi: 'HẠNG BẠC CAO CẤP', descEn: 'Premium seating.', descVi: 'Vị trí ngồi cao cấp.', price: 150 },
-    vip: { labelEn: 'VIP FRONT ROW', labelVi: 'HẠNG VIP TRỰC DIỆN', descEn: 'Exclusive front row access.', descVi: 'Quyền lợi hàng ghế đầu độc quyền.', price: 450 }
+    standard: { labelEn: 'Hoàn Ảnh', labelVi: 'Hoàn Ảnh', descEn: 'General admission pass.', descVi: 'Vé vào cửa tiêu chuẩn.', price: 150000 },
+    premium: { labelEn: 'Khởi Ảnh', labelVi: 'Khởi Ảnh', descEn: 'Premium seating.', descVi: 'Vị trí ngồi cao cấp.', price: 250000 },
+    vip: { labelEn: 'Nhất Ảnh', labelVi: 'Nhất Ảnh', descEn: 'Exclusive front row access.', descVi: 'Quyền lợi hàng ghế đầu độc quyền.', price: 500000 }
   });
 
   // Dynamic Schedule state
@@ -408,9 +408,9 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     setLocEn(''); setLocVi('');
     setVenueEn(''); setVenueVi('');
     setTiers({
-      standard: { labelEn: 'STANDARD ENTRY', labelVi: 'HẠNG PHỔ THÔNG', descEn: 'General admission pass.', descVi: 'Vé vào cửa tiêu chuẩn.', price: 100 },
-      premium: { labelEn: 'SILVER ATTIRE', labelVi: 'HẠNG BẠC CAO CẤP', descEn: 'Premium seating.', descVi: 'Vị trí ngồi cao cấp.', price: 150 },
-      vip: { labelEn: 'VIP FRONT ROW', labelVi: 'HẠNG VIP TRỰC DIỆN', descEn: 'Exclusive front row access.', descVi: 'Quyền lợi hàng ghế đầu độc quyền.', price: 450 }
+      standard: { labelEn: 'Hoàn Ảnh', labelVi: 'Hoàn Ảnh', descEn: 'General admission pass.', descVi: 'Vé vào cửa tiêu chuẩn.', price: 150000 },
+      premium: { labelEn: 'Khởi Ảnh', labelVi: 'Khởi Ảnh', descEn: 'Premium seating.', descVi: 'Vị trí ngồi cao cấp.', price: 250000 },
+      vip: { labelEn: 'Nhất Ảnh', labelVi: 'Nhất Ảnh', descEn: 'Exclusive front row access.', descVi: 'Quyền lợi hàng ghế đầu độc quyền.', price: 500000 }
     });
     setSchedule([{ time: '19:00', titleEn: 'Arrival', titleVi: 'Đón khách', descEn: 'Red Carpet', descVi: 'Thảm đỏ' }]);
     setImage(null);

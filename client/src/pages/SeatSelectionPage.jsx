@@ -21,9 +21,9 @@ import { API_URL } from '../apiConfig';
 */
 
 const ZONE = {
-  Standard: { color: '#10b981', label: (vi) => vi ? 'Khu Standard' : 'Standard' },
-  Premium:  { color: '#5aaddc', label: (vi) => vi ? 'Khu Premium'  : 'Premium'  },
-  VIP:      { color: '#a896f6', label: (vi) => vi ? 'Khu VIP'      : 'VIP'      },
+  Standard: { color: '#10b981', label: (vi) => 'Hoàn Ảnh' },
+  Premium:  { color: '#5aaddc', label: (vi) => 'Khởi Ảnh' },
+  VIP:      { color: '#a896f6', label: (vi) => 'Nhất Ảnh' },
 };
 
 /* ── Dimensions ── */
@@ -99,18 +99,11 @@ const topRightType = (col) => {
   return 'Standard';
 };
 
-// Bottom block: inner cols closer to aisle = VIP, then Premium, outer = Standard
-// Left block cols 0-24: col 0=leftmost(outer), col 24=rightmost(inner, closest to aisle)
-const botLeftType = (col) => {
-  if (col >= 18) return 'VIP';        // cols 18-24: closest to center aisle
-  if (col >= 10) return 'Premium';    // cols 10-17: middle
-  return 'Standard';                  // cols 0-9: outermost
-};
-// Right block cols 0-24: col 0=leftmost(inner, closest to aisle), col 24=outermost
-const botRightType = (col) => {
-  if (col <= 6) return 'VIP';         // cols 0-6: closest to center aisle
-  if (col <= 14) return 'Premium';    // cols 7-14: middle
-  return 'Standard';                  // cols 15-24: outermost
+// Bottom block: rows 1-2 = VIP (Pink), 3-4 = Premium (Blue), 5-6 = Standard (Green)
+const botType = (row) => {
+  if (row <= 1) return 'VIP';         // rows 0, 1
+  if (row <= 3) return 'Premium';     // rows 2, 3
+  return 'Standard';                  // rows 4, 5
 };
 
 /* ── Build all seats ── */
@@ -118,26 +111,32 @@ const buildSeats = (vi, vipPrice, premiumPrice, standardPrice) => {
   const list = [];
   const priceOf = { Standard: standardPrice, Premium: premiumPrice, VIP: vipPrice };
 
-  const push = (id, type, x, y) => {
+  const getColLetter = (index) => String.fromCharCode(65 + index);
+
+  const push = (id, num, type, x, y) => {
     const { color, label } = ZONE[type];
-    list.push({ id, num: id, type, zoneName: label(vi), price: priceOf[type], color, x, y });
+    list.push({ id, num, type, zoneName: label(vi), price: priceOf[type], color, x, y });
   };
 
-  // Top-Left block (8 cols × 20 rows) — wider horizontal spacing
+  // Top-Left block (8 cols × 20 rows) — A to H
   for (let r = 0; r < TOP_ROWS; r++) {
     for (let c = 0; c < TOP_COLS; c++) {
       const x = TOP_LEFT_X + c * TOP_COL_PITCH;
       const y = TOP_SECT_Y + r * ROW_PITCH;
-      push(`TL-${r + 1}-${c + 1}`, topLeftType(c), x, y);
+      const colLetter = getColLetter(c);
+      const seatNum = `${colLetter}${r + 1}`;
+      push(seatNum, seatNum, topLeftType(c), x, y);
     }
   }
 
-  // Top-Right block (8 cols × 20 rows) — wider horizontal spacing
+  // Top-Right block (8 cols × 20 rows) — I to P
   for (let r = 0; r < TOP_ROWS; r++) {
     for (let c = 0; c < TOP_COLS; c++) {
       const x = TOP_RIGHT_X + c * TOP_COL_PITCH;
       const y = TOP_SECT_Y + r * ROW_PITCH;
-      push(`TR-${r + 1}-${c + 1}`, topRightType(c), x, y);
+      const colLetter = getColLetter(TOP_COLS + c); // I-P
+      const seatNum = `${colLetter}${r + 1}`;
+      push(seatNum, seatNum, topRightType(c), x, y);
     }
   }
 
@@ -146,7 +145,9 @@ const buildSeats = (vi, vipPrice, premiumPrice, standardPrice) => {
     for (let c = 0; c < BOT_COLS; c++) {
       const x = BOT_LEFT_X + c * COL_PITCH;
       const y = BOT_SECT_Y + r * ROW_PITCH;
-      push(`BL-${r + 1}-${c + 1}`, botLeftType(c), x, y);
+      const rowLetter = getColLetter(r);
+      const seatNum = `${rowLetter}${c + 1}`;
+      push(seatNum, seatNum, botType(r), x, y);
     }
   }
 
@@ -155,7 +156,9 @@ const buildSeats = (vi, vipPrice, premiumPrice, standardPrice) => {
     for (let c = 0; c < BOT_COLS; c++) {
       const x = BOT_RIGHT_X + c * COL_PITCH;
       const y = BOT_SECT_Y + r * ROW_PITCH;
-      push(`BR-${r + 1}-${c + 1}`, botRightType(c), x, y);
+      const rowLetter = getColLetter(r);
+      const seatNum = `${rowLetter}${BOT_COLS + c + 1}`;
+      push(seatNum, seatNum, botType(r), x, y);
     }
   }
 
@@ -358,7 +361,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
   const handleProceed = () => {
     if (!selectedSeats.length) return;
     setBookingDetails({
-      selectedSeats: selectedSeats.map(s => ({ seatId: s.id, type: s.type, price: s.price })),
+      selectedSeats: selectedSeats.map(s => ({ seatId: s.id, type: s.zoneName || s.type, price: s.price })),
       subtotal: selectedSeats.reduce((sum, s) => sum + s.price, 0),
     });
     navigate('/checkout');
@@ -371,9 +374,9 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
   const selectedZones = [...new Map(selectedSeats.map(s => [s.zoneName, s.color])).entries()];
 
   const LEGEND_ITEMS = [
-    { color: '#a896f6', label: vi ? 'Vé VIP' : 'VIP', price: formatPrice(vipPrice) },
-    { color: '#5aaddc', label: vi ? 'Vé Premium' : 'Premium', price: formatPrice(premiumPrice) },
-    { color: '#10b981', label: vi ? 'Vé Standard' : 'Standard', price: formatPrice(standardPrice) },
+    { color: '#a896f6', label: 'Nhất Ảnh', price: formatPrice(vipPrice) },
+    { color: '#5aaddc', label: 'Khởi Ảnh', price: formatPrice(premiumPrice) },
+    { color: '#10b981', label: 'Hoàn Ảnh', price: formatPrice(standardPrice) },
     { color: '#ff3b3b', label: vi ? 'Đang chọn' : 'Selected', price: null },
     { color: '#1e1e2f', label: vi ? 'Đã bán' : 'Taken', price: null, bordered: true },
   ];
@@ -586,7 +589,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                       fontSize: 9, fontWeight: 600, color: 'rgba(168,150,246,.55)',
                       pointerEvents: 'none',
                     }}>
-                      {r + 1}
+                      {String.fromCharCode(65 + r)}
                     </div>
                   ))}
 
@@ -602,7 +605,37 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                       fontSize: 9, fontWeight: 600, color: 'rgba(168,150,246,.55)',
                       pointerEvents: 'none',
                     }}>
-                      {r + 1}
+                      {String.fromCharCode(65 + r)}
+                    </div>
+                  ))}
+
+                  {/* ── Col number labels — Top-Left block (below) ── */}
+                  {Array.from({ length: TOP_COLS }, (_, c) => (
+                    <div key={`tl-col-${c}`} style={{
+                      position: 'absolute',
+                      top: TOP_SECT_Y + TOP_SECT_H + 4,
+                      left: TOP_LEFT_X + c * TOP_COL_PITCH,
+                      width: S,
+                      textAlign: 'center',
+                      fontSize: 7, fontWeight: 600, color: 'rgba(168,150,246,.45)',
+                      pointerEvents: 'none',
+                    }}>
+                      {String.fromCharCode(65 + c)}
+                    </div>
+                  ))}
+
+                  {/* ── Col number labels — Top-Right block (below) ── */}
+                  {Array.from({ length: TOP_COLS }, (_, c) => (
+                    <div key={`tr-col-${c}`} style={{
+                      position: 'absolute',
+                      top: TOP_SECT_Y + TOP_SECT_H + 4,
+                      left: TOP_RIGHT_X + c * TOP_COL_PITCH,
+                      width: S,
+                      textAlign: 'center',
+                      fontSize: 7, fontWeight: 600, color: 'rgba(168,150,246,.45)',
+                      pointerEvents: 'none',
+                    }}>
+                      {String.fromCharCode(65 + TOP_COLS + c)}
                     </div>
                   ))}
 
@@ -632,7 +665,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                       fontSize: 7, fontWeight: 600, color: 'rgba(168,150,246,.45)',
                       pointerEvents: 'none',
                     }}>
-                      {c + 1}
+                      {BOT_COLS + c + 1}
                     </div>
                   ))}
 
@@ -771,7 +804,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                           background: 'rgba(168,150,246,.06)',
                         }}
                       >
-                        <span style={{ color: 'var(--muted)' }}>{seat.num} · {seat.type}</span>
+                        <span style={{ color: 'var(--muted)' }}>{seat.num} · {seat.zoneName}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <span style={{ color: '#e0dcff' }}>{formatPrice(seat.price)}</span>
                           <button

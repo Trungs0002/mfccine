@@ -41,9 +41,9 @@ const FALLBACK_EVENTS = [
       { time: "22:00", title: { en: "Closing",          vi: "Bế mạc" },             description: { en: "Awards & Finale",        vi: "Trao giải & Kết thúc" } },
     ],
     pricingTiers: {
-      standard: { price: 150000, label: { en: "Standard",        vi: "Khu phổ thông" },     description: { en: "Standard seating area",         vi: "Khu vực khán đài tiêu chuẩn" } },
-      premium:  { price: 250000, label: { en: "Premium",         vi: "Khu Premium" },       description: { en: "Premium view",                  vi: "Khu vực khán đài cao cấp" } },
-      vip:      { price: 500000, label: { en: "VIP",             vi: "Khu VIP" },           description: { en: "Center VIP with exclusive perks", vi: "Vị trí trung tâm và đặc quyền riêng" } },
+      standard: { price: 150000, label: { en: "Hoàn Ảnh",        vi: "Hoàn Ảnh" },     description: { en: "Standard seating area",         vi: "Khu vực khán đài tiêu chuẩn" } },
+      premium:  { price: 250000, label: { en: "Khởi Ảnh",         vi: "Khởi Ảnh" },       description: { en: "Premium view",                  vi: "Khu vực khán đài cao cấp" } },
+      vip:      { price: 500000, label: { en: "Nhất Ảnh",             vi: "Nhất Ảnh" },           description: { en: "Center VIP with exclusive perks", vi: "Vị trí trung tâm và đặc quyền riêng" } },
     }
   }
 ];
