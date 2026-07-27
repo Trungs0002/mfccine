@@ -89,14 +89,14 @@ const CANVAS_H   = BOT_SECT_Y + BOT_SECT_H + 60;
 //   Left block cols 0-7: outer=0,1,2 → Standard; mid=3,4 → Premium; inner=5,6,7 → VIP
 //   Right block cols 0-7: inner=0,1,2 → VIP; mid=3,4 → Premium; outer=5,6,7 → Standard
 const topLeftType = (col) => {
-  if (col >= 5) return 'VIP';
-  if (col >= 3) return 'Premium';
-  return 'Standard';
+  if (col >= 5) return 'VIP';      // F, G, H
+  if (col >= 2) return 'Premium';  // C, D, E
+  return 'Standard';               // A, B
 };
 const topRightType = (col) => {
-  if (col <= 2) return 'VIP';
-  if (col <= 4) return 'Premium';
-  return 'Standard';
+  if (col <= 2) return 'VIP';      // I, J, K
+  if (col <= 5) return 'Premium';  // L, M, N
+  return 'Standard';               // O, P
 };
 
 // Bottom-Left block (Khu 3)
