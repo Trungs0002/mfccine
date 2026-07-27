@@ -211,38 +211,10 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
     setShowSuccessPopup(true);
   };
 
-  const handleSkipBill = () => {
-    setCompletedBookingId(qrData.bookingId);
-    localStorage.setItem('lastTicketCode', qrData.ticketCode || '');
-    navigate(`/ticket?id=${qrData.bookingId}`);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
   const PAYMENT_METHODS = [
     { id: 'VNPay', icon: <div style={{ background: '#fff', padding: '4px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', height: 28 }}><img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR.png" alt="VNPay" style={{ height: 16, width: 'auto', objectFit: 'contain' }} /></div>, label: 'VNPay' },
   ];
-
-  const handleDownloadReceipt = async () => {
-    if (!receiptRef.current) return;
-    try {
-      const canvas = await html2canvas(receiptRef.current, {
-        backgroundColor: '#14141e',
-        scale: 2,
-      });
-      const imgData = canvas.toDataURL('image/png');
-      
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'px',
-        format: [canvas.width / 2, canvas.height / 2] // Match exact size
-      });
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 2, canvas.height / 2);
-      pdf.save(`hoadon-${qrData?.bookingId?.slice(-8).toUpperCase() || 'ticket'}.pdf`);
-    } catch (err) {
-      console.error('Failed to download receipt', err);
-    }
-  };
 
   return (
     <div style={{ paddingTop: 120, paddingBottom: 64 }} className="animate-fade-in">

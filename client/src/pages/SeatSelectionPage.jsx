@@ -334,16 +334,15 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
 
   const formatPrice = (p) => Number(p).toLocaleString('vi-VN') + (vi ? 'đ' : ' VND');
 
-  const fetchOccupied = () => {
-    if (!event) return;
-    setLoading(true);
-    fetch(`${API_URL}/api/bookings/event/${event._id}/occupied-seats`)
-      .then(res => res.json())
-      .then(data => { setOccupiedSeats(data); setLoading(false); })
-      .catch(() => { setOccupiedSeats([]); setLoading(false); });
-  };
-
   useEffect(() => {
+    const fetchOccupied = () => {
+      if (!event) return;
+      setLoading(true);
+      fetch(`${API_URL}/api/bookings/event/${event._id}/occupied-seats`)
+        .then(res => res.json())
+        .then(data => { setOccupiedSeats(data); setLoading(false); })
+        .catch(() => { setOccupiedSeats([]); setLoading(false); });
+    };
     fetchOccupied();
   }, [event]);
 
