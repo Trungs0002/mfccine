@@ -162,7 +162,7 @@ const buildSeats = (vi, vipPrice, premiumPrice, standardPrice) => {
     for (let c = 0; c < BOT_COLS; c++) {
       const x = BOT_LEFT_X + c * COL_PITCH;
       const y = BOT_SECT_Y + r * ROW_PITCH;
-      const rowLetter = getColLetter(r); // A, B, etc.
+      const rowLetter = getColLetter(16 + r); // Q to V
       const rawNum = `${rowLetter}${c + 1}`;
       const type = botLeftType(r, c);
       const seatNum = `Khu 3 · ${rawNum}`;
@@ -175,7 +175,7 @@ const buildSeats = (vi, vipPrice, premiumPrice, standardPrice) => {
     for (let c = 0; c < BOT_COLS; c++) {
       const x = BOT_RIGHT_X + c * COL_PITCH;
       const y = BOT_SECT_Y + r * ROW_PITCH;
-      const rowLetter = getColLetter(r); // A, B, etc.
+      const rowLetter = getColLetter(16 + r); // Q to V
       const rawNum = `${rowLetter}${BOT_COLS + c + 1}`;
       const type = botRightType(r, c);
       const seatNum = `Khu 4 · ${rawNum}`;
@@ -667,7 +667,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                       fontSize: 9, fontWeight: 600, color: 'rgba(168,150,246,.55)',
                       pointerEvents: 'none',
                     }}>
-                      {String.fromCharCode(65 + r)}
+                      {String.fromCharCode(65 + 16 + r)}
                     </div>
                   ))}
 
@@ -683,7 +683,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                       fontSize: 9, fontWeight: 600, color: 'rgba(168,150,246,.55)',
                       pointerEvents: 'none',
                     }}>
-                      {String.fromCharCode(65 + r)}
+                      {String.fromCharCode(65 + 16 + r)}
                     </div>
                   ))}
 
