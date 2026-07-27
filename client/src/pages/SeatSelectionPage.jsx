@@ -145,7 +145,7 @@ const buildSeats = (vi, vipPrice, premiumPrice, standardPrice) => {
     for (let c = 0; c < BOT_COLS; c++) {
       const x = BOT_LEFT_X + c * COL_PITCH;
       const y = BOT_SECT_Y + r * ROW_PITCH;
-      const rowLetter = getColLetter(r);
+      const rowLetter = getColLetter(r) + getColLetter(r); // AA, BB, etc.
       const seatNum = `${rowLetter}${c + 1}`;
       push(seatNum, seatNum, botType(r), x, y);
     }
@@ -156,7 +156,7 @@ const buildSeats = (vi, vipPrice, premiumPrice, standardPrice) => {
     for (let c = 0; c < BOT_COLS; c++) {
       const x = BOT_RIGHT_X + c * COL_PITCH;
       const y = BOT_SECT_Y + r * ROW_PITCH;
-      const rowLetter = getColLetter(r);
+      const rowLetter = getColLetter(r) + getColLetter(r); // AA, BB, etc.
       const seatNum = `${rowLetter}${BOT_COLS + c + 1}`;
       push(seatNum, seatNum, botType(r), x, y);
     }
