@@ -118,47 +118,55 @@ const buildSeats = (vi, vipPrice, premiumPrice, standardPrice) => {
     list.push({ id, num, type, zoneName: label(vi), price: priceOf[type], color, x, y });
   };
 
-  // Top-Left block (8 cols × 20 rows) — A to H
+  // Top-Left block (8 cols × 20 rows) — A to H -> Khu 1
   for (let r = 0; r < TOP_ROWS; r++) {
     for (let c = 0; c < TOP_COLS; c++) {
       const x = TOP_LEFT_X + c * TOP_COL_PITCH;
       const y = TOP_SECT_Y + r * ROW_PITCH;
       const colLetter = getColLetter(c);
-      const seatNum = `${colLetter}${r + 1}`;
-      push(seatNum, seatNum, topLeftType(c), x, y);
+      const rawNum = `${colLetter}${r + 1}`;
+      const type = topLeftType(c);
+      const seatNum = `Khu 1 · ${rawNum}`;
+      push(seatNum, seatNum, type, x, y);
     }
   }
 
-  // Top-Right block (8 cols × 20 rows) — I to P
+  // Top-Right block (8 cols × 20 rows) — I to P -> Khu 2
   for (let r = 0; r < TOP_ROWS; r++) {
     for (let c = 0; c < TOP_COLS; c++) {
       const x = TOP_RIGHT_X + c * TOP_COL_PITCH;
       const y = TOP_SECT_Y + r * ROW_PITCH;
       const colLetter = getColLetter(TOP_COLS + c); // I-P
-      const seatNum = `${colLetter}${r + 1}`;
-      push(seatNum, seatNum, topRightType(c), x, y);
+      const rawNum = `${colLetter}${r + 1}`;
+      const type = topRightType(c);
+      const seatNum = `Khu 2 · ${rawNum}`;
+      push(seatNum, seatNum, type, x, y);
     }
   }
 
-  // Bottom-Left block (6 rows × 25 cols)
+  // Bottom-Left block (6 rows × 25 cols) -> Khu 3
   for (let r = 0; r < BOT_ROWS; r++) {
     for (let c = 0; c < BOT_COLS; c++) {
       const x = BOT_LEFT_X + c * COL_PITCH;
       const y = BOT_SECT_Y + r * ROW_PITCH;
-      const rowLetter = getColLetter(r) + getColLetter(r); // AA, BB, etc.
-      const seatNum = `${rowLetter}${c + 1}`;
-      push(seatNum, seatNum, botType(r), x, y);
+      const rowLetter = getColLetter(r); // A, B, etc.
+      const rawNum = `${rowLetter}${c + 1}`;
+      const type = botType(r);
+      const seatNum = `Khu 3 · ${rawNum}`;
+      push(seatNum, seatNum, type, x, y);
     }
   }
 
-  // Bottom-Right block (6 rows × 25 cols)
+  // Bottom-Right block (6 rows × 25 cols) -> Khu 4
   for (let r = 0; r < BOT_ROWS; r++) {
     for (let c = 0; c < BOT_COLS; c++) {
       const x = BOT_RIGHT_X + c * COL_PITCH;
       const y = BOT_SECT_Y + r * ROW_PITCH;
-      const rowLetter = getColLetter(r) + getColLetter(r); // AA, BB, etc.
-      const seatNum = `${rowLetter}${BOT_COLS + c + 1}`;
-      push(seatNum, seatNum, botType(r), x, y);
+      const rowLetter = getColLetter(r); // A, B, etc.
+      const rawNum = `${rowLetter}${BOT_COLS + c + 1}`;
+      const type = botType(r);
+      const seatNum = `Khu 4 · ${rawNum}`;
+      push(seatNum, seatNum, type, x, y);
     }
   }
 
@@ -459,6 +467,41 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
             ) : (
               /* ── Touch-enabled canvas wrapper ── */
               <div style={{ position: 'relative', margin: '0 -20px' }}>
+
+                {/* Minimap (Area Guide) */}
+                <div style={{
+                  position: 'absolute', top: 8, left: 28, zIndex: 50,
+                  background: 'rgba(1,1,10,.75)',
+                  border: '1px solid rgba(168,150,246,.25)',
+                  borderRadius: 8,
+                  padding: 8,
+                  backdropFilter: 'blur(8px)',
+                  display: 'flex', flexDirection: 'column', gap: 6,
+                  pointerEvents: 'none'
+                }}>
+                  <span style={{ color: 'var(--purple)', fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', textAlign: 'center' }}>
+                    {vi ? 'Sơ đồ khu vực' : 'Area Map'}
+                  </span>
+                  
+                  <div style={{ position: 'relative', width: 100, height: 90, margin: '4px auto 0' }}>
+                    {/* Sân khấu (Stage) */}
+                    <div style={{ position: 'absolute', top: 0, left: 30, width: 40, height: 6, background: 'rgba(255,255,255,.15)', borderRadius: 2 }} />
+                    {/* Runway (Đường băng) */}
+                    <div style={{ position: 'absolute', top: 6, left: 46, width: 8, height: 46, background: 'rgba(255,255,255,.15)', borderBottomLeftRadius: 2, borderBottomRightRadius: 2 }} />
+
+                    {/* Khu 1 */}
+                    <div style={{ position: 'absolute', top: 15, left: 16, width: 26, height: 46, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.15)', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#fff', fontWeight: 600 }}>1</div>
+                    
+                    {/* Khu 2 */}
+                    <div style={{ position: 'absolute', top: 15, left: 58, width: 26, height: 46, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.15)', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#fff', fontWeight: 600 }}>2</div>
+                    
+                    {/* Khu 3 */}
+                    <div style={{ position: 'absolute', top: 67, left: 0, width: 46, height: 23, background: 'rgba(168,150,246,.12)', border: '1px solid rgba(168,150,246,.3)', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: 'var(--purple)', fontWeight: 600 }}>3</div>
+                    
+                    {/* Khu 4 */}
+                    <div style={{ position: 'absolute', top: 67, left: 54, width: 46, height: 23, background: 'rgba(168,150,246,.12)', border: '1px solid rgba(168,150,246,.3)', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: 'var(--purple)', fontWeight: 600 }}>4</div>
+                  </div>
+                </div>
 
                 {/* Zoom controls */}
                 <div style={{
@@ -769,7 +812,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                 {/* Zone badges */}
                 <div>
                   <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>
-                    {vi ? 'Khu vực' : 'Zone'}
+                    {vi ? 'Hạng vé' : 'Tier'}
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {selectedZones.map(([name, color]) => (

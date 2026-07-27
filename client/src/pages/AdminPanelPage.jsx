@@ -1715,7 +1715,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {allBookings.map(booking => (
-                    <div key={booking._id} className="admin-booking-row" style={{ display: 'grid', gridTemplateColumns: '90px 1.4fr 1.2fr 110px 120px auto', alignItems: 'center', gap: 16, padding: 16, borderRadius: 14, border: '1px solid var(--line)', background: 'rgba(1,1,10,.35)' }}>
+                    <div key={booking._id} className="admin-booking-row" style={{ display: 'grid', gridTemplateColumns: '90px 1.2fr 1.2fr 180px 110px auto', alignItems: 'center', gap: 16, padding: 16, borderRadius: 14, border: '1px solid var(--line)', background: 'rgba(1,1,10,.35)' }}>
                       <span style={{ fontFamily: 'monospace', color: 'var(--purple)', fontSize: 12 }}>{booking._id.toString().slice(-8).toUpperCase()}</span>
 
                       <div>
@@ -1756,9 +1756,9 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                         {booking.selectedSeats?.map(seat => (
                           <div key={seat.seatId} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', width: 24 }}>{seat.seatId}</span>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap' }}>{seat.seatId}</span>
                             <span style={{
-                              padding: '2px 8px', borderRadius: 999, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', width: 'fit-content', whiteSpace: 'nowrap',
+                              padding: '2px 6px', borderRadius: 999, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', whiteSpace: 'nowrap',
                               border: `1px solid ${seat.isCheckedIn ? 'rgba(158,254,253,.3)' : 'rgba(168,150,246,.3)'}`,
                               color: seat.isCheckedIn ? 'var(--mint)' : 'var(--purple)',
                               background: seat.isCheckedIn ? 'rgba(158,254,253,.08)' : 'rgba(168,150,246,.08)',

@@ -21,6 +21,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
   const [uploadingBillLoading, setUploadingBillLoading] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const receiptRef = useRef(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [discountInput, setDiscountInput] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null); // { code, percent, maxSeats }
@@ -151,8 +152,10 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
 
     (async () => {
+      setIsSubmitting(true);
       try {
         const res = await fetch(`${API_URL}/api/bookings`, {
           method: 'POST',
@@ -181,6 +184,8 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
         }
       } catch (err) {
         console.error(err);
+      } finally {
+        setIsSubmitting(false);
       }
     })();
   };
@@ -421,10 +426,16 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
             {/* Submit */}
             <button
               type="submit"
+              disabled={isSubmitting}
               className="btn-pill"
-              style={{ width: '100%', justifyContent: 'center', fontSize: 16, padding: '16px 20px' }}
+              style={{ width: '100%', justifyContent: 'center', fontSize: 16, padding: '16px 20px', opacity: isSubmitting ? 0.7 : 1 }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>verified_user</span> {vi ? 'Xác nhận & Thanh toán' : 'Confirm & Pay'}
+              <span className={`material-symbols-outlined ${isSubmitting ? 'animate-spin' : ''}`} style={{ fontSize: 18 }}>
+                {isSubmitting ? 'sync' : 'verified_user'}
+              </span>
+              {isSubmitting 
+                ? (vi ? 'Đang xử lý...' : 'Processing...') 
+                : (vi ? 'Xác nhận & Thanh toán' : 'Confirm & Pay')}
             </button>
           </form>
 
