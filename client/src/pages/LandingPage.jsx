@@ -118,7 +118,7 @@ const Countdown = ({ targetDate, vi }) => {
   );
 };
 
-const LandingPage = ({ events, setEvent, settings }) => {
+const LandingPage = ({ events, setEvent, settings, user }) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const vi = language === 'vi';
@@ -139,7 +139,7 @@ const LandingPage = ({ events, setEvent, settings }) => {
       e.preventDefault();
       e.stopPropagation();
     }
-    if (settings?.ticketSalesEnabled === false) {
+    if (settings?.ticketSalesEnabled === false && !(settings?.adminTestSalesEnabled !== false && (user?.role === 'admin' || user?.role === 'staff'))) {
       setShowComingSoon(true);
     } else {
       navigate('/seating');
@@ -345,8 +345,8 @@ const LandingPage = ({ events, setEvent, settings }) => {
                       <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4 }}>
                         {vi ? 'Giá vé' : 'Price'}
                       </span>
-                      <div className="serif" style={{ fontSize: settings?.ticketSalesEnabled === false ? 18 : 32, color: '#fff', margin: '0', fontWeight: 700 }}>
-                        {settings?.ticketSalesEnabled === false ? (vi ? 'Sắp công bố' : 'Coming Soon') : formatPrice(tier.price)}
+                      <div className="serif" style={{ fontSize: (settings?.ticketSalesEnabled === false && !(settings?.adminTestSalesEnabled !== false && (user?.role === 'admin' || user?.role === 'staff'))) ? 18 : 32, color: '#fff', margin: '0', fontWeight: 700 }}>
+                        {(settings?.ticketSalesEnabled === false && !(settings?.adminTestSalesEnabled !== false && (user?.role === 'admin' || user?.role === 'staff'))) ? (vi ? 'Sắp công bố' : 'Coming Soon') : formatPrice(tier.price)}
                       </div>
                     </div>
 

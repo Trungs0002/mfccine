@@ -133,7 +133,7 @@ function AppContent() {
       <main style={{ minHeight: '100vh' }}>
         <Routes>
           <Route path="/"          element={<Navigate to="/about" />} />
-          <Route path="/landing"   element={<LandingPage events={events} setEvent={setSelectedEvent} settings={settings} />} />
+          <Route path="/landing"   element={<LandingPage events={events} setEvent={setSelectedEvent} settings={settings} user={user} />} />
           <Route path="/about"     element={<AboutPage />} />
           <Route path="/recruit"   element={<RecruitPage settings={settings} />} />
           <Route path="/nhat"      element={<NhatPage />} />
@@ -146,8 +146,8 @@ function AppContent() {
           <Route path="/seating"   element={user ? (selectedEvent ? <SeatSelectionPage event={selectedEvent} setBookingDetails={setBookingDetails} /> : <Navigate to="/" />) : <Navigate to="/login" />} />
           <Route path="/checkout"  element={user ? (selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} user={user} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />) : <Navigate to="/login" />} />
           */}
-          <Route path="/seating"   element={settings.ticketSalesEnabled === false ? <Navigate to="/" /> : (selectedEvent ? <SeatSelectionPage event={selectedEvent} setBookingDetails={setBookingDetails} /> : <Navigate to="/" />)} />
-          <Route path="/checkout"  element={settings.ticketSalesEnabled === false ? <Navigate to="/" /> : (selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} user={user} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />)} />
+          <Route path="/seating"   element={(settings.ticketSalesEnabled === false && !(settings.adminTestSalesEnabled !== false && (user?.role === 'admin' || user?.role === 'staff'))) ? <Navigate to="/" /> : (selectedEvent ? <SeatSelectionPage event={selectedEvent} setBookingDetails={setBookingDetails} /> : <Navigate to="/" />)} />
+          <Route path="/checkout"  element={(settings.ticketSalesEnabled === false && !(settings.adminTestSalesEnabled !== false && (user?.role === 'admin' || user?.role === 'staff'))) ? <Navigate to="/" /> : (selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} user={user} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />)} />
           <Route path="/ticket"    element={<DigitalTicketPage completedBookingId={completedBookingId} settings={settings} />} />
           <Route path="/dashboard" element={user ? <UserDashboardPage userEmail={user.email} setCompletedBookingId={setCompletedBookingId} settings={settings} /> : <Navigate to="/login" />} />
           <Route path="/admin"     element={(user?.role === 'admin' || user?.role === 'staff') ? <AdminPanelPage events={events} setEvents={setEvents} settings={settings} setSettings={setSettings} user={user} /> : <Navigate to="/login" />} />

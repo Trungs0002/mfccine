@@ -47,6 +47,7 @@ const SettingsSchema = new mongoose.Schema({
   siteTagline: { type: String, default: 'FOREIGN TRADE UNIVERSITY' },
   contactEmail: { type: String, default: 'support@ftufashionshow.com' },
   ticketSalesEnabled: { type: Boolean, default: true },
+  adminTestSalesEnabled: { type: Boolean, default: true },
   recruitFormEnabled: { type: Boolean, default: false }
 });
 
@@ -309,13 +310,14 @@ app.get('/api/settings', async (req, res) => {
 
 app.put('/api/settings', async (req, res) => {
   try {
-    const { siteName, siteTagline, contactEmail, ticketSalesEnabled, recruitFormEnabled } = req.body;
+    const { siteName, siteTagline, contactEmail, ticketSalesEnabled, adminTestSalesEnabled, recruitFormEnabled } = req.body;
     let settings = await Settings.findOne();
     if (!settings) settings = new Settings();
     if (siteName) settings.siteName = siteName;
     if (siteTagline) settings.siteTagline = siteTagline;
     if (contactEmail) settings.contactEmail = contactEmail;
     if (typeof ticketSalesEnabled === 'boolean') settings.ticketSalesEnabled = ticketSalesEnabled;
+    if (typeof adminTestSalesEnabled === 'boolean') settings.adminTestSalesEnabled = adminTestSalesEnabled;
     if (typeof recruitFormEnabled === 'boolean') settings.recruitFormEnabled = recruitFormEnabled;
     await settings.save();
     res.json(settings);
