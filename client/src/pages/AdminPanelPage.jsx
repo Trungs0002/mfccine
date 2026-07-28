@@ -19,7 +19,7 @@ export const generateEmailHTML = (emailModalData) => {
   const link = `https://mfcftu.site/ticket?id=${emailModalData.booking._id}&seats=${emailModalData.selectedSeats.join(',')}`;
   const orderRef = emailModalData.booking._id.toString().toUpperCase().slice(-8);
   const customerName = emailModalData.customerName || emailModalData.booking.fullName || 'Quý khách';
-  const supportEmail = 'mfcfashionshow@gmail.com';
+  const supportEmail = 'hienanhngn.mfc@gmail.com';
   const facebookUrl = 'https://facebook.com/mfcfashionshow';
   const eventImageUrl = 'https://res.cloudinary.com/dxlhalj80/image/upload/w_600,q_auto/v1785235186/mfc_gmail_banner.jpg';
 
@@ -1987,7 +1987,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
 
       {emailModalData && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.7)', padding: 16 }}>
-          <div className="mfc-card" style={{ width: '100%', maxWidth: 500, padding: 24, background: '#0a0a0a', border: '1px solid var(--line)', borderRadius: 16 }}>
+          <div className="mfc-card" style={{ width: '100%', maxWidth: 500, maxHeight: '90vh', overflowY: 'auto', padding: 24, background: '#0a0a0a', border: '1px solid var(--line)', borderRadius: 16 }}>
             <h3 style={{ color: '#fff', fontSize: 18, margin: '0 0 16px' }}>{language === 'vi' ? 'Soạn Mail Gửi Vé' : 'Compose Ticket Email'}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <input
@@ -2038,7 +2038,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                 <iframe
                   title="Email Preview"
                   srcDoc={generateEmailHTML(emailModalData)}
-                  style={{ width: '100%', height: 400, border: '1px solid var(--line)', borderRadius: 8, background: '#fff' }}
+                  style={{ width: '100%', height: '40vh', minHeight: 250, border: '1px solid var(--line)', borderRadius: 8, background: '#fff' }}
                 />
               </div>
 

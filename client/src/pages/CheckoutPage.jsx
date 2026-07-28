@@ -716,10 +716,10 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
               </p>
             </div>
 
-            <div style={{ padding: '0 40px 40px', display: 'flex', gap: 12 }}>
+            <div style={{ padding: '0 24px 32px', display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' }}>
               <button 
                 className="btn-outline-pill" 
-                style={{ flex: 1, justifyContent: 'center', gap: 8 }}
+                style={{ width: '100%', justifyContent: 'center', gap: 8 }}
                 onClick={async () => {
                   const element = receiptRef.current;
                   if (element) {
@@ -756,7 +756,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
               </button>
               <button 
                 className="btn-pill" 
-                style={{ flex: 1, justifyContent: 'center' }}
+                style={{ width: '100%', justifyContent: 'center' }}
                 onClick={() => {
                   navigate('/');
                   window.scrollTo(0, 0);
