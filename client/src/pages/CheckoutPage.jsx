@@ -38,9 +38,50 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
     if (user) {
       if (!fullName) setFullName(user.fullName);
       if (!email) setEmail(user.email);
-      if (!phone && user.phone) setPhone(user.phone);
+      if (!phone) setPhone(user.phone);
     }
-  }, [user]); // eslint-disable-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  // Intercept browser back button / swipe back when QR code is shown
+  useEffect(() => {
+    if (qrData && !showSuccessPopup) {
+      window.history.pushState({ qrOpen: true }, '', window.location.href);
+
+      const handlePopState = (e) => {
+        const confirmLeave = window.confirm(
+          language === 'vi'
+            ? 'Bạn có chắc chắn muốn rời khỏi trang thanh toán? Đơn hàng của bạn sẽ bị hủy và ghế sẽ được nhả ra.'
+            : 'Are you sure you want to leave the payment page? Your booking will be cancelled and seats returned.'
+        );
+        
+        if (confirmLeave) {
+          fetch(`${API_URL}/api/bookings/${qrData.bookingId}/cancel`, { 
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lockId: bookingDetails?.lockId })
+          }).catch(() => {});
+          
+          window.history.back();
+        } else {
+          window.history.pushState({ qrOpen: true }, '', window.location.href);
+        }
+      };
+
+      const handleBeforeUnload = (e) => {
+        e.preventDefault();
+        e.returnValue = ''; 
+      };
+
+      window.addEventListener('popstate', handlePopState);
+      window.addEventListener('beforeunload', handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      };
+    }
+  }, [qrData, showSuccessPopup, bookingDetails, language]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
