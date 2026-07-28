@@ -43,7 +43,6 @@ const BOT_COLS = 25;
 
 /* ── Runway / Stage dimensions ── */
 const RUNWAY_W  = 70;   // width of the T vertical bar
-const STAGE_W   = 200;  // width of the T horizontal bar (top)
 const STAGE_H   = 44;   // height of stage box
 const STAGE_RISER = 12; // riser below stage
 
@@ -63,6 +62,9 @@ const BOT_BLOCK_W = BOT_COLS * COL_PITCH - (COL_PITCH - S);
 // Total canvas width: max of top or bottom layout
 const TOP_TOTAL_W = TOP_BLOCK_W * 2 + RUNWAY_W + RUNWAY_SEAT_GAP * 2;
 const BOT_TOTAL_W = BOT_BLOCK_W * 2 + CENTER_AISLE_W;
+
+const STAGE_W = TOP_TOTAL_W; // Stage spans across khu 1 and khu 2
+
 const INNER_W = Math.max(TOP_TOTAL_W, BOT_TOTAL_W);
 const CANVAS_W = INNER_W + CANVAS_MARGIN * 2;
 
@@ -596,7 +598,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                         overflow: 'hidden', whiteSpace: 'nowrap',
                         maxWidth: '100%', textAlign: 'center',
                       }}>
-                        {vi ? 'SÂN KHẤU CHỮ T' : 'T-STAGE'}
+                        {vi ? 'SÂN KHẤU' : 'STAGE'}
                       </span>
                     </div>
                     <div style={{
@@ -621,7 +623,16 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                     borderTop: 'none',
                     borderRadius: '0 0 8px 8px',
                     zIndex: 15,
-                  }} />
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <span className="serif" style={{
+                      color: 'rgba(168,150,246,.4)', letterSpacing: '.3em',
+                      fontWeight: 800, fontSize: 14, textTransform: 'uppercase',
+                      writingMode: 'vertical-rl', transform: 'rotate(180deg)'
+                    }}>
+                      {vi ? 'SÂN KHẤU' : 'STAGE'}
+                    </span>
+                  </div>
 
                   {/* ── Row number labels — Top-Left block (left side) ── */}
                   {Array.from({ length: TOP_ROWS }, (_, r) => (
