@@ -449,7 +449,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
             {/* Event info */}
             <div style={{ display: 'flex', gap: 14, marginBottom: 20, paddingBottom: 20, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
               <div style={{ width: 80, height: 80, borderRadius: 12, overflow: 'hidden', flexShrink: 0, border: '1px solid var(--line)' }}>
-                <img src={event?.image} alt="Event" style={{ width: '100%', height: '100%', objectFit: 'cover', mixBlendMode: 'luminosity' }} />
+                <div style={{ width: '100%', height: '100%', backgroundImage: `url(${event?.image})`, backgroundSize: 'cover', backgroundPosition: 'center', mixBlendMode: 'luminosity' }} />
               </div>
               <div style={{ flex: 1 }}>
                 <h4 className="serif" style={{ color: '#fff', fontSize: 18, margin: '0 0 4px' }}>{l(event?.title)}</h4>
@@ -736,7 +736,18 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
                     });
                     
                     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                    pdf.save(`Hoa_don_${bookingDetails.bookingId || 'MFC'}.pdf`);
+                    
+                    const pdfBlob = pdf.output('blob');
+                    const blob = new Blob([pdfBlob], { type: 'application/octet-stream' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `Hoa_don_${bookingDetails.bookingId || 'MFC'}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
                   }
                 }}
               >

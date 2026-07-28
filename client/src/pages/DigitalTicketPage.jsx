@@ -80,7 +80,18 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
       }
       
       if (pdf) {
-        pdf.save(`Vé_MFC_${refId}.pdf`);
+        const pdfBlob = pdf.output('blob');
+        // Force octet-stream so iOS Safari shows the Download prompt instead of opening it
+        const blob = new Blob([pdfBlob], { type: 'application/octet-stream' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `Vé_MFC_${refId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
       }
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -143,9 +154,9 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
           return (
             <div id={`ticket-${index}`} key={index} style={{ width: '100%', background: 'linear-gradient(180deg, rgba(14,16,44,.9), rgba(7,8,24,.85))', border: '1px solid rgba(168,150,246,.4)', borderRadius: 24, overflow: 'hidden', boxShadow: '0 40px 80px -20px rgba(70,69,215,.2)' }}>
               {/* Image header */}
-              <div style={{ height: 160, position: 'relative', overflow: 'hidden' }}>
-                <img src={event?.image} alt="Event" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: .55, filter: 'saturate(1.2)' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(7,8,24,.95) 0%, transparent 60%)' }} />
+              <div style={{ height: 160, position: 'relative', overflow: 'hidden', marginBottom: -1, zIndex: 1 }}>
+                <div style={{ position: 'absolute', inset: -2, backgroundImage: `url(${event?.image})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: .55, filter: 'saturate(1.2)' }} />
+                <div style={{ position: 'absolute', inset: -2, background: 'linear-gradient(to top, rgba(7,8,24,1) 0%, transparent 70%)' }} />
                 <div style={{ position: 'absolute', bottom: 20, left: 24, right: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                   <div>
                     <p style={{ color: 'var(--mint)', fontSize: 10, fontWeight: 700, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: 4 }}>FTU FASHION SHOW</p>
@@ -166,9 +177,9 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
                     {vi ? 'MÃ VÉ' : 'TICKET CODE'}
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(168,150,246,.08)', border: '1px solid rgba(168,150,246,.3)', borderRadius: 12, padding: '12px 20px' }}>
-                    <span style={{ fontFamily: 'monospace', fontSize: 20, color: 'var(--purple)', fontWeight: 700, letterSpacing: '.15em' }}>{seatTicketCode}</span>
-                    <button onClick={() => handleCopy(seatTicketCode)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? 'var(--mint)' : 'var(--muted)', transition: 'color .2s' }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{copied ? 'check' : 'content_copy'}</span>
+                    <span style={{ fontFamily: 'monospace', fontSize: 20, color: 'var(--purple)', fontWeight: 700, letterSpacing: '.15em', lineHeight: 1, display: 'block', transform: 'translateY(-2px)' }}>{seatTicketCode}</span>
+                    <button onClick={() => handleCopy(seatTicketCode)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? 'var(--mint)' : 'var(--muted)', transition: 'color .2s', display: 'flex', alignItems: 'center', padding: 0 }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 16, lineHeight: 1, transform: 'translateY(-1px)' }}>{copied ? 'check' : 'content_copy'}</span>
                     </button>
                   </div>
                   <p style={{ fontSize: 9, color: 'rgba(168,150,246,.5)', marginTop: 8, letterSpacing: '.1em', textTransform: 'uppercase' }}>REF: {refId}</p>
