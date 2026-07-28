@@ -592,7 +592,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
                 
                 <div style={{ background: '#fff', padding: 16, borderRadius: 16, display: 'inline-block', marginBottom: 24 }}>
                   <img 
-                    src={`https://img.vietqr.io/image/vietinbank-0374748310-compact2.png?amount=${qrData.amount}&addInfo=${encodeURIComponent('Thanh toan don hang ' + qrData.bookingId.slice(-8).toUpperCase())}&accountName=Nguyen Ngoc Khanh Huyen`}
+                    src={`https://img.vietqr.io/image/vietcombank-1019712189-compact2.png?amount=${qrData.amount}&addInfo=${encodeURIComponent('Thanh toan don hang ' + qrData.bookingId.slice(-8).toUpperCase())}&accountName=Nguyen Ngoc Khanh Huyen`}
                     alt="VietQR"
                     style={{ width: '100%', maxWidth: 260, display: 'block' }}
                   />
@@ -601,11 +601,11 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
                 <div style={{ background: 'rgba(168,150,246,.08)', border: '1px solid rgba(168,150,246,.2)', padding: 16, borderRadius: 12, marginBottom: 24, textAlign: 'left' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                     <span style={{ color: 'var(--muted)', fontSize: 13 }}>Ngân hàng:</span>
-                    <span style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>VietinBank</span>
+                    <span style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>Vietcombank</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                     <span style={{ color: 'var(--muted)', fontSize: 13 }}>Số tài khoản:</span>
-                    <span style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>0374748310</span>
+                    <span style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>1019712189</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                     <span style={{ color: 'var(--muted)', fontSize: 13 }}>Tên người nhận:</span>

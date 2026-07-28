@@ -1930,50 +1930,54 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                 }}>
                                   {seat.isSent ? (language === 'vi' ? 'Đã gửi' : 'Sent') : (language === 'vi' ? 'Chưa gửi' : 'Unsent')}
                                 </span>
-                                <button
-                                  onClick={async () => {
-                                    if (window.confirm(language === 'vi' ? `Bạn có chắc muốn xóa ghế ${seat.seatId} khỏi đơn hàng này?` : `Are you sure you want to delete seat ${seat.seatId}?`)) {
-                                      try {
-                                        const res = await fetch(`${API_URL}/api/bookings/${booking._id}/seats/${seat.seatId}`, { method: 'DELETE' });
-                                        if (res.ok) fetchAllBookings(true);
-                                        else { const j = await res.json(); alert(j.error); }
-                                      } catch (e) { console.error(e); }
-                                    }
-                                  }}
-                                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', color: 'var(--red)', opacity: 0.7, marginLeft: 'auto' }}
-                                  title={language === 'vi' ? 'Xóa ghế' : 'Delete seat'}
-                                >
-                                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>delete</span>
-                                </button>
+                                {!isStaff && (
+                                  <button
+                                    onClick={async () => {
+                                      if (window.confirm(language === 'vi' ? `Bạn có chắc muốn xóa ghế ${seat.seatId} khỏi đơn hàng này?` : `Are you sure you want to delete seat ${seat.seatId}?`)) {
+                                        try {
+                                          const res = await fetch(`${API_URL}/api/bookings/${booking._id}/seats/${seat.seatId}`, { method: 'DELETE' });
+                                          if (res.ok) fetchAllBookings(true);
+                                          else { const j = await res.json(); alert(j.error); }
+                                        } catch (e) { console.error(e); }
+                                      }
+                                    }}
+                                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', color: 'var(--red)', opacity: 0.7, marginLeft: 'auto' }}
+                                    title={language === 'vi' ? 'Xóa ghế' : 'Delete seat'}
+                                  >
+                                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>delete</span>
+                                  </button>
+                                )}
                               </>
                             )}
                           </div>
                         ))}
                       </div>
 
-                      <button
-                        onClick={() => {
-                          const activeSeats = booking.selectedSeats?.filter(s => s.status !== 'Cancelled').map(s => s.seatId) || [];
-                          setEmailModalData({
-                            booking: booking,
-                            to: booking.email,
-                            subject: '[MFC Fashion Show] Vé điện tử của bạn đã sẵn sàng',
-                            customerName: booking.fullName || 'Quý khách',
-                            body: '',
-                            selectedSeats: activeSeats,
-                            sending: false
-                          });
-                        }}
-                        style={{
-                          padding: '6px 12px', borderRadius: 999, fontSize: 10, fontWeight: 600, border: 'none', cursor: 'pointer',
-                          background: booking.ticketSent ? 'rgba(168,150,246,.15)' : 'rgba(255,255,255,.05)',
-                          color: booking.ticketSent ? 'var(--purple)' : 'var(--muted)',
-                          display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center'
-                        }}
-                      >
-                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{booking.ticketSent ? 'mark_email_read' : 'forward_to_inbox'}</span>
-                        {booking.ticketSent ? (language === 'vi' ? 'Đã gửi vé' : 'Sent') : (language === 'vi' ? 'Chưa gửi' : 'Unsent')}
-                      </button>
+                      {!isStaff && (
+                        <button
+                          onClick={() => {
+                            const activeSeats = booking.selectedSeats?.filter(s => s.status !== 'Cancelled').map(s => s.seatId) || [];
+                            setEmailModalData({
+                              booking: booking,
+                              to: booking.email,
+                              subject: '[MFC Fashion Show] Vé điện tử của bạn đã sẵn sàng',
+                              customerName: booking.fullName || 'Quý khách',
+                              body: '',
+                              selectedSeats: activeSeats,
+                              sending: false
+                            });
+                          }}
+                          style={{
+                            padding: '6px 12px', borderRadius: 999, fontSize: 10, fontWeight: 600, border: 'none', cursor: 'pointer',
+                            background: booking.ticketSent ? 'rgba(168,150,246,.15)' : 'rgba(255,255,255,.05)',
+                            color: booking.ticketSent ? 'var(--purple)' : 'var(--muted)',
+                            display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center'
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{booking.ticketSent ? 'mark_email_read' : 'forward_to_inbox'}</span>
+                          {booking.ticketSent ? (language === 'vi' ? 'Đã gửi vé' : 'Sent') : (language === 'vi' ? 'Chưa gửi' : 'Unsent')}
+                        </button>
+                      )}
 
                       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                         {isStaff ? null : editingBookingId === booking._id ? (
