@@ -27,6 +27,9 @@ const QrScannerOverlay = ({ onScan, onClose, language }) => {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(t => t.stop());
       streamRef.current = null;
@@ -49,11 +52,18 @@ const QrScannerOverlay = ({ onScan, onClose, language }) => {
       const w = video.videoWidth;
       const h = video.videoHeight;
       if (w > 0 && h > 0) {
-        canvas.width  = w;
-        canvas.height = h;
+        // Optimize for mobile: scale down to max 400px wide for jsQR processing
+        // This prevents thermal throttling and 10s lags on high-res iPhone cameras
+        const scale = Math.min(400 / w, 1);
+        const scanW = Math.floor(w * scale);
+        const scanH = Math.floor(h * scale);
+        
+        canvas.width  = scanW;
+        canvas.height = scanH;
+        
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        ctx.drawImage(video, 0, 0, w, h);
-        const img  = ctx.getImageData(0, 0, w, h);
+        ctx.drawImage(video, 0, 0, scanW, scanH);
+        const img  = ctx.getImageData(0, 0, scanW, scanH);
         const code = jsQR(img.data, img.width, img.height, {
           inversionAttempts: 'dontInvert',
         });
