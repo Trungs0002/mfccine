@@ -217,12 +217,12 @@ const NhatPage = () => {
             <p style={{ color: '#ccc8f0', fontSize: 16, lineHeight: 1.6, marginBottom: 24 }}>
               {vi ? (
                 <>
-                  Vòng tuyển chọn đã được gia hạn đến <strong style={{ color: 'var(--mint)' }}>30/7</strong>.<br />
+                  Vòng tuyển chọn đã được gia hạn đến <strong style={{ color: 'var(--mint)' }}>31/7</strong>.<br />
                   Hãy nhanh tay tham gia ngay để không bỏ lỡ cơ hội tỏa sáng nào!
                 </>
               ) : (
                 <>
-                  The selection round has been extended to <strong style={{ color: 'var(--mint)' }}>July 30th</strong>.<br />
+                  The selection round has been extended to <strong style={{ color: 'var(--mint)' }}>July 31st</strong>.<br />
                   Join now so you don't miss your chance to shine!
                 </>
               )}
@@ -595,7 +595,7 @@ const NhatPage = () => {
               <div className="serif" style={{ color: '#fff', fontSize: 18, fontWeight: 700, marginBottom: 6 }}>
                 {vi ? 'Vòng đơn' : 'Round 1'}
               </div>
-              <div style={{ color: 'var(--mint)', fontSize: 13, letterSpacing: '.04em' }}>11/7 – 30/7</div>
+              <div style={{ color: 'var(--mint)', fontSize: 13, letterSpacing: '.04em' }}>11/7 – 31/7</div>
             </div>
             <div style={{ height: 1, flex: '1 1 60px', background: 'var(--line)', marginTop: 7 }} />
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '0 1 220px' }}>
