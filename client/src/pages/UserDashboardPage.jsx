@@ -242,7 +242,7 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings, setUser
                           <div>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                               <span style={{ fontSize: 10, padding: '4px 12px', borderRadius: 999, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', background: booking.isCheckedIn ? 'rgba(255,255,255,.1)' : 'rgba(158,254,253,.1)', color: booking.isCheckedIn ? 'var(--muted)' : 'var(--mint)', border: `1px solid ${booking.isCheckedIn ? 'rgba(255,255,255,.15)' : 'rgba(158,254,253,.3)'}` }}>
-                                {booking.isCheckedIn ? (vi ? 'Đã check-in' : 'Used') : (vi ? 'Còn hiệu lực' : 'Active')}
+                                {booking.isCheckedIn ? (vi ? 'Đã check-in' : 'Used') : (vi ? 'Đã xuất vé' : 'Issued')}
                               </span>
                               <span style={{ fontSize: 12, color: 'var(--muted)' }}>
                                 {event?.date ? new Date(event.date).toLocaleDateString(vi ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
@@ -253,7 +253,6 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings, setUser
                             <div className="ticket-info-grid" style={{ display: 'flex', gap: 12 }}>
                               {[
                                 { lbl: vi ? 'Ghế' : 'Seats', val: `${seats.length}×` },
-                                { lbl: vi ? 'Hạng' : 'Type',  val: l(event?.pricingTiers?.[seats[0]?.type?.toLowerCase()]?.label) || seats[0]?.type },
                                 { lbl: vi ? 'Giá' : 'Total',  val: formatPrice(booking.subtotal) },
                               ].map(c => (
                                 <div key={c.lbl} className="ticket-info-item" style={{ padding: '8px 12px', background: 'rgba(168,150,246,.07)', borderRadius: 10, border: '1px solid rgba(168,150,246,.15)' }}>
@@ -264,14 +263,6 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings, setUser
                             </div>
                           </div>
                             <div style={{ display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
-                              <button
-                              onClick={() => setQrReveal(booking._id)}
-                              className="btn-outline-pill btn-pill-sm"
-                              style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>qr_code_2</span>
-                              QR
-                            </button>
                             <button
                               onClick={() => { setCompletedBookingId(booking._id); navigate('/ticket'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                               className="btn-pill btn-pill-sm"
