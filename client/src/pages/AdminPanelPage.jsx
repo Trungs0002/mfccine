@@ -21,7 +21,7 @@ export const generateEmailHTML = (emailModalData) => {
   const customerName = emailModalData.customerName || emailModalData.booking.fullName || 'Quý khách';
   const supportEmail = 'mfcfashionshow@gmail.com';
   const facebookUrl = 'https://facebook.com/mfcfashionshow';
-  const eventImageUrl = 'https://res.cloudinary.com/dxlhalj80/image/upload/w_600,q_auto,f_jpg/v1785235186/mfc_gmail_banner.png';
+  const eventImageUrl = 'https://res.cloudinary.com/dxlhalj80/image/upload/w_600,q_auto/v1785235186/mfc_gmail_banner.jpg';
 
   let customMessageHtml = '';
   if (emailModalData.body && emailModalData.body.trim()) {

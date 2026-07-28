@@ -694,30 +694,29 @@ app.put('/api/bookings/:id/send-ticket', async (req, res) => {
       const fromName = process.env.SMTP_FROM_NAME || 'MFC';
       const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER;
 
-      if (process.env.SMTP_HOST.includes('brevo.com')) {
-        // Use Brevo REST API (HTTPS Port 443) to bypass VPS port 587 blocking
-        const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      if (process.env.SMTP_HOST === 'resend.com') {
+        // Use Resend HTTP API to completely bypass TenTen/VPS SMTP port blocking
+        const response = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
-            'accept': 'application/json',
-            'api-key': process.env.SMTP_PASS,
-            'content-type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.SMTP_PASS}`
           },
           body: JSON.stringify({
-            sender: { name: fromName, email: fromEmail },
-            to: [{ email: to }],
+            from: `${fromName} <${fromEmail}>`,
+            to: [to],
             subject: subject || 'Vé của bạn',
-            htmlContent: htmlBody,
-            textContent: textBody
+            text: textBody,
+            html: htmlBody
           })
         });
         
         if (!response.ok) {
           const errData = await response.text();
-          throw new Error('Brevo API Error: ' + errData);
+          throw new Error('Resend API Error: ' + errData);
         }
       } else {
-        // Fallback to normal Nodemailer for other providers
+        // Fallback to normal Nodemailer for other providers (Gmail, etc.)
         const transporter = nodemailer.createTransport({
           host: process.env.SMTP_HOST,
           port: process.env.SMTP_PORT || 465,
@@ -738,6 +737,7 @@ app.put('/api/bookings/:id/send-ticket', async (req, res) => {
       }
     }
     
+
     booking.ticketSent = true;
     
     if (seats && Array.isArray(seats)) {
