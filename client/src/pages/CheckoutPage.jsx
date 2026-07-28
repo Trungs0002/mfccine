@@ -77,6 +77,16 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
   }, [qrData, showSuccessPopup]);
 
   useEffect(() => {
+    if (qrData || isUploadingBill || showSuccessPopup || showLeaveWarning) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      ['qr-modal-overlay', 'success-modal-overlay'].forEach(id => {
+        const modal = document.getElementById(id);
+        if (modal) modal.scrollTop = 0;
+      });
+    }
+  }, [qrData, isUploadingBill, showSuccessPopup, showLeaveWarning]);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('error') === 'vnpay_failed') {
       alert(vi ? 'Thanh toán VNPay thất bại hoặc bị huỷ.' : 'VNPay payment failed or was cancelled.');
@@ -557,8 +567,11 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
 
       {/* VietQR Popup */}
       {qrData && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(1,1,10,.85)', backdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div className="mfc-card animate-fade-in" style={{ padding: 40, maxWidth: 420, width: '100%', textAlign: 'center', background: '#14141e' }}>
+        <div 
+          id="qr-modal-overlay"
+          style={{ position: 'fixed', inset: 0, background: 'rgba(1,1,10,.85)', backdropFilter: 'blur(8px)', zIndex: 1000, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px' }}
+        >
+          <div className="mfc-card animate-fade-in" style={{ margin: 'auto', padding: '32px 24px', maxWidth: 420, width: '100%', textAlign: 'center', background: '#14141e' }}>
             {!isUploadingBill ? (
               <>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginBottom: 16 }}>
@@ -681,8 +694,11 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
 
       {/* Success Popup */}
       {showSuccessPopup && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(1,1,10,.85)', backdropFilter: 'blur(8px)', zIndex: 1001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div className="mfc-card animate-fade-in" style={{ maxWidth: 420, width: '100%', textAlign: 'center', background: '#14141e', overflow: 'hidden' }}>
+        <div 
+          id="success-modal-overlay"
+          style={{ position: 'fixed', inset: 0, background: 'rgba(1,1,10,.85)', backdropFilter: 'blur(8px)', zIndex: 1001, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px' }}
+        >
+          <div className="mfc-card animate-fade-in" style={{ margin: 'auto', maxWidth: 420, width: '100%', textAlign: 'center', background: '#14141e', overflow: 'hidden' }}>
             <div ref={receiptRef} style={{ background: '#14141e', padding: '40px 40px 24px' }}>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
                 <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'rgba(168,150,246,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
