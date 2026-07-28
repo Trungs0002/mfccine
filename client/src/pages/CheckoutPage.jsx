@@ -27,6 +27,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
   const [appliedCoupon, setAppliedCoupon] = useState(null); // { code, percent, maxSeats }
   const [couponError, setCouponError] = useState('');
   const [couponLoading, setCouponLoading] = useState(false);
+  const [showLeaveWarning, setShowLeaveWarning] = useState(false);
 
   const l = useCallback((field) => {
     if (!field) return '';
@@ -51,27 +52,11 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
       }
 
       const handlePopState = (e) => {
-        const confirmLeave = window.confirm(
-          language === 'vi'
-            ? 'Bạn có chắc chắn muốn rời khỏi trang thanh toán? Đơn hàng của bạn sẽ bị hủy và ghế sẽ được nhả ra.'
-            : 'Are you sure you want to leave the payment page? Your booking will be cancelled and seats returned.'
-        );
-        
-        if (confirmLeave) {
-          // Remove listeners immediately to prevent infinite loops
-          window.removeEventListener('popstate', handlePopState);
-          window.removeEventListener('beforeunload', handleBeforeUnload);
-          
-          fetch(`${API_URL}/api/bookings/${qrData.bookingId}/cancel`, { 
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ lockId: bookingDetails?.lockId })
-          }).catch(() => {});
-          
-          window.history.back();
-        } else {
-          window.history.pushState({ qrOpen: true }, '', window.location.href);
-        }
+        // Prevent native confirm which is blocked by iOS Safari in popstate
+        // Re-push the fake state to keep them on the page
+        window.history.pushState({ qrOpen: true }, '', window.location.href);
+        // Show our custom React modal instead
+        setShowLeaveWarning(true);
       };
 
       const handleBeforeUnload = (e) => {
@@ -85,11 +70,11 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
       return () => {
         window.removeEventListener('popstate', handlePopState);
         window.removeEventListener('beforeunload', handleBeforeUnload);
-        // If we unmount because of normal flow (e.g. success), we should probably pop the state if it's still there
-        // but it's safer to just leave it as a harmless extra history entry.
       };
+    } else {
+      setShowLeaveWarning(false);
     }
-  }, [qrData, showSuccessPopup, bookingDetails, language]);
+  }, [qrData, showSuccessPopup]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -635,23 +620,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
                   <button 
                     className="btn-pill" 
                     style={{ width: '100%', justifyContent: 'center', background: 'rgba(255,107,107,0.1)', color: '#ff6b6b', border: '1px solid rgba(255,107,107,0.2)' }}
-                    onClick={async () => {
-                      if (window.confirm(vi ? 'Bạn chắc chắn muốn hủy thanh toán này?' : 'Are you sure you want to cancel this payment?')) {
-                        try {
-                          const res = await fetch(`${API_URL}/api/bookings/${qrData.bookingId}/cancel`, { 
-                            method: 'DELETE',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ lockId: bookingDetails.lockId })
-                          });
-                          const data = await res.json();
-                          if (data.expiresAt) {
-                            setBookingDetails(prev => ({ ...prev, lockExpiresAt: data.expiresAt }));
-                          }
-                        } catch (e) { console.error(e); }
-                        setQrData(null);
-                        // stay on checkout page
-                      }
-                    }}
+                    onClick={() => setShowLeaveWarning(true)}
                   >
                     {vi ? 'Hủy thanh toán' : 'Cancel payment'}
                   </button>
@@ -812,6 +781,46 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
                 }}
               >
                 {vi ? 'Về trang chủ' : 'Back to Home'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showLeaveWarning && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.7)', padding: 16 }}>
+          <div className="mfc-card" style={{ width: '100%', maxWidth: 400, padding: 24, background: '#0a0a0a', border: '1px solid var(--line)', borderRadius: 16, textAlign: 'center' }}>
+            <h3 style={{ color: '#ff6b6b', fontSize: 18, margin: '0 0 12px' }}>
+              {language === 'vi' ? 'Hủy thanh toán?' : 'Cancel payment?'}
+            </h3>
+            <p style={{ color: 'var(--muted)', fontSize: 14, margin: '0 0 24px', lineHeight: 1.5 }}>
+              {language === 'vi' 
+                ? 'Bạn có chắc chắn muốn rời khỏi trang thanh toán? Đơn hàng của bạn sẽ bị hủy và ghế sẽ được trả lại.' 
+                : 'Are you sure you want to leave the payment page? Your booking will be cancelled and seats returned.'}
+            </p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button 
+                className="btn-pill" 
+                style={{ flex: 1, justifyContent: 'center', background: 'transparent', border: '1px solid var(--line)', color: '#fff' }}
+                onClick={() => setShowLeaveWarning(false)}
+              >
+                {language === 'vi' ? 'Ở lại' : 'Stay'}
+              </button>
+              <button 
+                className="btn-pill" 
+                style={{ flex: 1, justifyContent: 'center', background: 'rgba(255,107,107,.15)', color: '#ff6b6b', border: 'none' }}
+                onClick={() => {
+                  fetch(`${API_URL}/api/bookings/${qrData?.bookingId}/cancel`, { 
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lockId: bookingDetails?.lockId })
+                  }).catch(() => {});
+                  
+                  setQrData(null);
+                  setShowLeaveWarning(false);
+                  setTimeout(() => window.history.back(), 0);
+                }}
+              >
+                {language === 'vi' ? 'Rời đi' : 'Leave'}
               </button>
             </div>
           </div>
