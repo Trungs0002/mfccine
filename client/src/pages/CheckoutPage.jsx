@@ -12,7 +12,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
 
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState(user?.phone || '');
   const [paymentMethod, setPaymentMethod] = useState('VNPay');
   const [showComingSoon, setShowComingSoon] = useState(false);
   const [qrData, setQrData] = useState(null);
@@ -38,6 +38,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
     if (user) {
       if (!fullName) setFullName(user.fullName);
       if (!email) setEmail(user.email);
+      if (!phone && user.phone) setPhone(user.phone);
     }
   }, [user]); // eslint-disable-line
 

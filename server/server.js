@@ -36,6 +36,7 @@ cloudinary.config({
 const UserSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
+  phone: { type: String, default: '' },
   password: { type: String, required: true },
   role: { type: String, enum: ['user', 'admin', 'staff'], default: 'user' },
   createdAt: { type: Date, default: Date.now }
@@ -113,7 +114,8 @@ const BookingSchema = new mongoose.Schema({
       type: { type: String, required: true },
       price: { type: Number, required: true },
       ticketCode: { type: String },
-      isCheckedIn: { type: Boolean, default: false }
+      isCheckedIn: { type: Boolean, default: false },
+      status: { type: String, enum: ['Active', 'Cancelled'], default: 'Active' }
     }
   ],
   subtotal: { type: Number, required: true },
@@ -310,9 +312,11 @@ app.delete('/api/users/:id', async (req, res) => {
 
 app.put('/api/users/:id', async (req, res) => {
   try {
-    const { fullName } = req.body;
+    const { fullName, phone } = req.body;
     if (!fullName || !fullName.trim()) return res.status(400).json({ error: 'Full name is required.' });
-    const user = await User.findByIdAndUpdate(req.params.id, { fullName: fullName.trim() }, { new: true }).select('-password');
+    const updateData = { fullName: fullName.trim() };
+    if (phone !== undefined) updateData.phone = phone.trim();
+    const user = await User.findByIdAndUpdate(req.params.id, updateData, { new: true }).select('-password');
     if (!user) return res.status(404).json({ error: 'User not found.' });
     res.json(user);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -427,6 +431,7 @@ app.post('/api/bookings', async (req, res) => {
     const existingBookings = await Booking.find({ eventId: rest.eventId, paymentStatus: { $ne: 'Failed' } });
     for (let b of existingBookings) {
       for (let s of b.selectedSeats) {
+        if (s.status === 'Cancelled') continue;
         if (selectedSeats.find(ss => ss.seatId === s.seatId)) return res.status(400).json({ error: `Ghế ${s.seatId} đã có người đặt.` });
       }
     }
@@ -596,7 +601,11 @@ app.get('/api/bookings/event/:eventId/occupied-seats', async (req, res) => {
     });
 
     let occupied = [];
-    bookings.forEach(b => { b.selectedSeats.forEach(s => occupied.push(s.seatId)); });
+    bookings.forEach(b => { 
+      b.selectedSeats.forEach(s => {
+        if (s.status !== 'Cancelled') occupied.push(s.seatId);
+      }); 
+    });
     activeLocks.forEach(l => occupied.push(l.seatId));
     
     res.json([...new Set(occupied)]); // return unique
@@ -611,6 +620,7 @@ app.post('/api/bookings/lock', async (req, res) => {
     const existingBookings = await Booking.find({ eventId, paymentStatus: { $ne: 'Failed' } });
     for (let b of existingBookings) {
       for (let s of b.selectedSeats) {
+        if (s.status === 'Cancelled') continue;
         if (seats.includes(s.seatId)) return res.status(400).json({ error: `Ghế ${s.seatId} đã có người đặt.` });
       }
     }
@@ -793,6 +803,32 @@ app.delete('/api/bookings/:id', async (req, res) => {
   try {
     await Booking.deleteOne({ _id: req.params.id });
     res.json({ message: 'Booking deleted successfully' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/bookings/:id/seats/:seatId', async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ error: 'Booking not found' });
+    
+    const seat = booking.selectedSeats.find(s => s.seatId === req.params.seatId);
+    if (!seat) return res.status(404).json({ error: 'Seat not found in this booking' });
+    
+    if (seat.status === 'Cancelled') {
+      return res.status(400).json({ error: 'Seat is already cancelled' });
+    }
+    
+    seat.status = 'Cancelled';
+    
+    // Roughly adjust subtotal by subtracting the seat price (ignoring exact discount cap logic)
+    let deduction = seat.price;
+    if (booking.discountPercent) {
+      deduction = seat.price * (1 - booking.discountPercent / 100);
+    }
+    booking.subtotal = Math.max(0, booking.subtotal - deduction);
+    
+    await booking.save();
+    res.json(booking);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

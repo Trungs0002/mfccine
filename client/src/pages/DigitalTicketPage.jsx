@@ -58,7 +58,7 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
   );
 
   const event     = booking.eventId;
-  const seats     = booking.selectedSeats || [];
+  const seats     = (booking.selectedSeats || []).filter(s => s.status !== 'Cancelled');
   const refId     = booking._id.toString().toUpperCase().slice(-8);
   const formatPrice = (p) => Number(p).toLocaleString('vi-VN') + (vi ? 'đ' : ' VND');
 
@@ -90,7 +90,7 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(7,8,24,.95) 0%, transparent 60%)' }} />
                 <div style={{ position: 'absolute', bottom: 20, left: 24, right: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                   <div>
-                    <p style={{ color: 'var(--mint)', fontSize: 10, fontWeight: 700, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: 4 }}>ADMIT ONE</p>
+                    <p style={{ color: 'var(--mint)', fontSize: 10, fontWeight: 700, letterSpacing: '.2em', textTransform: 'uppercase', marginBottom: 4 }}>FTU FASHION SHOW</p>
                     <h2 className="serif" style={{ color: '#fff', fontSize: 26, margin: 0, lineHeight: .9 }}>{l(event?.title)}</h2>
                   </div>
                   <span className="material-symbols-outlined" style={{ color: 'var(--purple)', fontSize: 32 }}>local_activity</span>
@@ -132,7 +132,7 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
               <div style={{ padding: '20px 24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
                 {[
                   { labelEn: 'Date & Time', labelVi: 'Ngày & Giờ', value: event?.date ? new Date(event.date).toLocaleDateString(vi ? 'vi-VN' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '—', sub: new Date(event?.date).toLocaleTimeString(vi ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit' }) },
-                  { labelEn: 'Venue',       labelVi: 'Địa điểm',  value: l(event?.venueName), sub: l(event?.location), align: 'right' },
+                  { labelEn: 'Venue',       labelVi: 'Địa điểm',  value: l(event?.venueName), sub: '', align: 'right' },
                   { labelEn: 'Seat',        labelVi: 'Chỗ ngồi',  value: seat.seatId, sub: '' },
                   { labelEn: 'Tier',        labelVi: 'Hạng vé',   value: l(event?.pricingTiers?.[seat.type?.toLowerCase()]?.label) || seat.type || '—', sub: '', align: 'right' },
                 ].map(c => (

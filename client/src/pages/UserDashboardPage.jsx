@@ -4,7 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
 import { QRCodeSVG } from 'qrcode.react';
 
-const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
+const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings, setUser }) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const vi = language === 'vi';
@@ -20,12 +20,13 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordMsg, setPasswordMsg]         = useState(null); // { type: 'error' | 'success', text }
 
-  const savedUser = useMemo(() => JSON.parse(localStorage.getItem('user') || '{}'), []);
+  const [savedUser, setSavedUser] = useState(() => JSON.parse(localStorage.getItem('user') || '{}'));
   const email = userEmail || savedUser.email || '';
   const name  = (savedUser.fullName || email.split('@')[0])
     .split(' ').map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' ');
 
   const [fullName, setFullName] = useState(name);
+  const [phone, setPhone] = useState(savedUser.phone || '');
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileMsg, setProfileMsg] = useState(null); // { type: 'error' | 'success', text }
 
@@ -70,11 +71,14 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
       const res = await fetch(`${API_URL}/api/users/${savedUser.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName: fullName.trim() }),
+        body: JSON.stringify({ fullName: fullName.trim(), phone: phone.trim() }),
       });
       const data = await res.json();
       if (res.ok) {
-        localStorage.setItem('user', JSON.stringify({ ...savedUser, fullName: data.fullName }));
+        const newUser = { ...savedUser, fullName: data.fullName, phone: data.phone };
+        localStorage.setItem('user', JSON.stringify(newUser));
+        setSavedUser(newUser);
+        if (setUser) setUser(newUser);
         setProfileMsg({ type: 'success', text: vi ? 'Cập nhật thành công.' : 'Updated successfully.' });
       } else {
         setProfileMsg({ type: 'error', text: data.error || (vi ? 'Cập nhật thất bại.' : 'Update failed.') });
@@ -350,6 +354,12 @@ const UserDashboardPage = ({ userEmail, setCompletedBookingId, settings }) => {
                     {vi ? 'Họ và tên' : 'Full Name'}
                   </label>
                   <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} className="mfc-input" required />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
+                    {vi ? 'Số điện thoại' : 'Phone Number'}
+                  </label>
+                  <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="mfc-input" placeholder={vi ? 'Không bắt buộc' : 'Optional'} />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
