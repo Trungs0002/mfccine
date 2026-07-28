@@ -37,7 +37,7 @@ export const generateEmailHTML = (emailModalData) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>[MFC Fashion Show] Vé điện tử của bạn đã sẵn sàng</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #ffffff; font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased; line-height: 1.6; color: #333333;">
+<body contenteditable="true" style="margin: 0; padding: 0; background-color: #ffffff; font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased; line-height: 1.6; color: #333333; outline: none;">
     <!-- Preheader -->
     <div style="display: none; max-height: 0px; overflow: hidden; opacity: 0; mso-hide: all;">
         Vui lòng mở email để xem, lưu và sử dụng vé khi check-in tại sự kiện.&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
@@ -1991,27 +1991,41 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
           <div className="mfc-card" style={{ width: '100%', maxWidth: 500, maxHeight: '90vh', overflowY: 'auto', padding: 24, background: '#0a0a0a', border: '1px solid var(--line)', borderRadius: 16 }}>
             <h3 style={{ color: '#fff', fontSize: 18, margin: '0 0 16px' }}>{language === 'vi' ? 'Soạn Mail Gửi Vé' : 'Compose Ticket Email'}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <input
-                type="email"
-                value={emailModalData.to}
-                onChange={e => setEmailModalData({ ...emailModalData, to: e.target.value })}
-                placeholder="To (Email người nhận)"
-                className="mfc-input"
-              />
-              <input
-                type="text"
-                value={emailModalData.customerName}
-                onChange={e => setEmailModalData({ ...emailModalData, customerName: e.target.value })}
-                placeholder="Tên khách hàng (Hiển thị trong mail)"
-                className="mfc-input"
-              />
-              <input
-                type="text"
-                value={emailModalData.subject}
-                onChange={e => setEmailModalData({ ...emailModalData, subject: e.target.value })}
-                placeholder="Subject (Tiêu đề)"
-                className="mfc-input"
-              />
+              <div>
+                <p style={{ margin: '0 0 6px', color: 'var(--muted)', fontSize: 12 }}>{language === 'vi' ? 'Email người nhận' : 'Recipient Email'}</p>
+                <input
+                  type="email"
+                  value={emailModalData.to}
+                  onChange={e => setEmailModalData({ ...emailModalData, to: e.target.value })}
+                  placeholder="name@example.com"
+                  className="mfc-input"
+                  style={{ width: '100%' }}
+                />
+              </div>
+              
+              <div>
+                <p style={{ margin: '0 0 6px', color: 'var(--muted)', fontSize: 12 }}>{language === 'vi' ? 'Tên khách hàng' : 'Customer Name'}</p>
+                <input
+                  type="text"
+                  value={emailModalData.customerName}
+                  onChange={e => setEmailModalData({ ...emailModalData, customerName: e.target.value })}
+                  placeholder="Tên hiển thị trong mail"
+                  className="mfc-input"
+                  style={{ width: '100%' }}
+                />
+              </div>
+              
+              <div>
+                <p style={{ margin: '0 0 6px', color: 'var(--muted)', fontSize: 12 }}>{language === 'vi' ? 'Tiêu đề thư' : 'Email Subject'}</p>
+                <input
+                  type="text"
+                  value={emailModalData.subject}
+                  onChange={e => setEmailModalData({ ...emailModalData, subject: e.target.value })}
+                  placeholder="Subject (Tiêu đề)"
+                  className="mfc-input"
+                  style={{ width: '100%' }}
+                />
+              </div>
 
               <div>
                 <p style={{ margin: '0 0 6px', color: 'var(--muted)', fontSize: 12 }}>{language === 'vi' ? 'Chọn vé đính kèm' : 'Select tickets to include'}</p>
@@ -2035,11 +2049,15 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
               </div>
 
               <div style={{ marginTop: 12 }}>
-                <p style={{ margin: '0 0 6px', color: 'var(--muted)', fontSize: 12 }}>{language === 'vi' ? 'Xem trước nội dung mail' : 'Email Preview'}</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 6 }}>
+                  <p style={{ margin: 0, color: 'var(--muted)', fontSize: 12 }}>{language === 'vi' ? 'Xem trước & Chỉnh sửa (Click trực tiếp vào chữ để sửa)' : 'Preview & Edit'}</p>
+                  <span style={{ fontSize: 11, color: '#ff6b6b' }}>{language === 'vi' ? '*Lưu ý: Đổi vé/đổi tên sẽ làm reset lại những gì bạn đã sửa bên dưới' : '*Note: Changing tickets resets edits below'}</span>
+                </div>
                 <iframe
+                  id="email-preview-iframe"
                   title="Email Preview"
                   srcDoc={generateEmailHTML(emailModalData)}
-                  style={{ width: '100%', height: '40vh', minHeight: 250, border: '1px solid var(--line)', borderRadius: 8, background: '#fff' }}
+                  style={{ width: '100%', height: '40vh', minHeight: 250, border: '1px solid var(--mint)', borderRadius: 8, background: '#fff' }}
                 />
               </div>
 
@@ -2049,7 +2067,20 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                   disabled={emailModalData.sending}
                   onClick={async () => {
                     setEmailModalData({ ...emailModalData, sending: true });
-                    const finalBody = generateEmailHTML(emailModalData);
+                    
+                    let finalBody = generateEmailHTML(emailModalData);
+                    try {
+                      const iframe = document.getElementById('email-preview-iframe');
+                      if (iframe && iframe.contentDocument) {
+                        const clone = iframe.contentDocument.documentElement.cloneNode(true);
+                        const body = clone.querySelector('body');
+                        if (body) body.removeAttribute('contenteditable');
+                        finalBody = '<!DOCTYPE html>\n' + clone.outerHTML;
+                      }
+                    } catch (e) {
+                      console.error('Could not read iframe content', e);
+                    }
+                    
                     try {
                       const res = await fetch(`${API_URL}/api/bookings/${emailModalData.booking._id}/send-ticket`, {
                         method: 'PUT',
