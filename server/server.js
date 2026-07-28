@@ -703,7 +703,7 @@ app.put('/api/bookings/:id/send-ticket', async (req, res) => {
       const textBody = htmlBody.replace(/<br\s*[\/]?>/gi, '\n').replace(/<[^>]+>/g, '');
 
       await transporter.sendMail({
-        from: `"${process.env.SMTP_FROM_NAME || 'MFC'}" <${process.env.SMTP_USER}>`,
+        from: `"${process.env.SMTP_FROM_NAME || 'MFC'}" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
         to: to,
         subject: subject || 'Vé của bạn',
         text: textBody,
