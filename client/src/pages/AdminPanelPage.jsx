@@ -102,6 +102,7 @@ export const generateEmailHTML = (emailModalData) => {
                             
                             <p style="margin-top: 0; margin-bottom: 32px; font-size: 15px;">
                                 <strong>Thông tin hỗ trợ:</strong><br>
+                                Hotline: <a href="tel:0961972458" style="color: #2980b9; text-decoration: none;">0961972458</a><br>
                                 Email: <a href="mailto:${supportEmail}" style="color: #2980b9; text-decoration: none;">${supportEmail}</a><br>
                                 Fanpage: <a href="${facebookUrl}" target="_blank" rel="noopener noreferrer" style="color: #2980b9; text-decoration: none;">${facebookUrl}</a>
                             </p>
