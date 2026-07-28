@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
 import { QRCodeSVG } from 'qrcode.react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 const DigitalTicketPage = ({ completedBookingId, settings }) => {
   const navigate = useNavigate();
@@ -12,6 +14,7 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const l = useCallback((field) => {
     if (!field) return '';
@@ -36,6 +39,55 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      setIsDownloading(true);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      let pdf = null;
+      
+      for (let i = 0; i < seats.length; i++) {
+        const element = document.getElementById(`ticket-${i}`);
+        if (!element) continue;
+        
+        const canvas = await html2canvas(element, { 
+          scale: 2, 
+          useCORS: true,
+          backgroundColor: '#01010A'
+        });
+        
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        
+        // Match PDF page size exactly to the ticket's canvas dimensions
+        const pdfWidth = canvas.width;
+        const pdfHeight = canvas.height;
+        
+        if (!pdf) {
+          // First page initialization
+          pdf = new jsPDF({
+            orientation: pdfWidth > pdfHeight ? 'l' : 'p',
+            unit: 'px',
+            format: [pdfWidth, pdfHeight]
+          });
+        } else {
+          // Subsequent pages
+          pdf.addPage([pdfWidth, pdfHeight], pdfWidth > pdfHeight ? 'l' : 'p');
+        }
+        
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      }
+      
+      if (pdf) {
+        pdf.save(`Vé_MFC_${refId}.pdf`);
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert(vi ? 'Có lỗi xảy ra khi tải PDF.' : 'Error downloading PDF.');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   if (loading) return (
@@ -86,10 +138,11 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
           ✓ {vi ? 'Xuất vé thành công' : 'Booking Confirmed'}
         </span>
 
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
         {seats.map((seat, index) => {
           const seatTicketCode = seat.ticketCode || `${refId}-${seat.seatId}`;
           return (
-            <div key={index} style={{ width: '100%', background: 'linear-gradient(180deg, rgba(14,16,44,.9), rgba(7,8,24,.85))', border: '1px solid rgba(168,150,246,.4)', borderRadius: 24, overflow: 'hidden', boxShadow: '0 40px 80px -20px rgba(70,69,215,.2)' }}>
+            <div id={`ticket-${index}`} key={index} style={{ width: '100%', background: 'linear-gradient(180deg, rgba(14,16,44,.9), rgba(7,8,24,.85))', border: '1px solid rgba(168,150,246,.4)', borderRadius: 24, overflow: 'hidden', boxShadow: '0 40px 80px -20px rgba(70,69,215,.2)' }}>
               {/* Image header */}
               <div style={{ height: 160, position: 'relative', overflow: 'hidden' }}>
                 <img src={event?.image} alt="Event" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: .55, filter: 'saturate(1.2)' }} />
@@ -152,25 +205,24 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
                 ))}
               </div>
 
-              {/* Total */}
-              <div style={{ padding: '14px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(70,69,215,.08)' }}>
-                <span style={{ fontSize: 12, color: 'var(--muted)' }}>{vi ? 'Giá vé' : 'Ticket Price'}</span>
-                <span style={{ fontSize: 16, color: '#fff', fontWeight: 700 }}>{formatPrice(seat.price)}</span>
-              </div>
             </div>
           );
         })}
+        </div>
 
         {/* Actions */}
         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'flex', gap: 12 }}>
             <button
-              onClick={() => window.print()}
+              onClick={handleDownloadPDF}
+              disabled={isDownloading}
               className="btn-outline-pill"
-              style={{ flex: 1, justifyContent: 'center', gap: 8 }}
+              style={{ flex: 1, justifyContent: 'center', gap: 8, opacity: isDownloading ? 0.6 : 1 }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>download</span>
-              PDF
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                {isDownloading ? 'hourglass_empty' : 'download'}
+              </span>
+              {isDownloading ? (vi ? 'Đang tải...' : 'Downloading...') : 'PDF'}
             </button>
             <button
               onClick={() => handleCopy(seats.map(s => s.ticketCode || `${refId}-${s.seatId}`).join(', '))}
