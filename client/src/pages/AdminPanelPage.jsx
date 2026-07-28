@@ -50,11 +50,9 @@ export const generateEmailHTML = (emailModalData) => {
                     <tr>
                         <td style="padding: 40px 24px;">
                             <img src="${eventImageUrl}" alt="FTU Fashion Show 2026" width="600" style="width: 100%; max-width: 600px; display: block; border-radius: 8px; margin-bottom: 32px; height: auto;">
-                            <p style="margin-top: 0; margin-bottom: 16px; font-size: 16px;">Chào ${customerName},</p>
+                            <p style="margin-top: 0; margin-bottom: 16px; font-size: 16px;">Thân gửi ${customerName},</p>
                             
-                            <p style="margin-top: 0; margin-bottom: 16px; font-size: 16px;">Cảm ơn bạn đã lựa chọn đồng hành cùng MFC Fashion Show.</p>
-                            
-                            <p style="margin-top: 0; margin-bottom: 30px; font-size: 16px;">Vé điện tử cho đơn hàng <strong>${orderRef}</strong> đã được phát hành thành công. Vui lòng nhấn vào nút bên dưới để xem và lưu vé của bạn.</p>
+                            <p style="margin-top: 0; margin-bottom: 30px; font-size: 16px;">Vé điện tử cho đơn hàng <strong>${orderRef}</strong> đã được phát hành thành công. Vui lòng nhấn vào nút bên dưới để xem và lưu vé của bạn để xuất trình khi check-in tại sự kiện.</p>
                             
                             ${customMessageHtml}
 
@@ -96,6 +94,11 @@ export const generateEmailHTML = (emailModalData) => {
                                 <li style="margin-bottom: 6px;">Không chia sẻ hình ảnh vé hoặc mã QR với người khác.</li>
                                 <li style="margin-bottom: 0;">Nên lưu vé về thiết bị trước khi đến sự kiện.</li>
                             </ul>
+                            
+                            <p style="margin-top: 0; margin-bottom: 32px; font-size: 15px; color: #333333; line-height: 1.6;">
+                                Cảm ơn bạn đã đồng hành cùng FTU Fashion Show 2026. Sự hiện diện của bạn là niềm vinh hạnh và cũng là nguồn động lực để Ban Tổ chức mang đến một đêm trình diễn thời trang chỉn chu, sáng tạo và đáng nhớ.<br><br>
+                                Hẹn gặp bạn tại FTU Fashion Show 2026!
+                            </p>
                             
                             <p style="margin-top: 0; margin-bottom: 32px; font-size: 15px;">
                                 <strong>Thông tin hỗ trợ:</strong><br>
@@ -224,7 +227,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const [loadingNhatSubmissions, setLoadingNhatSubmissions] = useState(false);
   const [expandedNhatId, setExpandedNhatId] = useState(null);
   const [zoomedImage, setZoomedImage] = useState(null);
-  
+
   const [emailModalData, setEmailModalData] = useState(null);
 
   const fetchAnalytics = () => {
@@ -1228,8 +1231,8 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                         <span style={{ color: 'var(--muted)', fontSize: 11 }}>
                           {c.maxSeats
                             ? (language === 'vi'
-                                ? `Đã dùng ${c.usedSeats || 0}/${c.maxSeats} vé`
-                                : `Used ${c.usedSeats || 0}/${c.maxSeats} seats`)
+                              ? `Đã dùng ${c.usedSeats || 0}/${c.maxSeats} vé`
+                              : `Used ${c.usedSeats || 0}/${c.maxSeats} seats`)
                             : (language === 'vi' ? 'Không giới hạn vé' : 'Unlimited seats')}
                         </span>
                         <span style={{
@@ -1271,11 +1274,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                 filteredApplications = applicationStatusFilter === 'all'
                   ? filteredApplications
                   : filteredApplications.filter(a => {
-                      if (applicationStatusFilter === 'passed') return a.status === 'passed' || a.resolved;
-                      if (applicationStatusFilter === 'failed') return a.status === 'failed';
-                      if (applicationStatusFilter === 'pending') return a.status !== 'passed' && a.status !== 'failed' && !a.resolved;
-                      return true;
-                    });
+                    if (applicationStatusFilter === 'passed') return a.status === 'passed' || a.resolved;
+                    if (applicationStatusFilter === 'failed') return a.status === 'failed';
+                    if (applicationStatusFilter === 'pending') return a.status !== 'passed' && a.status !== 'failed' && !a.resolved;
+                    return true;
+                  });
 
                 return (
                   <>
@@ -1400,32 +1403,32 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                       <p style={{ color: 'var(--muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.08em', margin: 0 }}>
                                         {language === 'vi' ? 'Ghi chú' : 'Notes'}
                                       </p>
-                                    {(a.status === 'passed' || a.status === 'failed' || a.resolved) ? (
-                                      <button
-                                        onClick={() => handleUpdateStatus(a, 'pending')}
-                                        className="btn-outline-pill"
-                                        style={{ fontSize: 10, padding: '7px 14px' }}
-                                      >
-                                        {language === 'vi' ? '↺ Hoàn tác' : '↺ Undo'}
-                                      </button>
-                                    ) : (
-                                      <div style={{ display: 'flex', gap: 8 }}>
+                                      {(a.status === 'passed' || a.status === 'failed' || a.resolved) ? (
                                         <button
-                                          onClick={() => handleUpdateStatus(a, 'passed')}
-                                          className="btn-pill"
-                                          style={{ fontSize: 10, padding: '7px 14px', background: 'var(--mint)', color: '#000', border: 'none' }}
+                                          onClick={() => handleUpdateStatus(a, 'pending')}
+                                          className="btn-outline-pill"
+                                          style={{ fontSize: 10, padding: '7px 14px' }}
                                         >
-                                          {language === 'vi' ? '✓ Đánh Đậu' : '✓ Mark Passed'}
+                                          {language === 'vi' ? '↺ Hoàn tác' : '↺ Undo'}
                                         </button>
-                                        <button
-                                          onClick={() => handleUpdateStatus(a, 'failed')}
-                                          className="btn-pill"
-                                          style={{ fontSize: 10, padding: '7px 14px', background: 'rgba(255,107,107,.15)', color: '#ff6b6b', border: '1px solid rgba(255,107,107,.5)' }}
-                                        >
-                                          {language === 'vi' ? '✗ Đánh trượt' : '✗ Mark Failed'}
-                                        </button>
-                                      </div>
-                                    )}
+                                      ) : (
+                                        <div style={{ display: 'flex', gap: 8 }}>
+                                          <button
+                                            onClick={() => handleUpdateStatus(a, 'passed')}
+                                            className="btn-pill"
+                                            style={{ fontSize: 10, padding: '7px 14px', background: 'var(--mint)', color: '#000', border: 'none' }}
+                                          >
+                                            {language === 'vi' ? '✓ Đánh Đậu' : '✓ Mark Passed'}
+                                          </button>
+                                          <button
+                                            onClick={() => handleUpdateStatus(a, 'failed')}
+                                            className="btn-pill"
+                                            style={{ fontSize: 10, padding: '7px 14px', background: 'rgba(255,107,107,.15)', color: '#ff6b6b', border: '1px solid rgba(255,107,107,.5)' }}
+                                          >
+                                            {language === 'vi' ? '✗ Đánh trượt' : '✗ Mark Failed'}
+                                          </button>
+                                        </div>
+                                      )}
                                     </div>
 
                                     {(a.notes || []).length > 0 && (
@@ -1597,15 +1600,15 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                             {(s.outfits && s.outfits.length > 0 ? s.outfits : [{ designImage: s.designImage, outfitPhoto1: s.outfitPhoto1, outfitPhoto2: s.outfitPhoto2 }]).map((outfit, index) => (
                               <div key={index} style={{ marginBottom: 16 }}>
                                 <div style={{ fontSize: 11, color: 'var(--mint)', textTransform: 'uppercase', letterSpacing: '.12em', fontWeight: 700, marginBottom: 8 }}>
-                                  {language === 'vi' 
-                                    ? `Bộ đồ ${index + 1}${outfit.name ? `: ${outfit.name}` : ''}` 
+                                  {language === 'vi'
+                                    ? `Bộ đồ ${index + 1}${outfit.name ? `: ${outfit.name}` : ''}`
                                     : `Outfit ${index + 1}${outfit.name ? `: ${outfit.name}` : ''}`}
                                 </div>
                                 <div className="admin-form-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
                                   {[
-                                    { label: language === 'vi' ? 'Bản vẽ thiết kế' : 'Design Sketch', src: outfit.designImage, name: `${s.fullName}-outfit${index+1}-sketch` },
-                                    { label: language === 'vi' ? 'Ảnh bộ đồ (1)' : 'Outfit Photo (1)', src: outfit.outfitPhoto1, name: `${s.fullName}-outfit${index+1}-photo1` },
-                                    { label: language === 'vi' ? 'Ảnh bộ đồ (2)' : 'Outfit Photo (2)', src: outfit.outfitPhoto2, name: `${s.fullName}-outfit${index+1}-photo2` },
+                                    { label: language === 'vi' ? 'Bản vẽ thiết kế' : 'Design Sketch', src: outfit.designImage, name: `${s.fullName}-outfit${index + 1}-sketch` },
+                                    { label: language === 'vi' ? 'Ảnh bộ đồ (1)' : 'Outfit Photo (1)', src: outfit.outfitPhoto1, name: `${s.fullName}-outfit${index + 1}-photo1` },
+                                    { label: language === 'vi' ? 'Ảnh bộ đồ (2)' : 'Outfit Photo (2)', src: outfit.outfitPhoto2, name: `${s.fullName}-outfit${index + 1}-photo2` },
                                   ].map((img, i) => (
                                     <div key={i}>
                                       <p style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '0 0 6px' }}>{img.label}</p>
@@ -1736,10 +1739,10 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                             <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--muted)' }}>chair</span>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                               {d.selectedSeats.map((s, i) => (
-                                <span key={i} style={{ 
-                                  padding: '3px 8px', borderRadius: 999, fontSize: 10, fontFamily: 'monospace', 
-                                  background: s.isCheckedIn ? 'rgba(168,150,246,.12)' : 'transparent', 
-                                  border: `1px solid ${s.isCheckedIn ? 'rgba(168,150,246,.25)' : 'rgba(255,255,255,.15)'}`, 
+                                <span key={i} style={{
+                                  padding: '3px 8px', borderRadius: 999, fontSize: 10, fontFamily: 'monospace',
+                                  background: s.isCheckedIn ? 'rgba(168,150,246,.12)' : 'transparent',
+                                  border: `1px solid ${s.isCheckedIn ? 'rgba(168,150,246,.25)' : 'rgba(255,255,255,.15)'}`,
                                   color: s.isCheckedIn ? 'var(--purple)' : 'var(--muted)',
                                   opacity: s.isCheckedIn ? 1 : 0.4
                                 }}>
@@ -1888,7 +1891,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                 )}
                               </span>
                             </span>
-                            
+
                             {seat.status === 'Cancelled' ? (
                               <span style={{ padding: '2px 6px', borderRadius: 999, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', whiteSpace: 'nowrap', border: '1px solid rgba(255,87,87,.3)', color: 'var(--red)', background: 'rgba(255,87,87,.08)' }}>
                                 {language === 'vi' ? 'Đã xóa' : 'Cancelled'}
@@ -1911,14 +1914,14 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                 }}>
                                   {seat.isSent ? (language === 'vi' ? 'Đã gửi' : 'Sent') : (language === 'vi' ? 'Chưa gửi' : 'Unsent')}
                                 </span>
-                                <button 
+                                <button
                                   onClick={async () => {
-                                    if(window.confirm(language === 'vi' ? `Bạn có chắc muốn xóa ghế ${seat.seatId} khỏi đơn hàng này?` : `Are you sure you want to delete seat ${seat.seatId}?`)) {
+                                    if (window.confirm(language === 'vi' ? `Bạn có chắc muốn xóa ghế ${seat.seatId} khỏi đơn hàng này?` : `Are you sure you want to delete seat ${seat.seatId}?`)) {
                                       try {
                                         const res = await fetch(`${API_URL}/api/bookings/${booking._id}/seats/${seat.seatId}`, { method: 'DELETE' });
                                         if (res.ok) fetchAllBookings(true);
                                         else { const j = await res.json(); alert(j.error); }
-                                      } catch(e) { console.error(e); }
+                                      } catch (e) { console.error(e); }
                                     }
                                   }}
                                   style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', color: 'var(--red)', opacity: 0.7, marginLeft: 'auto' }}
@@ -1932,7 +1935,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                         ))}
                       </div>
 
-                      <button 
+                      <button
                         onClick={() => {
                           const activeSeats = booking.selectedSeats?.filter(s => s.status !== 'Cancelled').map(s => s.seatId) || [];
                           setEmailModalData({
@@ -1987,41 +1990,41 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
           <div className="mfc-card" style={{ width: '100%', maxWidth: 500, padding: 24, background: '#0a0a0a', border: '1px solid var(--line)', borderRadius: 16 }}>
             <h3 style={{ color: '#fff', fontSize: 18, margin: '0 0 16px' }}>{language === 'vi' ? 'Soạn Mail Gửi Vé' : 'Compose Ticket Email'}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <input 
-                type="email" 
-                value={emailModalData.to} 
-                onChange={e => setEmailModalData({...emailModalData, to: e.target.value})} 
-                placeholder="To (Email người nhận)" 
-                className="mfc-input" 
+              <input
+                type="email"
+                value={emailModalData.to}
+                onChange={e => setEmailModalData({ ...emailModalData, to: e.target.value })}
+                placeholder="To (Email người nhận)"
+                className="mfc-input"
               />
-              <input 
-                type="text" 
-                value={emailModalData.customerName} 
-                onChange={e => setEmailModalData({...emailModalData, customerName: e.target.value})} 
-                placeholder="Tên khách hàng (Hiển thị trong mail)" 
-                className="mfc-input" 
+              <input
+                type="text"
+                value={emailModalData.customerName}
+                onChange={e => setEmailModalData({ ...emailModalData, customerName: e.target.value })}
+                placeholder="Tên khách hàng (Hiển thị trong mail)"
+                className="mfc-input"
               />
-              <input 
-                type="text" 
-                value={emailModalData.subject} 
-                onChange={e => setEmailModalData({...emailModalData, subject: e.target.value})} 
-                placeholder="Subject (Tiêu đề)" 
-                className="mfc-input" 
+              <input
+                type="text"
+                value={emailModalData.subject}
+                onChange={e => setEmailModalData({ ...emailModalData, subject: e.target.value })}
+                placeholder="Subject (Tiêu đề)"
+                className="mfc-input"
               />
-              
+
               <div>
                 <p style={{ margin: '0 0 6px', color: 'var(--muted)', fontSize: 12 }}>{language === 'vi' ? 'Chọn vé đính kèm' : 'Select tickets to include'}</p>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {emailModalData.booking.selectedSeats?.filter(s => s.status !== 'Cancelled').map(s => (
                     <label key={s.seatId} style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: '#fff', fontSize: 13, background: 'rgba(255,255,255,.05)', padding: '4px 8px', borderRadius: 4 }}>
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         checked={emailModalData.selectedSeats.includes(s.seatId)}
                         onChange={(e) => {
-                          const newSeats = e.target.checked 
+                          const newSeats = e.target.checked
                             ? [...emailModalData.selectedSeats, s.seatId]
                             : emailModalData.selectedSeats.filter(id => id !== s.seatId);
-                          setEmailModalData({...emailModalData, selectedSeats: newSeats});
+                          setEmailModalData({ ...emailModalData, selectedSeats: newSeats });
                         }}
                       />
                       {s.seatId}
@@ -2032,7 +2035,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
 
               <div style={{ marginTop: 12 }}>
                 <p style={{ margin: '0 0 6px', color: 'var(--muted)', fontSize: 12 }}>{language === 'vi' ? 'Xem trước nội dung mail' : 'Email Preview'}</p>
-                <iframe 
+                <iframe
                   title="Email Preview"
                   srcDoc={generateEmailHTML(emailModalData)}
                   style={{ width: '100%', height: 400, border: '1px solid var(--line)', borderRadius: 8, background: '#fff' }}
@@ -2041,13 +2044,13 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 12 }}>
                 <button onClick={() => setEmailModalData(null)} className="btn-outline-pill">{language === 'vi' ? 'Hủy' : 'Cancel'}</button>
-                <button 
+                <button
                   disabled={emailModalData.sending}
                   onClick={async () => {
-                    setEmailModalData({...emailModalData, sending: true});
+                    setEmailModalData({ ...emailModalData, sending: true });
                     const finalBody = generateEmailHTML(emailModalData);
                     try {
-                      const res = await fetch(`${API_URL}/api/bookings/${emailModalData.booking._id}/send-ticket`, { 
+                      const res = await fetch(`${API_URL}/api/bookings/${emailModalData.booking._id}/send-ticket`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -2064,14 +2067,14 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                       } else {
                         const err = await res.json();
                         alert('Lỗi: ' + err.error);
-                        setEmailModalData({...emailModalData, sending: false});
+                        setEmailModalData({ ...emailModalData, sending: false });
                       }
-                    } catch (e) { 
-                      console.error(e); 
+                    } catch (e) {
+                      console.error(e);
                       alert('Lỗi mạng');
-                      setEmailModalData({...emailModalData, sending: false});
+                      setEmailModalData({ ...emailModalData, sending: false });
                     }
-                  }} 
+                  }}
                   className="btn-pill"
                 >
                   {emailModalData.sending ? (language === 'vi' ? 'Đang gửi...' : 'Sending...') : (language === 'vi' ? 'Gửi Mail' : 'Send Email')}
