@@ -1104,6 +1104,39 @@ app.get('/api/analytics', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// --- AUTO CLEANUP PENDING UNPAID BOOKINGS ---
+// Runs every 1 minute. Finds bookings that have been 'Pending' for more than 10 minutes
+// AND have not uploaded a payment bill, and deletes them to release seats.
+setInterval(async () => {
+  try {
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60000);
+    const expiredBookings = await Booking.find({
+      paymentStatus: 'Pending',
+      $or: [
+        { paymentBillUrl: { $exists: false } },
+        { paymentBillUrl: null },
+        { paymentBillUrl: '' }
+      ],
+      bookingDate: { $lt: tenMinutesAgo }
+    });
+    
+    if (expiredBookings.length > 0) {
+      for (const booking of expiredBookings) {
+        if (booking.discountCode) {
+          await DiscountCode.findOneAndUpdate(
+            { code: booking.discountCode },
+            { $inc: { usedSeats: -booking.selectedSeats.length } }
+          );
+        }
+        await Booking.findByIdAndDelete(booking._id);
+      }
+      console.log(`[Auto-Cleanup] Deleted ${expiredBookings.length} expired pending bookings to release seats.`);
+    }
+  } catch(e) {
+    console.error('[Auto-Cleanup] Error:', e);
+  }
+}, 60000);
+
 // Connect to MongoDB & Start Server
 connectDB(process.env.MONGODB_URI).then(() => {
   seedDatabase().catch(err => console.error('Seeding failed:', err));
