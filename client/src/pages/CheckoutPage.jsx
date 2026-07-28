@@ -46,7 +46,9 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
   // Intercept browser back button / swipe back when QR code is shown
   useEffect(() => {
     if (qrData && !showSuccessPopup) {
-      window.history.pushState({ qrOpen: true }, '', window.location.href);
+      if (!window.history.state?.qrOpen) {
+        window.history.pushState({ qrOpen: true }, '', window.location.href);
+      }
 
       const handlePopState = (e) => {
         const confirmLeave = window.confirm(
@@ -56,6 +58,10 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
         );
         
         if (confirmLeave) {
+          // Remove listeners immediately to prevent infinite loops
+          window.removeEventListener('popstate', handlePopState);
+          window.removeEventListener('beforeunload', handleBeforeUnload);
+          
           fetch(`${API_URL}/api/bookings/${qrData.bookingId}/cancel`, { 
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
@@ -79,6 +85,8 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
       return () => {
         window.removeEventListener('popstate', handlePopState);
         window.removeEventListener('beforeunload', handleBeforeUnload);
+        // If we unmount because of normal flow (e.g. success), we should probably pop the state if it's still there
+        // but it's safer to just leave it as a harmless extra history entry.
       };
     }
   }, [qrData, showSuccessPopup, bookingDetails, language]);
