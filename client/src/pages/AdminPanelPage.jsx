@@ -1871,7 +1871,15 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '2px 0 0' }}>
                           <p style={{ margin: 0, fontSize: 10, color: 'var(--muted)' }}>{booking.paymentMethod}</p>
                           <span style={{ color: 'var(--line)', fontSize: 10 }}>|</span>
-                          <span style={{ color: booking.paymentStatus === 'Completed' ? 'var(--mint)' : (booking.paymentStatus === 'Failed' ? '#ff6b6b' : '#f59e0b'), fontSize: 10, fontWeight: 600 }}>{booking.paymentStatus}</span>
+                          <span style={{ color: booking.paymentStatus === 'Completed' ? 'var(--mint)' : (booking.paymentStatus === 'Failed' ? '#ff6b6b' : '#f59e0b'), fontSize: 10, fontWeight: 600 }}>
+                            {booking.paymentStatus === 'Completed' 
+                              ? (language === 'vi' ? 'Đã duyệt' : 'Completed')
+                              : booking.paymentStatus === 'Failed'
+                                ? (language === 'vi' ? 'Đã hủy' : 'Failed')
+                                : booking.paymentBillUrl 
+                                  ? (language === 'vi' ? 'Chờ duyệt bill' : 'Pending Approval') 
+                                  : (language === 'vi' ? 'Chờ thanh toán' : 'Awaiting Payment')}
+                          </span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '4px 0 0' }}>
                           {booking.paymentBillUrl && (
