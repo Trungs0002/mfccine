@@ -1834,7 +1834,14 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {allBookings.map(booking => (
                     <div key={booking._id} className="admin-booking-row" style={{ display: 'grid', gridTemplateColumns: '90px 1.1fr 1fr 280px 110px auto', alignItems: 'center', gap: 16, padding: 16, borderRadius: 14, border: '1px solid var(--line)', background: 'rgba(1,1,10,.35)' }}>
-                      <span style={{ fontFamily: 'monospace', color: 'var(--purple)', fontSize: 12 }}>{booking._id.toString().slice(-8).toUpperCase()}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <span style={{ fontFamily: 'monospace', color: 'var(--purple)', fontSize: 12, lineHeight: 1 }}>{booking._id.toString().slice(-8).toUpperCase()}</span>
+                        {booking.bookingDate && (
+                          <span style={{ color: 'var(--muted)', fontSize: 10, lineHeight: 1 }}>
+                            {new Date(booking.bookingDate).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
+                          </span>
+                        )}
+                      </div>
 
                       <div>
                         {editingBookingId === booking._id ? (
