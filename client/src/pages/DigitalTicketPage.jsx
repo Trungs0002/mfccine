@@ -58,7 +58,13 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
   );
 
   const event     = booking.eventId;
-  const seats     = (booking.selectedSeats || []).filter(s => s.status !== 'Cancelled');
+  const params    = new URLSearchParams(window.location.search);
+  const seatsParam = params.get('seats');
+  let seats       = (booking.selectedSeats || []).filter(s => s.status !== 'Cancelled');
+  if (seatsParam) {
+    const seatIds = seatsParam.split(',');
+    seats = seats.filter(s => seatIds.includes(s.seatId));
+  }
   const refId     = booking._id.toString().toUpperCase().slice(-8);
   const formatPrice = (p) => Number(p).toLocaleString('vi-VN') + (vi ? 'đ' : ' VND');
 

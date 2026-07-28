@@ -3,6 +3,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const cloudinary = require('cloudinary').v2;
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const querystring = require('querystring');
@@ -115,7 +116,8 @@ const BookingSchema = new mongoose.Schema({
       price: { type: Number, required: true },
       ticketCode: { type: String },
       isCheckedIn: { type: Boolean, default: false },
-      status: { type: String, enum: ['Active', 'Cancelled'], default: 'Active' }
+      status: { type: String, enum: ['Active', 'Cancelled'], default: 'Active' },
+      isSent: { type: Boolean, default: false }
     }
   ],
   subtotal: { type: Number, required: true },
@@ -681,18 +683,53 @@ app.delete('/api/bookings/:id/cancel', async (req, res) => {
 
 app.put('/api/bookings/:id/send-ticket', async (req, res) => {
   try {
+    const { to, subject, body, seats } = req.body;
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ error: 'Booking not found' });
-    booking.ticketSent = !booking.ticketSent;
+    
+    // Send email if configured
+    if (process.env.SMTP_HOST && process.env.SMTP_USER && to) {
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT || 465,
+        secure: process.env.SMTP_PORT == 465,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS
+        }
+      });
+      
+      const htmlBody = body || 'Kính gửi quý khách, vé của bạn đã được đính kèm bên dưới.';
+      const textBody = htmlBody.replace(/<br\s*[\/]?>/gi, '\n').replace(/<[^>]+>/g, '');
+
+      await transporter.sendMail({
+        from: `"${process.env.SMTP_FROM_NAME || 'MFC'}" <${process.env.SMTP_USER}>`,
+        to: to,
+        subject: subject || 'Vé của bạn',
+        text: textBody,
+        html: htmlBody
+      });
+    }
+    
+    booking.ticketSent = true;
+    
+    if (seats && Array.isArray(seats)) {
+      booking.selectedSeats.forEach(s => {
+        if (seats.includes(s.seatId)) {
+          s.isSent = true;
+        }
+      });
+    }
     
     // Auto complete the payment status when sending the ticket, if it's currently Pending
-    if (booking.ticketSent && booking.paymentStatus === 'Pending') {
+    if (booking.paymentStatus === 'Pending') {
       booking.paymentStatus = 'Completed';
     }
     
     await booking.save();
     res.json({ message: 'Ticket status updated', booking });
   } catch (err) {
+    console.error('Mail error:', err);
     res.status(500).json({ error: err.message });
   }
 });

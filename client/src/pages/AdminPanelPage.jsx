@@ -14,6 +14,120 @@ const VN_OFFSET_MS = 7 * 60 * 60 * 1000;
 const toVnDatetimeLocal = (utcDate) => new Date(new Date(utcDate).getTime() + VN_OFFSET_MS).toISOString().slice(0, 16);
 const fromVnDatetimeLocal = (value) => new Date(new Date(`${value}Z`).getTime() - VN_OFFSET_MS).toISOString();
 
+export const generateEmailHTML = (emailModalData) => {
+  if (!emailModalData || !emailModalData.booking) return '';
+  const link = `https://mfcftu.site/ticket?id=${emailModalData.booking._id}&seats=${emailModalData.selectedSeats.join(',')}`;
+  const orderRef = emailModalData.booking._id.toString().toUpperCase().slice(-8);
+  const customerName = emailModalData.customerName || emailModalData.booking.fullName || 'Quý khách';
+  const supportEmail = 'mfcfashionshow@gmail.com';
+  const facebookUrl = 'https://facebook.com/mfcfashionshow';
+  const eventImageUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? `${window.location.origin}/gmailimage.png`
+    : 'https://mfcftu.site/gmailimage.png';
+
+  let customMessageHtml = '';
+  if (emailModalData.body && emailModalData.body.trim()) {
+    customMessageHtml = `<div style="padding: 15px; background: #fff5eb; border-left: 4px solid #ff9f43; margin-bottom: 24px; border-radius: 4px;">
+      <p style="margin: 0; font-size: 15px; color: #d35400;"><strong>Lời nhắn từ BTC:</strong><br>${emailModalData.body.replace(/\\n/g, '<br>')}</p>
+    </div>`;
+  }
+
+  return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[MFC Fashion Show] Vé điện tử của bạn đã sẵn sàng</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #ffffff; font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased; line-height: 1.6; color: #333333;">
+    <!-- Preheader -->
+    <div style="display: none; max-height: 0px; overflow: hidden; opacity: 0; mso-hide: all;">
+        Vui lòng mở email để xem, lưu và sử dụng vé khi check-in tại sự kiện.&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
+    </div>
+    
+    <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-color: #ffffff; width: 100%;">
+        <tr>
+            <td align="center" style="padding: 40px 10px;">
+                <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                    <tr>
+                        <td style="padding: 40px 24px;">
+                            <img src="${eventImageUrl}" alt="FTU Fashion Show 2026" width="600" style="width: 100%; max-width: 600px; display: block; border-radius: 8px; margin-bottom: 32px; height: auto;">
+                            <p style="margin-top: 0; margin-bottom: 16px; font-size: 16px;">Chào ${customerName},</p>
+                            
+                            <p style="margin-top: 0; margin-bottom: 16px; font-size: 16px;">Cảm ơn bạn đã lựa chọn đồng hành cùng MFC Fashion Show.</p>
+                            
+                            <p style="margin-top: 0; margin-bottom: 30px; font-size: 16px;">Vé điện tử cho đơn hàng <strong>${orderRef}</strong> đã được phát hành thành công. Vui lòng nhấn vào nút bên dưới để xem và lưu vé của bạn.</p>
+                            
+                            ${customMessageHtml}
+
+                            <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom: 24px;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="${link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #2c3e50; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: bold; padding: 14px 32px; border-radius: 6px; text-transform: uppercase;">XEM VÉ ĐIỆN TỬ</a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="margin-top: 0; margin-bottom: 8px; font-size: 14px; color: #666666;">Trong trường hợp nút phía trên không hoạt động, vui lòng sao chép và mở đường dẫn sau trên trình duyệt:</p>
+                            <p style="margin-top: 0; margin-bottom: 32px; font-size: 14px; word-break: break-all;">
+                                <a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #2980b9; text-decoration: underline;">${link}</a>
+                            </p>
+                            
+                            <div style="background-color: #f8f9fa; border-radius: 8px; padding: 24px; margin-bottom: 32px; border: 1px solid #eeeeee;">
+                                <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 17px; color: #1a1a1a;">Thông tin sự kiện</h3>
+                                <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+                                    <tr>
+                                        <td width="35%" style="padding-bottom: 10px; font-size: 15px; color: #666666; vertical-align: top;">Tên sự kiện:</td>
+                                        <td style="padding-bottom: 10px; font-size: 15px; font-weight: bold; color: #333333; vertical-align: top;">FTU Fashion Show 2026</td>
+                                    </tr>
+                                    <tr>
+                                        <td width="35%" style="padding-bottom: 10px; font-size: 15px; color: #666666; vertical-align: top;">Thời gian:</td>
+                                        <td style="padding-bottom: 10px; font-size: 15px; font-weight: bold; color: #333333; vertical-align: top;">18:00, ngày 22 tháng 8 năm 2026</td>
+                                    </tr>
+                                    <tr>
+                                        <td width="35%" style="font-size: 15px; color: #666666; vertical-align: top;">Địa điểm:</td>
+                                        <td style="font-size: 15px; font-weight: bold; color: #333333; vertical-align: top;">Trống Đồng Palace, số 2 Lãng Yên, Hà Nội</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            
+                            <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 16px; color: #1a1a1a;">Lưu ý khi tham dự:</h3>
+                            <ul style="margin-top: 0; margin-bottom: 32px; padding-left: 20px; font-size: 15px; color: #444444; line-height: 1.7;">
+                                <li style="margin-bottom: 6px;">Vui lòng xuất trình mã QR trên vé điện tử tại khu vực check-in.</li>
+                                <li style="margin-bottom: 6px;">Mỗi mã QR chỉ có giá trị sử dụng một lần.</li>
+                                <li style="margin-bottom: 6px;">Không chia sẻ hình ảnh vé hoặc mã QR với người khác.</li>
+                                <li style="margin-bottom: 0;">Nên lưu vé về thiết bị trước khi đến sự kiện.</li>
+                            </ul>
+                            
+                            <p style="margin-top: 0; margin-bottom: 32px; font-size: 15px;">
+                                <strong>Thông tin hỗ trợ:</strong><br>
+                                Email: <a href="mailto:${supportEmail}" style="color: #2980b9; text-decoration: none;">${supportEmail}</a><br>
+                                Fanpage: <a href="${facebookUrl}" target="_blank" rel="noopener noreferrer" style="color: #2980b9; text-decoration: none;">${facebookUrl}</a>
+                            </p>
+                            
+                            <p style="margin-top: 0; margin-bottom: 0; font-size: 15px;">
+                                Trân trọng,<br>
+                                <strong>Ban Tổ chức MFC Fashion Show</strong><br>
+                                MFC FTU
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td align="center" style="background-color: #f8f9fa; padding: 24px; border-top: 1px solid #eeeeee;">
+                            <p style="margin: 0; font-size: 12px; color: #888888; text-align: center; line-height: 1.5;">
+                                Email này được gửi tự động nhằm xác nhận và cung cấp vé điện tử cho đơn hàng của bạn. Vui lòng không chia sẻ mã QR hoặc thông tin vé với người khác.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`;
+};
+
 const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const { language, t } = useLanguage();
   const formatPrice = (p) => Number(p).toLocaleString('vi-VN') + (language === 'vi' ? 'đ' : ' VND');
@@ -112,6 +226,8 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const [loadingNhatSubmissions, setLoadingNhatSubmissions] = useState(false);
   const [expandedNhatId, setExpandedNhatId] = useState(null);
   const [zoomedImage, setZoomedImage] = useState(null);
+  
+  const [emailModalData, setEmailModalData] = useState(null);
 
   const fetchAnalytics = () => {
     fetch(`${API_URL}/api/analytics`)
@@ -1789,6 +1905,14 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                 }}>
                                   {seat.isCheckedIn ? (language === 'vi' ? 'Đã checkin' : 'Checked-in') : (language === 'vi' ? 'Chưa checkin' : 'Not checked-in')}
                                 </span>
+                                <span style={{
+                                  padding: '2px 6px', borderRadius: 999, fontSize: 8, fontWeight: 700, textTransform: 'uppercase', whiteSpace: 'nowrap',
+                                  border: `1px solid ${seat.isSent ? 'rgba(70,69,215,.3)' : 'rgba(255,255,255,.2)'}`,
+                                  color: seat.isSent ? '#807df5' : 'var(--muted)',
+                                  background: seat.isSent ? 'rgba(70,69,215,.1)' : 'rgba(255,255,255,.05)',
+                                }}>
+                                  {seat.isSent ? (language === 'vi' ? 'Đã gửi' : 'Sent') : (language === 'vi' ? 'Chưa gửi' : 'Unsent')}
+                                </span>
                                 <button 
                                   onClick={async () => {
                                     if(window.confirm(language === 'vi' ? `Bạn có chắc muốn xóa ghế ${seat.seatId} khỏi đơn hàng này?` : `Are you sure you want to delete seat ${seat.seatId}?`)) {
@@ -1811,11 +1935,17 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                       </div>
 
                       <button 
-                        onClick={async () => {
-                          try {
-                            const res = await fetch(`${API_URL}/api/bookings/${booking._id}/send-ticket`, { method: 'PUT' });
-                            if (res.ok) fetchAllBookings(true);
-                          } catch (e) { console.error(e); }
+                        onClick={() => {
+                          const activeSeats = booking.selectedSeats?.filter(s => s.status !== 'Cancelled').map(s => s.seatId) || [];
+                          setEmailModalData({
+                            booking: booking,
+                            to: booking.email,
+                            subject: '[MFC Fashion Show] Vé điện tử của bạn đã sẵn sàng',
+                            customerName: booking.fullName || 'Quý khách',
+                            body: '',
+                            selectedSeats: activeSeats,
+                            sending: false
+                          });
                         }}
                         style={{
                           padding: '6px 12px', borderRadius: 999, fontSize: 10, fontWeight: 600, border: 'none', cursor: 'pointer',
@@ -1853,6 +1983,106 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
           )}
         </div>
       </div>
+
+      {emailModalData && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.7)', padding: 16 }}>
+          <div className="mfc-card" style={{ width: '100%', maxWidth: 500, padding: 24, background: '#0a0a0a', border: '1px solid var(--line)', borderRadius: 16 }}>
+            <h3 style={{ color: '#fff', fontSize: 18, margin: '0 0 16px' }}>{language === 'vi' ? 'Soạn Mail Gửi Vé' : 'Compose Ticket Email'}</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <input 
+                type="email" 
+                value={emailModalData.to} 
+                onChange={e => setEmailModalData({...emailModalData, to: e.target.value})} 
+                placeholder="To (Email người nhận)" 
+                className="mfc-input" 
+              />
+              <input 
+                type="text" 
+                value={emailModalData.customerName} 
+                onChange={e => setEmailModalData({...emailModalData, customerName: e.target.value})} 
+                placeholder="Tên khách hàng (Hiển thị trong mail)" 
+                className="mfc-input" 
+              />
+              <input 
+                type="text" 
+                value={emailModalData.subject} 
+                onChange={e => setEmailModalData({...emailModalData, subject: e.target.value})} 
+                placeholder="Subject (Tiêu đề)" 
+                className="mfc-input" 
+              />
+              
+              <div>
+                <p style={{ margin: '0 0 6px', color: 'var(--muted)', fontSize: 12 }}>{language === 'vi' ? 'Chọn vé đính kèm' : 'Select tickets to include'}</p>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {emailModalData.booking.selectedSeats?.filter(s => s.status !== 'Cancelled').map(s => (
+                    <label key={s.seatId} style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: '#fff', fontSize: 13, background: 'rgba(255,255,255,.05)', padding: '4px 8px', borderRadius: 4 }}>
+                      <input 
+                        type="checkbox" 
+                        checked={emailModalData.selectedSeats.includes(s.seatId)}
+                        onChange={(e) => {
+                          const newSeats = e.target.checked 
+                            ? [...emailModalData.selectedSeats, s.seatId]
+                            : emailModalData.selectedSeats.filter(id => id !== s.seatId);
+                          setEmailModalData({...emailModalData, selectedSeats: newSeats});
+                        }}
+                      />
+                      {s.seatId}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ marginTop: 12 }}>
+                <p style={{ margin: '0 0 6px', color: 'var(--muted)', fontSize: 12 }}>{language === 'vi' ? 'Xem trước nội dung mail' : 'Email Preview'}</p>
+                <iframe 
+                  title="Email Preview"
+                  srcDoc={generateEmailHTML(emailModalData)}
+                  style={{ width: '100%', height: 400, border: '1px solid var(--line)', borderRadius: 8, background: '#fff' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 12 }}>
+                <button onClick={() => setEmailModalData(null)} className="btn-outline-pill">{language === 'vi' ? 'Hủy' : 'Cancel'}</button>
+                <button 
+                  disabled={emailModalData.sending}
+                  onClick={async () => {
+                    setEmailModalData({...emailModalData, sending: true});
+                    const finalBody = generateEmailHTML(emailModalData);
+                    try {
+                      const res = await fetch(`${API_URL}/api/bookings/${emailModalData.booking._id}/send-ticket`, { 
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          to: emailModalData.to,
+                          subject: emailModalData.subject,
+                          body: finalBody,
+                          seats: emailModalData.selectedSeats
+                        })
+                      });
+                      if (res.ok) {
+                        alert(language === 'vi' ? 'Đã gửi mail thành công!' : 'Email sent!');
+                        setEmailModalData(null);
+                        fetchAllBookings(true);
+                      } else {
+                        const err = await res.json();
+                        alert('Lỗi: ' + err.error);
+                        setEmailModalData({...emailModalData, sending: false});
+                      }
+                    } catch (e) { 
+                      console.error(e); 
+                      alert('Lỗi mạng');
+                      setEmailModalData({...emailModalData, sending: false});
+                    }
+                  }} 
+                  className="btn-pill"
+                >
+                  {emailModalData.sending ? (language === 'vi' ? 'Đang gửi...' : 'Sending...') : (language === 'vi' ? 'Gửi Mail' : 'Send Email')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         @media (max-width: 700px) {
