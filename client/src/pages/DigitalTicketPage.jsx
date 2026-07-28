@@ -118,7 +118,6 @@ const DigitalTicketPage = ({ completedBookingId, settings }) => {
     seats = seats.filter(s => seatIds.includes(s.seatId));
   }
   const refId     = booking._id.toString().toUpperCase().slice(-8);
-  const formatPrice = (p) => Number(p).toLocaleString('vi-VN') + (vi ? 'đ' : ' VND');
 
   return (
     <div className="animate-fade-in" style={{ paddingTop: 120, paddingBottom: 64, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>

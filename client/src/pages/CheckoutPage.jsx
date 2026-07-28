@@ -725,12 +725,18 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
                   if (element) {
                     const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#14141e' });
                     const imgData = canvas.toDataURL('image/png');
-                    const pdf = new jsPDF('p', 'mm', 'a4');
-                    const imgProps = pdf.getImageProperties(imgData);
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                    
+                    const pdfWidth = canvas.width;
+                    const pdfHeight = canvas.height;
+                    
+                    const pdf = new jsPDF({
+                      orientation: pdfWidth > pdfHeight ? 'l' : 'p',
+                      unit: 'px',
+                      format: [pdfWidth, pdfHeight]
+                    });
+                    
                     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                    pdf.save(`invoice-${bookingDetails.bookingId || 'booking'}.pdf`);
+                    pdf.save(`Hoa_don_${bookingDetails.bookingId || 'MFC'}.pdf`);
                   }
                 }}
               >
