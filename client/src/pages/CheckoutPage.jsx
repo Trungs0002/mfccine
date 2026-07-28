@@ -78,7 +78,6 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
 
   useEffect(() => {
     if (qrData || isUploadingBill || showSuccessPopup || showLeaveWarning) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       ['qr-modal-overlay', 'success-modal-overlay'].forEach(id => {
         const modal = document.getElementById(id);
         if (modal) modal.scrollTop = 0;
