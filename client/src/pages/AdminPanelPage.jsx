@@ -1678,113 +1678,84 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                 const d = scanResult.details;
 
                 const cfg = isValid
-                  ? { color: 'var(--mint)', icon: 'check_circle', label: language === 'vi' ? 'HỢP LỆ — VÀO CỬA' : 'VALID — ADMITTED' }
+                  ? { color: 'var(--mint)', bg: 'rgba(158, 254, 253, 0.1)', icon: 'check_circle', label: language === 'vi' ? 'HỢP LỆ — VÀO CỬA' : 'VALID — ADMITTED' }
                   : isUsed
-                    ? { color: '#ffb800', icon: 'warning', label: language === 'vi' ? 'ĐÃ SỬ DỤNG' : 'ALREADY USED' }
-                    : { color: '#ff6b6b', icon: 'cancel', label: language === 'vi' ? 'KHÔNG TÌM THẤY' : 'NOT FOUND' };
+                    ? { color: '#ffb800', bg: 'rgba(255, 184, 0, 0.1)', icon: 'warning', label: language === 'vi' ? 'ĐÃ SỬ DỤNG' : 'ALREADY USED' }
+                    : { color: '#ff6b6b', bg: 'rgba(255, 107, 107, 0.1)', icon: 'cancel', label: language === 'vi' ? 'KHÔNG TÌM THẤY' : 'NOT FOUND' };
 
                 return (
-                  <div style={{ marginBottom: 28, borderRadius: 16, overflow: 'hidden', border: `1px solid ${cfg.color}55`, background: `${cfg.color}0d` }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: `1px solid ${cfg.color}33` }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 20, color: cfg.color }}>{cfg.icon}</span>
-                      <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.1em', color: cfg.color, textTransform: 'uppercase' }}>{cfg.label}</span>
-                      <button onClick={() => setScanResult(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', display: 'flex' }}>
+                  <div style={{ marginBottom: 28, borderRadius: 20, overflow: 'hidden', border: `1px solid ${cfg.color}55`, background: 'var(--card-bg)', boxShadow: `0 8px 32px ${cfg.bg}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', background: cfg.bg, borderBottom: `1px solid ${cfg.color}33` }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 28, color: cfg.color }}>{cfg.icon}</span>
+                      <span style={{ fontSize: 14, fontWeight: 900, letterSpacing: '.1em', color: cfg.color, textTransform: 'uppercase' }}>{cfg.label}</span>
+                      <button onClick={() => setScanResult(null)} style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.1)', border: 'none', cursor: 'pointer', color: '#fff', display: 'flex', width: 32, height: 32, borderRadius: '50%', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
                       </button>
                     </div>
 
                     {d ? (
-                      <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13 }}>
-                        <div style={{ display: 'flex', gap: 10 }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--muted)' }}>person</span>
-                          <div>
-                            <div style={{ fontWeight: 700, color: '#fff' }}>{d.fullName}</div>
-                            <div style={{ color: 'var(--muted)', fontSize: 12 }}>{d.email}</div>
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--muted)' }}>qr_code</span>
-                          <div>
-                            {(() => {
-                              const seatMatch = d.selectedSeats?.find(s => s.ticketCode === scanResult.scannedTicketCode);
-                              if (seatMatch) {
-                                return <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--mint)', marginBottom: 2 }}>{seatMatch.seatId} - {seatMatch.type}</div>;
-                              }
-                              return null;
-                            })()}
-                            <div style={{ fontFamily: 'monospace', color: 'var(--purple)', fontWeight: 700, letterSpacing: '.05em' }}>
-                              {scanResult.scannedTicketCode || d.ticketCode}
-                            </div>
-                          </div>
-                        </div>
-
-                        {d.eventTitle && (
-                          <div style={{ display: 'flex', gap: 10 }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--muted)' }}>event</span>
-                            <div>
-                              <div style={{ color: '#fff', fontWeight: 600 }}>
-                                {typeof d.eventTitle === 'object' ? (d.eventTitle[language] || d.eventTitle.en) : d.eventTitle}
-                              </div>
-                              {d.eventDate && (
-                                <div style={{ color: 'var(--muted)', fontSize: 12 }}>
-                                  {new Date(d.eventDate).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
+                      <div style={{ padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 20, fontSize: 14 }}>
+                        
+                        {/* Seats (MOST IMPORTANT) */}
                         {d.selectedSeats?.length > 0 && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--muted)' }}>chair</span>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                              {d.selectedSeats.map((s, i) => (
-                                <span key={i} style={{
-                                  padding: '3px 8px', borderRadius: 999, fontSize: 10, fontFamily: 'monospace',
-                                  background: s.isCheckedIn ? 'rgba(168,150,246,.12)' : 'transparent',
-                                  border: `1px solid ${s.isCheckedIn ? 'rgba(168,150,246,.25)' : 'rgba(255,255,255,.15)'}`,
-                                  color: s.isCheckedIn ? 'var(--purple)' : 'var(--muted)',
-                                  opacity: s.isCheckedIn ? 1 : 0.4
-                                }}>
-                                  {s.seatId} • {s.type}
-                                </span>
-                              ))}
+                          <div style={{ background: 'rgba(158,254,253,0.05)', padding: '20px 24px', borderRadius: 16, border: '1px solid rgba(158,254,253,0.15)', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                              <div style={{ fontSize: 12, color: 'var(--mint)', textTransform: 'uppercase', letterSpacing: '.1em', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 900 }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chair</span> 
+                                {language === 'vi' ? 'Vị trí ghế ngồi' : 'Seat Locations'}
+                              </div>
+                              <div style={{ fontFamily: 'monospace', color: '#fff', fontWeight: 800, letterSpacing: '.1em', background: 'rgba(168,150,246,.2)', padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(168,150,246,.4)', fontSize: 15, wordBreak: 'break-all' }}>
+                                {scanResult.scannedTicketCode || d.ticketCode}
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
+                              {d.selectedSeats.map((s, i) => {
+                                const isMatched = s.ticketCode === scanResult.scannedTicketCode;
+                                return (
+                                  <div key={i} style={{
+                                    padding: '12px 20px', borderRadius: 12, fontSize: 20, fontWeight: 900,
+                                    background: isMatched ? 'rgba(255,184,0,0.15)' : (s.isCheckedIn ? 'rgba(158,254,253,.1)' : 'rgba(255,255,255,.05)'),
+                                    border: `2px solid ${isMatched ? '#ffb800' : (s.isCheckedIn ? 'rgba(158,254,253,.3)' : 'rgba(255,255,255,.1)')}`,
+                                    color: isMatched ? '#ffb800' : (s.isCheckedIn ? 'var(--mint)' : '#fff'),
+                                    opacity: s.isCheckedIn && !isMatched ? 0.4 : 1,
+                                    boxShadow: isMatched ? '0 0 20px rgba(255,184,0,0.4)' : 'none',
+                                    transform: isMatched ? 'scale(1.08)' : 'scale(1)',
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    transition: 'all 0.3s ease',
+                                    zIndex: isMatched ? 10 : 1
+                                  }}>
+                                    {s.seatId} <span style={{ opacity: isMatched ? 0.9 : 0.5, fontWeight: 600, fontSize: 14, color: isMatched ? '#ffd666' : 'inherit' }}>• {s.type}</span>
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         )}
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--muted)' }}>payments</span>
-                          <span style={{ fontWeight: 700, color: '#fff', fontSize: 15 }}>{formatPrice(d.subtotal)}</span>
-                          <span style={{ color: 'var(--muted)', fontSize: 11 }}>{d.paymentMethod}</span>
+                        {/* User Info */}
+                        <div style={{ background: 'rgba(255,255,255,0.03)', padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)' }}>
+                          <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}><span className="material-symbols-outlined" style={{ fontSize: 14 }}>person</span> Khách hàng</div>
+                          <div style={{ fontWeight: 700, color: '#fff', fontSize: 15 }}>{d.fullName}</div>
+                          <div style={{ color: 'var(--muted)', fontSize: 12, marginTop: 2 }}>{d.email}</div>
                         </div>
 
-                        {isUsed && d.checkInDate && (
-                          <div style={{ display: 'flex', gap: 10, paddingTop: 10, borderTop: '1px solid rgba(255,184,0,.2)' }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#ffb800' }}>schedule</span>
-                            <div>
-                              <div style={{ fontSize: 10, color: '#ffb800', textTransform: 'uppercase', letterSpacing: '.1em' }}>
-                                {language === 'vi' ? 'Đã quét lúc' : 'Scanned at'}
-                              </div>
-                              <div style={{ fontFamily: 'monospace', color: '#fff', fontSize: 13 }}>
-                                {new Date(d.checkInDate).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {isValid && d.checkInDate && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingTop: 10, borderTop: '1px solid rgba(158,254,253,.2)' }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--mint)' }}>verified</span>
-                            <span style={{ fontFamily: 'monospace', color: 'var(--mint)', fontSize: 12 }}>
-                              {new Date(d.checkInDate).toLocaleTimeString(language === 'vi' ? 'vi-VN' : 'en-US')}
+                        {/* Timestamp */}
+                        {d.checkInDate && (
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px', background: 'rgba(0,0,0,0.2)', borderRadius: 12 }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: 18, color: cfg.color }}>{isValid ? 'verified' : 'history'}</span>
+                            <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+                              {language === 'vi' ? 'Thời gian check-in:' : 'Check-in time:'}
+                            </span>
+                            <span style={{ fontFamily: 'monospace', color: cfg.color, fontSize: 14, fontWeight: 600 }}>
+                              {new Date(d.checkInDate).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')}
                             </span>
                           </div>
                         )}
                       </div>
                     ) : (
-                      <p style={{ padding: 16, fontSize: 13, color: '#ff6b6b', margin: 0 }}>{scanResult.message}</p>
+                      <p style={{ padding: 24, fontSize: 14, color: '#ff6b6b', margin: 0, textAlign: 'center' }}>{scanResult.message}</p>
                     )}
                   </div>
                 );
