@@ -663,6 +663,14 @@ app.delete('/api/bookings/:id/cancel', async (req, res) => {
     if (!booking) return res.status(404).json({ error: 'Booking not found' });
     if (booking.paymentStatus === 'Completed') return res.status(400).json({ error: 'Cannot cancel a completed booking' });
     
+    // Restore discount code usage if applicable
+    if (booking.discountCode) {
+      await DiscountCode.findOneAndUpdate(
+        { code: booking.discountCode },
+        { $inc: { usedSeats: -booking.selectedSeats.length } }
+      );
+    }
+
     // Hard delete the pending booking to free up seats immediately
     await Booking.findByIdAndDelete(req.params.id);
 
@@ -866,6 +874,13 @@ app.put('/api/bookings/:id', async (req, res) => {
 
 app.delete('/api/bookings/:id', async (req, res) => {
   try {
+    const booking = await Booking.findById(req.params.id);
+    if (booking && booking.discountCode) {
+      await DiscountCode.findOneAndUpdate(
+        { code: booking.discountCode },
+        { $inc: { usedSeats: -booking.selectedSeats.length } }
+      );
+    }
     await Booking.deleteOne({ _id: req.params.id });
     res.json({ message: 'Booking deleted successfully' });
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -891,6 +906,14 @@ app.delete('/api/bookings/:id/seats/:seatId', async (req, res) => {
       deduction = seat.price * (1 - booking.discountPercent / 100);
     }
     booking.subtotal = Math.max(0, booking.subtotal - deduction);
+    
+    // Restore discount code usage for this single seat
+    if (booking.discountCode) {
+      await DiscountCode.findOneAndUpdate(
+        { code: booking.discountCode },
+        { $inc: { usedSeats: -1 } }
+      );
+    }
     
     await booking.save();
     res.json(booking);
