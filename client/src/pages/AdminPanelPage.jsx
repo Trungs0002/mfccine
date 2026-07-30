@@ -418,7 +418,6 @@ const AdminSeatMap = ({ matchedSeats, language }) => {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
             {matchedSeats.map((s, i) => {
-              const isUsed = false;
               const bgColor = s.type === 'Nhất Ảnh' ? '#a896f6' : s.type === 'Khởi Ảnh' ? '#5aaddc' : s.type === 'Hoàn Ảnh' ? '#10b981' : '#ffb800';
               return (
                 <div key={i} style={{
@@ -516,6 +515,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     if (scanBookingId.length === 11 && scanBookingId.toUpperCase().startsWith('MFC')) {
       handleCheckIn(scanBookingId.toUpperCase());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scanBookingId]);
 
   // Discount code management states
