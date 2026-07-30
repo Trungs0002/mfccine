@@ -2,6 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
 import QrScannerOverlay from '../components/QrScannerOverlay';
+import {
+  buildSeats, CANVAS_W, CANVAS_H, CX, STAGE_W, STAGE_Y, STAGE_H, STAGE_BOT, RUNWAY_W, TOP_SECT_H, STAGE_RISER,
+  TOP_RIGHT_X, TOP_BLOCK_W, TOP_SECT_Y,
+  TOP_ROWS, ROW_PITCH, S, TOP_LEFT_X, ROW_LABEL_W, BOT_ROWS, BOT_SECT_Y, BOT_LEFT_X, BOT_RIGHT_X, BOT_BLOCK_W, TOP_COLS, TOP_COL_PITCH, BOT_COLS, BOT_SECT_H, COL_PITCH
+} from '../utils/seatMap';
 
 const fieldLabelStyle = { display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 };
 const sectionLabelStyle = { fontSize: 11, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 18, paddingBottom: 10, borderBottom: '1px solid rgba(168,150,246,.18)' };
@@ -130,6 +135,313 @@ export const generateEmailHTML = (emailModalData) => {
 </html>`;
 };
 
+const AdminSeatMap = ({ matchedSeats, language }) => {
+  const allSeats = React.useMemo(() => buildSeats(language === 'vi', 0, 0, 0), [language]);
+  const [scale, setScale] = useState(1);
+  const containerRef = React.useRef(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver(() => {
+      const available = el.clientWidth;
+      setScale(Math.min(1, available / CANVAS_W));
+    });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', width: '100%', overflow: 'hidden', background: 'rgba(0,0,0,0.2)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.05)', padding: '20px 0', marginBottom: 20 }}>
+      <div style={{
+        position: 'relative', width: CANVAS_W, height: CANVAS_H, margin: '0 auto',
+        transform: `scale(${scale})`, transformOrigin: 'top center'
+      }}>
+        {/* ── Stage (horizontal T-bar) ── */}
+        <div style={{
+          position: 'absolute', top: STAGE_Y, left: '50%',
+          transform: 'translateX(-50%)', width: STAGE_W, zIndex: 20,
+        }}>
+          <div style={{
+            height: STAGE_H,
+            background: 'linear-gradient(135deg, rgba(30,32,70,.95), rgba(70,69,215,.3))',
+            border: '1px solid rgba(168,150,246,.4)', borderBottom: 'none',
+            clipPath: 'polygon(4% 0, 96% 0, 100% 100%, 0% 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: 'inset 0 12px 18px -12px rgba(168,150,246,.4)',
+            overflow: 'hidden', padding: '0 12px',
+          }}>
+            <span className="serif" style={{
+              color: 'var(--purple)', letterSpacing: '.15em',
+              fontWeight: 800, fontSize: 11, textTransform: 'uppercase',
+              overflow: 'hidden', whiteSpace: 'nowrap',
+              maxWidth: '100%', textAlign: 'center',
+            }}>
+              {language === 'vi' ? 'SÂN KHẤU' : 'STAGE'}
+            </span>
+          </div>
+          <div style={{
+            height: STAGE_RISER,
+            background: 'linear-gradient(180deg, rgba(70,69,215,.35), rgba(10,11,30,.95))',
+            borderLeft: '1px solid rgba(168,150,246,.4)',
+            borderRight: '1px solid rgba(168,150,246,.4)',
+            borderBottom: '1px solid rgba(168,150,246,.4)',
+            borderRadius: '0 0 6px 6px',
+          }} />
+        </div>
+
+        {/* ── Runway (T-bar vertical stem) ── */}
+        <div style={{
+          position: 'absolute',
+          top: STAGE_BOT,
+          left: CX - RUNWAY_W / 2,
+          width: RUNWAY_W,
+          height: TOP_SECT_H + 8,
+          background: 'linear-gradient(180deg, rgba(14,16,44,.88), rgba(70,69,215,.18))',
+          border: '1px solid rgba(168,150,246,.3)',
+          borderTop: 'none',
+          borderRadius: '0 0 8px 8px',
+          zIndex: 15,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <span className="serif" style={{
+            color: 'rgba(168,150,246,.4)', letterSpacing: '.3em',
+            fontWeight: 800, fontSize: 14, textTransform: 'uppercase',
+            writingMode: 'vertical-rl', transform: 'rotate(180deg)'
+          }}>
+            {language === 'vi' ? 'SÂN KHẤU' : 'STAGE'}
+          </span>
+        </div>
+        
+        {/* ── Row number labels — Top-Left block (left side) ── */}
+        {Array.from({ length: TOP_ROWS }, (_, r) => (
+          <div key={`tl-row-${r}`} style={{
+            position: 'absolute',
+            top: TOP_SECT_Y + r * ROW_PITCH + (S - 10) / 2,
+            left: TOP_LEFT_X - ROW_LABEL_W,
+            width: ROW_LABEL_W - 4,
+            height: 10,
+            display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+            fontSize: 9, fontWeight: 600, color: 'rgba(168,150,246,.55)',
+            pointerEvents: 'none',
+          }}>
+            {r + 1}
+          </div>
+        ))}
+
+        {/* ── Row number labels — Top-Right block (right side) ── */}
+        {Array.from({ length: TOP_ROWS }, (_, r) => (
+          <div key={`tr-row-${r}`} style={{
+            position: 'absolute',
+            top: TOP_SECT_Y + r * ROW_PITCH + (S - 10) / 2,
+            left: TOP_RIGHT_X + TOP_BLOCK_W + 4,
+            width: ROW_LABEL_W - 4,
+            height: 10,
+            display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
+            fontSize: 9, fontWeight: 600, color: 'rgba(168,150,246,.55)',
+            pointerEvents: 'none',
+          }}>
+            {r + 1}
+          </div>
+        ))}
+
+        {/* ── Row number labels — Bottom-Left block (left side) ── */}
+        {Array.from({ length: BOT_ROWS }, (_, r) => (
+          <div key={`bl-row-${r}`} style={{
+            position: 'absolute',
+            top: BOT_SECT_Y + r * ROW_PITCH + (S - 10) / 2,
+            left: BOT_LEFT_X - ROW_LABEL_W,
+            width: ROW_LABEL_W - 4,
+            height: 10,
+            display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+            fontSize: 9, fontWeight: 600, color: 'rgba(168,150,246,.55)',
+            pointerEvents: 'none',
+          }}>
+            {String.fromCharCode(65 + 16 + r)}
+          </div>
+        ))}
+
+        {/* ── Row number labels — Bottom-Right block (right side) ── */}
+        {Array.from({ length: BOT_ROWS }, (_, r) => (
+          <div key={`br-row-${r}`} style={{
+            position: 'absolute',
+            top: BOT_SECT_Y + r * ROW_PITCH + (S - 10) / 2,
+            left: BOT_RIGHT_X + BOT_BLOCK_W + 4,
+            width: ROW_LABEL_W - 4,
+            height: 10,
+            display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
+            fontSize: 9, fontWeight: 600, color: 'rgba(168,150,246,.55)',
+            pointerEvents: 'none',
+          }}>
+            {String.fromCharCode(65 + 16 + r)}
+          </div>
+        ))}
+
+        {/* ── Col number labels — Top-Left block (below) ── */}
+        {Array.from({ length: TOP_COLS }, (_, c) => (
+          <div key={`tl-col-${c}`} style={{
+            position: 'absolute',
+            top: TOP_SECT_Y + TOP_SECT_H + 4,
+            left: TOP_LEFT_X + c * TOP_COL_PITCH,
+            width: S,
+            textAlign: 'center',
+            fontSize: 7, fontWeight: 600, color: 'rgba(168,150,246,.45)',
+            pointerEvents: 'none',
+          }}>
+            {String.fromCharCode(65 + c)}
+          </div>
+        ))}
+
+        {/* ── Col number labels — Top-Right block (below) ── */}
+        {Array.from({ length: TOP_COLS }, (_, c) => (
+          <div key={`tr-col-${c}`} style={{
+            position: 'absolute',
+            top: TOP_SECT_Y + TOP_SECT_H + 4,
+            left: TOP_RIGHT_X + c * TOP_COL_PITCH,
+            width: S,
+            textAlign: 'center',
+            fontSize: 7, fontWeight: 600, color: 'rgba(168,150,246,.45)',
+            pointerEvents: 'none',
+          }}>
+            {String.fromCharCode(65 + TOP_COLS + c)}
+          </div>
+        ))}
+
+        {/* ── Col number labels — Bottom-Left block (below) ── */}
+        {Array.from({ length: BOT_COLS }, (_, c) => (
+          <div key={`bl-col-${c}`} style={{
+            position: 'absolute',
+            top: BOT_SECT_Y + BOT_SECT_H + 4,
+            left: BOT_LEFT_X + c * COL_PITCH,
+            width: S,
+            textAlign: 'center',
+            fontSize: 7, fontWeight: 600, color: 'rgba(168,150,246,.45)',
+            pointerEvents: 'none',
+          }}>
+            {c + 1}
+          </div>
+        ))}
+
+        {/* ── Col number labels — Bottom-Right block (below) ── */}
+        {Array.from({ length: BOT_COLS }, (_, c) => (
+          <div key={`br-col-${c}`} style={{
+            position: 'absolute',
+            top: BOT_SECT_Y + BOT_SECT_H + 4,
+            left: BOT_RIGHT_X + c * COL_PITCH,
+            width: S,
+            textAlign: 'center',
+            fontSize: 7, fontWeight: 600, color: 'rgba(168,150,246,.45)',
+            pointerEvents: 'none',
+          }}>
+            {BOT_COLS + c + 1}
+          </div>
+        ))}
+
+        {allSeats.map(s => {
+          const matchedInfo = matchedSeats.find(ms => ms.seatId === s.id);
+          const isMatched = !!matchedInfo;
+          
+          let bgColor = 'rgba(255,255,255,0.1)';
+          if (isMatched) {
+            bgColor = matchedInfo.type === 'Nhất Ảnh' ? '#a896f6' : matchedInfo.type === 'Khởi Ảnh' ? '#5aaddc' : matchedInfo.type === 'Hoàn Ảnh' ? '#10b981' : '#ffb800';
+          }
+
+          return (
+            <div key={s.id} style={{
+              position: 'absolute', left: s.x, top: s.y, width: 16, height: 16, borderRadius: '50%',
+              background: bgColor,
+              boxShadow: isMatched ? `0 0 15px 5px ${bgColor}` : 'none',
+              animation: isMatched ? 'blinkSeat 0.6s infinite alternate' : 'none',
+              zIndex: isMatched ? 10 : 1
+            }}></div>
+          );
+        })}
+      </div>
+
+      {/* Minimap (Area Guide) on the top left */}
+      <div className="admin-minimap" style={{
+        position: 'absolute', top: 20, left: 20, zIndex: 40,
+        background: 'rgba(10, 11, 30, 0.95)',
+        border: '1px solid rgba(168,150,246, 0.4)',
+        boxShadow: '0 8px 32px rgba(168,150,246, 0.25)',
+        borderRadius: 16,
+        padding: '20px',
+        display: 'flex', flexDirection: 'column', gap: 12,
+        alignItems: 'center',
+        pointerEvents: 'none',
+        minWidth: 180
+      }}>
+        <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', fontWeight: 700 }}>
+          {language === 'vi' ? 'Sơ đồ khu vực' : 'Area Map'}
+        </div>
+        
+        <div style={{ position: 'relative', width: 100, height: 90, margin: '18px auto 18px', transform: 'scale(1.4)', transformOrigin: 'center' }}>
+          {/* Sân khấu (Stage) */}
+          <div style={{ position: 'absolute', top: 0, left: 30, width: 40, height: 6, background: 'rgba(255,255,255,.15)', borderRadius: 2 }} />
+          {/* Runway (Đường băng) */}
+          <div style={{ position: 'absolute', top: 6, left: 46, width: 8, height: 46, background: 'rgba(255,255,255,.15)', borderBottomLeftRadius: 2, borderBottomRightRadius: 2 }} />
+
+          {/* Khu 1 */}
+          <div style={{ position: 'absolute', top: 15, left: 16, width: 26, height: 46, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.15)', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#fff', fontWeight: 600 }}>1</div>
+          
+          {/* Khu 2 */}
+          <div style={{ position: 'absolute', top: 15, left: 58, width: 26, height: 46, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.15)', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#fff', fontWeight: 600 }}>2</div>
+          
+          {/* Khu 3 */}
+          <div style={{ position: 'absolute', top: 67, left: 0, width: 46, height: 23, background: 'rgba(168,150,246,.12)', border: '1px solid rgba(168,150,246,.3)', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: 'var(--purple)', fontWeight: 600 }}>3</div>
+          
+          {/* Khu 4 */}
+          <div style={{ position: 'absolute', top: 67, left: 54, width: 46, height: 23, background: 'rgba(168,150,246,.12)', border: '1px solid rgba(168,150,246,.3)', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: 'var(--purple)', fontWeight: 600 }}>4</div>
+        </div>
+      </div>
+
+      {/* Floating Info Box on the top right (next to Khu 2) */}
+      {matchedSeats.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: 20,
+          right: 20,
+          background: 'rgba(10, 11, 30, 0.95)',
+          border: '1px solid rgba(168,150,246, 0.4)',
+          boxShadow: '0 8px 32px rgba(168,150,246, 0.25)',
+          borderRadius: 16,
+          padding: '20px',
+          zIndex: 40,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+          alignItems: 'center',
+          minWidth: 180
+        }}>
+          <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', fontWeight: 700 }}>
+            {language === 'vi' ? 'Vị trí ghế ngồi' : 'Seat Location'}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
+            {matchedSeats.map((s, i) => {
+              const isUsed = false;
+              const bgColor = s.type === 'Nhất Ảnh' ? '#a896f6' : s.type === 'Khởi Ảnh' ? '#5aaddc' : s.type === 'Hoàn Ảnh' ? '#10b981' : '#ffb800';
+              return (
+                <div key={i} style={{
+                  padding: '12px 16px', borderRadius: 12, 
+                  background: `rgba(255,255,255,0.05)`, border: `1px solid ${bgColor}`, color: bgColor,
+                  textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 4
+                }}>
+                  <span style={{ fontSize: 24, fontWeight: 900 }}>{s.seatId}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, opacity: 0.9, letterSpacing: '.05em' }}>• {s.type}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes blinkSeat { from { opacity: 0.3; transform: scale(1); } to { opacity: 1; transform: scale(1.6); } }
+      `}</style>
+    </div>
+  );
+};
+
 const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const { language, t } = useLanguage();
   const formatPrice = (p) => Number(p).toLocaleString('vi-VN') + (language === 'vi' ? 'đ' : ' VND');
@@ -197,6 +509,14 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const [scanning, setScanning] = useState(false);
   const [scanResult, setScanResult] = useState(null);
   const [showScanner, setShowScanner] = useState(false);
+  const scanInputRef = React.useRef(null);
+
+  // Auto-submit when exactly 11 chars starting with MFC (for physical barcode scanners)
+  useEffect(() => {
+    if (scanBookingId.length === 11 && scanBookingId.toUpperCase().startsWith('MFC')) {
+      handleCheckIn(scanBookingId.toUpperCase());
+    }
+  }, [scanBookingId]);
 
   // Discount code management states
   const [coupons, setCoupons] = useState([]);
@@ -653,22 +973,35 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const handleCheckIn = async (code) => {
     const idToScan = code || scanBookingId;
     if (!idToScan.trim()) return;
-    setScanning(true);
-    const res = await fetch(`${API_URL}/api/bookings/check-in/${idToScan.trim()}`, { method: 'POST' });
-    const data = await res.json();
-    if (res.ok) {
-      // status: 'valid' — newly checked in
-      setScanResult({ status: 'valid', message: data.message, details: data.booking, scannedTicketCode: idToScan.trim() });
-      fetchAnalytics();
-    } else if (data.status === 'already_used') {
-      // status: 'already_used' — ticket was already scanned before
-      setScanResult({ status: 'already_used', message: data.error, details: data.booking, scannedTicketCode: idToScan.trim() });
-    } else {
-      // not found or server error
-      setScanResult({ status: 'not_found', message: data.error || 'Ticket not found' });
-    }
-    setScanning(false);
+    
+    // For physical scanners: Immediately clear the input so any new keystrokes 
+    // during the API call don't get accidentally wiped out at the end.
     setScanBookingId('');
+    setScanning(true);
+    
+    try {
+      const res = await fetch(`${API_URL}/api/bookings/check-in/${idToScan.trim()}`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        // status: 'valid' — newly checked in
+        setScanResult({ status: 'valid', message: data.message, details: data.booking, scannedTicketCode: idToScan.trim() });
+        fetchAnalytics();
+      } else if (data.status === 'already_used') {
+        // status: 'already_used' — ticket was already scanned before
+        setScanResult({ status: 'already_used', message: data.error, details: data.booking, scannedTicketCode: idToScan.trim() });
+      } else {
+        // not found or server error
+        setScanResult({ status: 'not_found', message: data.error || 'Ticket not found' });
+      }
+    } catch (err) {
+      setScanResult({ status: 'not_found', message: 'Lỗi kết nối máy chủ / Server error' });
+    } finally {
+      setScanning(false);
+      // Auto-refocus the input for continuous scanning
+      if (scanInputRef.current) {
+        scanInputRef.current.focus();
+      }
+    }
   };
 
   const ADMIN_TABS = [
@@ -1658,6 +1991,8 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
               </p>
               <form onSubmit={(e) => { e.preventDefault(); handleCheckIn(); }} style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
                 <input
+                  ref={scanInputRef}
+                  autoFocus
                   type="text"
                   value={scanBookingId}
                   onChange={(e) => setScanBookingId(e.target.value)}
@@ -1694,75 +2029,111 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                     </div>
 
                     {d ? (
-                      <div style={{ padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 20, fontSize: 14 }}>
+                      <div className="admin-scan-grid" style={{ padding: '24px 20px', fontSize: 14 }}>
+                        <style>{`
+                          .admin-scan-grid {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 20px;
+                          }
+                          .desktop-seat-map-wrapper {
+                            display: none;
+                          }
+                          @media (min-width: 900px) {
+                            .admin-scan-grid {
+                              display: grid;
+                              grid-template-columns: 1.3fr 1fr;
+                              align-items: start;
+                            }
+                            .desktop-seat-map-wrapper {
+                              display: block;
+                            }
+                          }
+                        `}</style>
                         
-                        {/* Seat & Ticket Code (MOST IMPORTANT) */}
+                        {/* LEFT COLUMN: Map (Hidden on mobile) */}
                         {d.selectedSeats?.length > 0 && (() => {
                           const matchedSeats = scanResult.scannedTicketCode 
                             ? d.selectedSeats.filter(s => s.ticketCode === scanResult.scannedTicketCode)
                             : d.selectedSeats;
-                            
                           return (
-                            <>
-                              <div style={{ background: 'rgba(158,254,253,0.05)', padding: '24px', borderRadius: 16, border: '1px solid rgba(158,254,253,0.15)', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', textAlign: 'center' }}>
-                                <div style={{ fontSize: 13, color: 'var(--mint)', textTransform: 'uppercase', letterSpacing: '.1em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 900, marginBottom: 20 }}>
-                                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>chair</span> 
-                                  {language === 'vi' ? 'Vị trí ghế ngồi' : 'Seat Location'}
-                                </div>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
-                                  {matchedSeats.map((s, i) => {
-                                    const c = isUsed ? { hex: '#ffb800', rgb: '255,184,0' }
-                                            : s.type === 'Nhất Ảnh' ? { hex: '#a896f6', rgb: '168,150,246' } 
-                                            : s.type === 'Khởi Ảnh' ? { hex: '#5aaddc', rgb: '90,173,220' } 
-                                            : s.type === 'Hoàn Ảnh' ? { hex: '#10b981', rgb: '16,185,129' } 
-                                            : { hex: '#ffb800', rgb: '255,184,0' };
-                                    
-                                    return (
-                                      <div key={i} style={{
-                                        padding: '16px 32px', borderRadius: 12, fontSize: 32, fontWeight: 900,
-                                        background: `rgba(${c.rgb}, 0.15)`,
-                                        border: `2px solid ${c.hex}`,
-                                        color: c.hex,
-                                        boxShadow: `0 0 24px rgba(${c.rgb}, 0.4)`,
-                                      }}>
-                                        {s.seatId} <span style={{ opacity: 0.9, fontWeight: 600, fontSize: 16 }}>• {s.type}</span>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                              
-                              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)' }}>
-                                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
-                                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>qr_code</span> Mã vé
-                                </div>
-                                <div style={{ fontFamily: 'monospace', color: 'var(--purple)', fontWeight: 800, letterSpacing: '.1em', fontSize: 16, wordBreak: 'break-all' }}>
-                                  {scanResult.scannedTicketCode || d.ticketCode}
-                                </div>
-                              </div>
-                            </>
+                            <div className="desktop-seat-map-wrapper">
+                              <AdminSeatMap matchedSeats={matchedSeats} language={language} />
+                            </div>
                           );
                         })()}
 
-                        {/* User Info */}
-                        <div style={{ background: 'rgba(255,255,255,0.03)', padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)' }}>
-                          <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}><span className="material-symbols-outlined" style={{ fontSize: 14 }}>person</span> Khách hàng</div>
-                          <div style={{ fontWeight: 700, color: '#fff', fontSize: 15 }}>{d.fullName}</div>
-                          <div style={{ color: 'var(--muted)', fontSize: 12, marginTop: 2 }}>{d.email}</div>
-                        </div>
+                        {/* RIGHT COLUMN: Info cards */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                          
+                          {/* Seat & Ticket Code */}
+                          {d.selectedSeats?.length > 0 && (() => {
+                            const matchedSeats = scanResult.scannedTicketCode 
+                              ? d.selectedSeats.filter(s => s.ticketCode === scanResult.scannedTicketCode)
+                              : d.selectedSeats;
+                              
+                            return (
+                              <>
+                                <div style={{ background: 'rgba(158,254,253,0.05)', padding: '24px', borderRadius: 16, border: '1px solid rgba(158,254,253,0.15)', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', textAlign: 'center' }}>
+                                  <div style={{ fontSize: 13, color: 'var(--mint)', textTransform: 'uppercase', letterSpacing: '.1em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 900, marginBottom: 20 }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: 20 }}>chair</span> 
+                                    {language === 'vi' ? 'Vị trí ghế ngồi' : 'Seat Location'}
+                                  </div>
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
+                                    {matchedSeats.map((s, i) => {
+                                      const c = isUsed ? { hex: '#ffb800', rgb: '255,184,0' }
+                                              : s.type === 'Nhất Ảnh' ? { hex: '#a896f6', rgb: '168,150,246' } 
+                                              : s.type === 'Khởi Ảnh' ? { hex: '#5aaddc', rgb: '90,173,220' } 
+                                              : s.type === 'Hoàn Ảnh' ? { hex: '#10b981', rgb: '16,185,129' } 
+                                              : { hex: '#ffb800', rgb: '255,184,0' };
+                                      
+                                      return (
+                                        <div key={i} style={{
+                                          padding: '16px 32px', borderRadius: 12, fontSize: 32, fontWeight: 900,
+                                          background: `rgba(${c.rgb}, 0.15)`,
+                                          border: `2px solid ${c.hex}`,
+                                          color: c.hex,
+                                          boxShadow: `0 0 24px rgba(${c.rgb}, 0.4)`,
+                                        }}>
+                                          {s.seatId} <span style={{ opacity: 0.9, fontWeight: 600, fontSize: 16 }}>• {s.type}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                                
+                                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)' }}>
+                                  <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>qr_code</span> Mã vé
+                                  </div>
+                                  <div style={{ fontFamily: 'monospace', color: 'var(--purple)', fontWeight: 800, letterSpacing: '.1em', fontSize: 16, wordBreak: 'break-all' }}>
+                                    {scanResult.scannedTicketCode || d.ticketCode}
+                                  </div>
+                                </div>
+                              </>
+                            );
+                          })()}
 
-                        {/* Timestamp */}
-                        {d.checkInDate && (
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px', background: 'rgba(0,0,0,0.2)', borderRadius: 12 }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: 18, color: cfg.color }}>{isValid ? 'verified' : 'history'}</span>
-                            <span style={{ fontSize: 12, color: 'var(--muted)' }}>
-                              {language === 'vi' ? 'Thời gian check-in:' : 'Check-in time:'}
-                            </span>
-                            <span style={{ fontFamily: 'monospace', color: cfg.color, fontSize: 14, fontWeight: 600 }}>
-                              {new Date(d.checkInDate).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')}
-                            </span>
+                          {/* User Info */}
+                          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}><span className="material-symbols-outlined" style={{ fontSize: 14 }}>person</span> Khách hàng</div>
+                            <div style={{ fontWeight: 700, color: '#fff', fontSize: 15 }}>{d.fullName}</div>
+                            <div style={{ color: 'var(--muted)', fontSize: 12, marginTop: 2 }}>{d.email}</div>
                           </div>
-                        )}
+
+                          {/* Timestamp */}
+                          {d.checkInDate && (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px', background: 'rgba(0,0,0,0.2)', borderRadius: 12 }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: 18, color: cfg.color }}>{isValid ? 'verified' : 'history'}</span>
+                              <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+                                {language === 'vi' ? 'Thời gian check-in:' : 'Check-in time:'}
+                              </span>
+                              <span style={{ fontFamily: 'monospace', color: cfg.color, fontSize: 14, fontWeight: 600 }}>
+                                {new Date(d.checkInDate).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ) : (
                       <p style={{ padding: 24, fontSize: 14, color: '#ff6b6b', margin: 0, textAlign: 'center' }}>{scanResult.message}</p>
