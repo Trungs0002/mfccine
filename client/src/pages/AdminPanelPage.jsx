@@ -1696,43 +1696,53 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                     {d ? (
                       <div style={{ padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 20, fontSize: 14 }}>
                         
-                        {/* Seats (MOST IMPORTANT) */}
-                        {d.selectedSeats?.length > 0 && (
-                          <div style={{ background: 'rgba(158,254,253,0.05)', padding: '20px 24px', borderRadius: 16, border: '1px solid rgba(158,254,253,0.15)', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                              <div style={{ fontSize: 12, color: 'var(--mint)', textTransform: 'uppercase', letterSpacing: '.1em', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 900 }}>
-                                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chair</span> 
-                                {language === 'vi' ? 'Vị trí ghế ngồi' : 'Seat Locations'}
+                        {/* Seat & Ticket Code (MOST IMPORTANT) */}
+                        {d.selectedSeats?.length > 0 && (() => {
+                          const matchedSeats = scanResult.scannedTicketCode 
+                            ? d.selectedSeats.filter(s => s.ticketCode === scanResult.scannedTicketCode)
+                            : d.selectedSeats;
+                            
+                          return (
+                            <>
+                              <div style={{ background: 'rgba(158,254,253,0.05)', padding: '24px', borderRadius: 16, border: '1px solid rgba(158,254,253,0.15)', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', textAlign: 'center' }}>
+                                <div style={{ fontSize: 13, color: 'var(--mint)', textTransform: 'uppercase', letterSpacing: '.1em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 900, marginBottom: 20 }}>
+                                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>chair</span> 
+                                  {language === 'vi' ? 'Vị trí ghế ngồi' : 'Seat Location'}
+                                </div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
+                                  {matchedSeats.map((s, i) => {
+                                    const c = isUsed ? { hex: '#ffb800', rgb: '255,184,0' }
+                                            : s.type === 'Nhất Ảnh' ? { hex: '#a896f6', rgb: '168,150,246' } 
+                                            : s.type === 'Khởi Ảnh' ? { hex: '#5aaddc', rgb: '90,173,220' } 
+                                            : s.type === 'Hoàn Ảnh' ? { hex: '#10b981', rgb: '16,185,129' } 
+                                            : { hex: '#ffb800', rgb: '255,184,0' };
+                                    
+                                    return (
+                                      <div key={i} style={{
+                                        padding: '16px 32px', borderRadius: 12, fontSize: 32, fontWeight: 900,
+                                        background: `rgba(${c.rgb}, 0.15)`,
+                                        border: `2px solid ${c.hex}`,
+                                        color: c.hex,
+                                        boxShadow: `0 0 24px rgba(${c.rgb}, 0.4)`,
+                                      }}>
+                                        {s.seatId} <span style={{ opacity: 0.9, fontWeight: 600, fontSize: 16 }}>• {s.type}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
                               </div>
-                              <div style={{ fontFamily: 'monospace', color: '#fff', fontWeight: 800, letterSpacing: '.1em', background: 'rgba(168,150,246,.2)', padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(168,150,246,.4)', fontSize: 15, wordBreak: 'break-all' }}>
-                                {scanResult.scannedTicketCode || d.ticketCode}
+                              
+                              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)' }}>
+                                <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>qr_code</span> Mã vé
+                                </div>
+                                <div style={{ fontFamily: 'monospace', color: 'var(--purple)', fontWeight: 800, letterSpacing: '.1em', fontSize: 16, wordBreak: 'break-all' }}>
+                                  {scanResult.scannedTicketCode || d.ticketCode}
+                                </div>
                               </div>
-                            </div>
-
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
-                              {d.selectedSeats.map((s, i) => {
-                                const isMatched = s.ticketCode === scanResult.scannedTicketCode;
-                                return (
-                                  <div key={i} style={{
-                                    padding: '12px 20px', borderRadius: 12, fontSize: 20, fontWeight: 900,
-                                    background: isMatched ? 'rgba(255,184,0,0.15)' : (s.isCheckedIn ? 'rgba(158,254,253,.1)' : 'rgba(255,255,255,.05)'),
-                                    border: `2px solid ${isMatched ? '#ffb800' : (s.isCheckedIn ? 'rgba(158,254,253,.3)' : 'rgba(255,255,255,.1)')}`,
-                                    color: isMatched ? '#ffb800' : (s.isCheckedIn ? 'var(--mint)' : '#fff'),
-                                    opacity: s.isCheckedIn && !isMatched ? 0.4 : 1,
-                                    boxShadow: isMatched ? '0 0 20px rgba(255,184,0,0.4)' : 'none',
-                                    transform: isMatched ? 'scale(1.08)' : 'scale(1)',
-                                    position: 'relative',
-                                    overflow: 'hidden',
-                                    transition: 'all 0.3s ease',
-                                    zIndex: isMatched ? 10 : 1
-                                  }}>
-                                    {s.seatId} <span style={{ opacity: isMatched ? 0.9 : 0.5, fontWeight: 600, fontSize: 14, color: isMatched ? '#ffd666' : 'inherit' }}>• {s.type}</span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
+                            </>
+                          );
+                        })()}
 
                         {/* User Info */}
                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)' }}>
