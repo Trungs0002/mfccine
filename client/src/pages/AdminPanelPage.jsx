@@ -549,6 +549,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const [expandedNhatId, setExpandedNhatId] = useState(null);
   const [zoomedImage, setZoomedImage] = useState(null);
 
+  // Casting Call Model submissions
+  const [castingSubmissions, setCastingSubmissions] = useState([]);
+  const [loadingCastingSubmissions, setLoadingCastingSubmissions] = useState(false);
+  const [expandedCastingId, setExpandedCastingId] = useState(null);
+
   const [emailModalData, setEmailModalData] = useState(null);
 
   const fetchAnalytics = () => {
@@ -619,6 +624,23 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     if (res.ok) setNhatSubmissions(nhatSubmissions.filter(s => s._id !== id));
   };
 
+  const fetchCastingSubmissions = (silent = false) => {
+    if (!silent) setLoadingCastingSubmissions(true);
+    fetch(`${API_URL}/api/casting-call-submissions`)
+      .then(res => res.json())
+      .then(data => {
+        setCastingSubmissions(Array.isArray(data) ? data : []);
+        if (!silent) setLoadingCastingSubmissions(false);
+      })
+      .catch(() => { if (!silent) setLoadingCastingSubmissions(false); });
+  };
+
+  const handleDeleteCastingSubmission = async (id) => {
+    if (!window.confirm(language === 'vi' ? 'Xóa đơn đăng ký này?' : 'Delete this submission?')) return;
+    const res = await fetch(`${API_URL}/api/casting-call-submissions/${id}`, { method: 'DELETE' });
+    if (res.ok) setCastingSubmissions(castingSubmissions.filter(s => s._id !== id));
+  };
+
   useEffect(() => {
     fetchAnalytics();
     if (activeAdminTab === 'bookings') fetchAllBookings();
@@ -626,6 +648,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     if (activeAdminTab === 'applications') fetchApplications();
     if (activeAdminTab === 'staff') fetchStaffAccounts();
     if (activeAdminTab === 'nhat') fetchNhatSubmissions();
+    if (activeAdminTab === 'casting') fetchCastingSubmissions();
   }, [events, activeAdminTab]);
 
   // Auto-sync the history tabs (bookings ledger, CTV applications, coupons, staff, Nhất entries)
@@ -638,6 +661,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     if (activeAdminTab === 'coupons') fetchFn = () => fetchCoupons(true);
     if (activeAdminTab === 'staff') fetchFn = () => fetchStaffAccounts(true);
     if (activeAdminTab === 'nhat') fetchFn = () => fetchNhatSubmissions(true);
+    if (activeAdminTab === 'casting') fetchFn = () => fetchCastingSubmissions(true);
     if (!fetchFn) return;
     const interval = setInterval(fetchFn, 5000);
     return () => clearInterval(interval);
@@ -1011,7 +1035,8 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     { id: 'applications', icon: 'assignment_ind', label: language === 'vi' ? 'Đơn ứng tuyển CTV' : 'CTV Applications' },
     { id: 'staff', icon: 'badge', label: language === 'vi' ? 'Nhân viên' : 'Staff' },
     { id: 'nhat', icon: 'checkroom', label: language === 'vi' ? 'Bài dự thi Nhất' : 'Nhất Entries' },
-  ].filter(tab => !isStaff || tab.id === 'bookings' || tab.id === 'applications' || tab.id === 'nhat');
+    { id: 'casting', icon: 'accessibility_new', label: language === 'vi' ? 'Đơn Casting Model' : 'Model Casting' },
+  ].filter(tab => !isStaff || tab.id === 'bookings' || tab.id === 'applications' || tab.id === 'nhat' || tab.id === 'casting');
 
   const getStatCards = () => {
     if (activeAdminTab === 'events') {
@@ -1055,6 +1080,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     if (activeAdminTab === 'nhat') {
       return [
         { label: language === 'vi' ? 'Tổng số bài dự thi' : 'Total Entries', value: nhatSubmissions.length, icon: 'checkroom', color: 'var(--purple)' },
+      ];
+    }
+    if (activeAdminTab === 'casting') {
+      return [
+        { label: language === 'vi' ? 'Tổng đơn đăng ký' : 'Total Applications', value: castingSubmissions.length, icon: 'accessibility_new', color: 'var(--purple)' },
       ];
     }
     return [];
@@ -1961,6 +1991,108 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                 </div>
                               </div>
                             ))}
+                            <p style={{ color: 'var(--muted)', fontSize: 10, margin: 0 }}>
+                              {new Date(s.createdAt).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ) : activeAdminTab === 'casting' ? (
+            <div className="mfc-card animate-fade-in" style={{ padding: 32 }}>
+              <div style={{ paddingBottom: 16, marginBottom: 24, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
+                <h3 className="serif" style={{ color: '#fff', fontSize: 22, margin: 0 }}>
+                  {language === 'vi' ? 'Đơn Đăng Ký Casting Call Model' : 'Model Casting Call Applications'}
+                </h3>
+              </div>
+
+              {loadingCastingSubmissions ? (
+                <p style={{ textAlign: 'center', padding: '60px 0', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', fontSize: 12 }}>
+                  {language === 'vi' ? 'Đang tải...' : 'Loading...'}
+                </p>
+              ) : castingSubmissions.length === 0 ? (
+                <p style={{ textAlign: 'center', padding: '32px 0', color: 'var(--muted)', fontSize: 13 }}>
+                  {language === 'vi' ? 'Chưa có đơn đăng ký nào.' : 'No applications yet.'}
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {castingSubmissions.map(s => {
+                    const isExpanded = expandedCastingId === s._id;
+                    return (
+                      <div key={s._id} style={{ borderRadius: 14, border: '1px solid var(--line)', background: 'rgba(1,1,10,.35)', overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: 16 }}>
+                          <div>
+                            <span style={{ fontWeight: 700, color: '#fff', fontSize: 14 }}>{s.fullName}</span>
+                            <span style={{ color: 'var(--muted)', fontSize: 11, marginLeft: 10 }}>{s.email} · {s.phone}</span>
+                            <span style={{ color: 'var(--muted)', fontSize: 11, marginLeft: 10 }}>· {s.height}cm / {s.weight}kg</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button onClick={() => setExpandedCastingId(isExpanded ? null : s._id)} className="btn-outline-pill" style={{ fontSize: 11, padding: '8px 16px' }}>
+                              {isExpanded ? (language === 'vi' ? 'Thu gọn' : 'Collapse') : (language === 'vi' ? 'Xem chi tiết' : 'View details')}
+                            </button>
+                            {!isStaff && (
+                              <button onClick={() => handleDeleteCastingSubmission(s._id)} style={{ padding: '8px 10px', borderRadius: 999, border: '1px solid rgba(255,107,107,.3)', background: 'rgba(255,107,107,.08)', color: '#ff6b6b', cursor: 'pointer', display: 'flex' }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {isExpanded && (
+                          <div style={{ padding: '16px', borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 16, fontSize: 13 }}>
+                            <div className="admin-app-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                              <p style={{ margin: 0 }}><span style={{ color: 'var(--muted)' }}>{language === 'vi' ? 'Họ và tên: ' : 'Full Name: '}</span><span style={{ color: '#fff' }}>{s.fullName}</span></p>
+                              <p style={{ margin: 0 }}><span style={{ color: 'var(--muted)' }}>Email: </span><span style={{ color: '#fff' }}>{s.email}</span></p>
+                              <p style={{ margin: 0 }}><span style={{ color: 'var(--muted)' }}>{language === 'vi' ? 'Số điện thoại: ' : 'Phone: '}</span><span style={{ color: '#fff' }}>{s.phone}</span></p>
+                              <p style={{ margin: 0 }}><span style={{ color: 'var(--muted)' }}>Facebook: </span><a href={s.facebook} target="_blank" rel="noreferrer" style={{ color: 'var(--mint)' }}>{s.facebook}</a></p>
+                              <p style={{ margin: 0 }}><span style={{ color: 'var(--muted)' }}>{language === 'vi' ? 'Ngày sinh: ' : 'DOB: '}</span><span style={{ color: '#fff' }}>{s.dob}</span></p>
+                            </div>
+                            <div>
+                              <p style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '0 0 8px' }}>
+                                {language === 'vi' ? 'Chỉ số hình thể' : 'Body Statistics'}
+                              </p>
+                              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                                {[['Chiều cao','Height',`${s.height} cm`],['Cân nặng','Weight',`${s.weight} kg`],['Vòng 1','Bust',`${s.bust} cm`],['Vòng 2','Waist',`${s.waist} cm`],['Vòng 3','Hips',`${s.hips} cm`]].map(([lv,le,val]) => (
+                                  <div key={lv} style={{ textAlign: 'center', padding: '8px 14px', border: '1px solid var(--line)', borderRadius: 10 }}>
+                                    <div style={{ fontSize: 10, color: 'var(--muted)', marginBottom: 4 }}>{language === 'vi' ? lv : le}</div>
+                                    <div style={{ color: '#fff', fontWeight: 700 }}>{val}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            <div>
+                              <p style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '0 0 6px' }}>
+                                {language === 'vi' ? 'Kinh nghiệm trình diễn' : 'Runway Experience'}
+                              </p>
+                              <p style={{ color: '#e0dbff', margin: 0, lineHeight: 1.6 }}>{s.experience}</p>
+                            </div>
+                            <div>
+                              <p style={{ fontSize: 10, color: 'var(--mint)', textTransform: 'uppercase', letterSpacing: '.12em', fontWeight: 700, margin: '0 0 10px' }}>
+                                Compcard
+                              </p>
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+                                {[
+                                  { label: language === 'vi' ? 'Chân dung chính diện' : 'Frontal Portrait', src: s.portraitFront, name: `${s.fullName}-front` },
+                                  { label: language === 'vi' ? 'Chân dung góc nghiêng' : 'Side Portrait', src: s.portraitSide, name: `${s.fullName}-side` },
+                                  { label: language === 'vi' ? 'Bán toàn thân' : 'Half-Body', src: s.halfBody, name: `${s.fullName}-half` },
+                                  { label: language === 'vi' ? 'Toàn thân' : 'Full-Body', src: s.fullBody, name: `${s.fullName}-full` },
+                                ].map((img, i) => (
+                                  <div key={i}>
+                                    <p style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '0 0 6px' }}>{img.label}</p>
+                                    {img.src ? (
+                                      <img src={img.src} alt={img.label} onClick={() => setZoomedImage({ src: img.src, name: img.name })}
+                                        style={{ width: '100%', maxHeight: 200, objectFit: 'cover', border: '1px solid var(--line)', display: 'block', cursor: 'zoom-in' }} />
+                                    ) : (
+                                      <div style={{ height: 160, border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}>N/A</div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                             <p style={{ color: 'var(--muted)', fontSize: 10, margin: 0 }}>
                               {new Date(s.createdAt).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')}
                             </p>

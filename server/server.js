@@ -207,6 +207,28 @@ const NhatSubmissionSchema = new mongoose.Schema({
 
 const NhatSubmission = mongoose.model('NhatSubmission', NhatSubmissionSchema);
 
+// 8. Casting Call Model for Models
+const CastingCallSubmissionSchema = new mongoose.Schema({
+  fullName: { type: String, required: true },
+  dob: { type: String, required: true },
+  email: { type: String, required: true },
+  phone: { type: String, required: true },
+  facebook: { type: String, required: true },
+  height: { type: String, required: true },
+  weight: { type: String, required: true },
+  bust: { type: String, required: true },
+  waist: { type: String, required: true },
+  hips: { type: String, required: true },
+  experience: { type: String, required: true },
+  portraitFront: { type: String, required: true },
+  portraitSide: { type: String, required: true },
+  halfBody: { type: String, required: true },
+  fullBody: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const CastingCallSubmission = mongoose.model('CastingCallSubmission', CastingCallSubmissionSchema);
+
 // Generate unique ticket code: MFC-XXXXXXXX
 const generateTicketCode = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -1113,6 +1135,63 @@ app.delete('/api/nhat-submissions/:id', async (req, res) => {
   try {
     await NhatSubmission.deleteOne({ _id: req.params.id });
     res.json({ message: 'Submission deleted successfully' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// CASTING CALL SUBMISSIONS
+app.get('/api/casting-call-submissions', async (req, res) => {
+  try {
+    const submissions = await CastingCallSubmission.find().sort({ createdAt: -1 });
+    res.json(submissions);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/casting-call-submissions', async (req, res) => {
+  try {
+    const {
+      fullName, dob, email, phone, facebook,
+      height, weight, bust, waist, hips, experience,
+      portraitFront, portraitSide, halfBody, fullBody
+    } = req.body;
+
+    if (!fullName || !dob || !email || !phone || !facebook || !height || !weight || !bust || !waist || !hips || !experience) {
+      return res.status(400).json({ error: 'Vui lòng điền đầy đủ tất cả các trường thông tin bắt buộc.' });
+    }
+
+    if (!portraitFront || !portraitSide || !halfBody || !fullBody) {
+      return res.status(400).json({ error: 'Vui lòng tải lên đầy đủ 4 ảnh compcard theo yêu cầu.' });
+    }
+
+    const imagesToValidate = [portraitFront, portraitSide, halfBody, fullBody];
+    if (!imagesToValidate.every(isJpegOrPngDataUri)) {
+      return res.status(400).json({ error: 'Chỉ chấp nhận ảnh định dạng JPG, JPEG hoặc PNG.' });
+    }
+
+    // Upload compcard images to Cloudinary
+    const [frontRes, sideRes, halfRes, fullRes] = await Promise.all([
+      cloudinary.uploader.upload(portraitFront, { folder: 'casting_call_entries' }),
+      cloudinary.uploader.upload(portraitSide, { folder: 'casting_call_entries' }),
+      cloudinary.uploader.upload(halfBody, { folder: 'casting_call_entries' }),
+      cloudinary.uploader.upload(fullBody, { folder: 'casting_call_entries' })
+    ]);
+
+    const submission = await CastingCallSubmission.create({
+      fullName, dob, email, phone, facebook,
+      height, weight, bust, waist, hips, experience,
+      portraitFront: frontRes.secure_url,
+      portraitSide: sideRes.secure_url,
+      halfBody: halfRes.secure_url,
+      fullBody: fullRes.secure_url
+    });
+
+    res.status(201).json({ message: 'Đăng ký Casting Call thành công', submissionId: submission._id });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/casting-call-submissions/:id', async (req, res) => {
+  try {
+    await CastingCallSubmission.deleteOne({ _id: req.params.id });
+    res.json({ message: 'Đã xóa hồ sơ casting' });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
