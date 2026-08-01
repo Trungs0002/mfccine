@@ -82,11 +82,36 @@ const CastingCallPage = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [serverError, setServerError] = useState('');
 
+  const dobPickerRef = useRef(null);
+
   const setField = (key) => (e) => {
     setFormData(f => ({ ...f, [key]: e.target.value }));
     if (errors[key]) setErrors(er => ({ ...er, [key]: undefined }));
   };
 
+  const handleDobTextChange = (e) => {
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 8);
+    let formatted = digits;
+    if (digits.length > 4) formatted = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+    else if (digits.length > 2) formatted = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    setFormData(f => ({ ...f, dob: formatted }));
+    setErrors(er => (er.dob ? { ...er, dob: undefined } : er));
+  };
+
+  const handleDobPickerChange = (e) => {
+    const iso = e.target.value;
+    if (!iso) return;
+    const [y, m, d] = iso.split('-');
+    setFormData(f => ({ ...f, dob: `${d}/${m}/${y}` }));
+    setErrors(er => (er.dob ? { ...er, dob: undefined } : er));
+  };
+
+  const openDobPicker = () => {
+    const el = dobPickerRef.current;
+    if (!el) return;
+    if (typeof el.showPicker === 'function') el.showPicker();
+    else el.focus();
+  };
   const handleImageChange = (key) => async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -357,24 +382,51 @@ const CastingCallPage = () => {
                   <div className="cc-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:16 }}>
                     <div>
                       <label style={fieldLabelStyle}>{vi ? 'Họ và tên' : 'Full Name'} <span style={{color:'var(--pink)'}}>*</span></label>
-                      <input className="mfc-input" value={formData.fullName} onChange={setField('fullName')} placeholder={vi ? 'Nguyễn Văn A' : 'Full name'} style={{ borderColor: errors.fullName ? '#ff6b6b' : '' }} />
+                      <input className="mfc-input" value={formData.fullName} onChange={setField('fullName')} placeholder={vi ? 'Nhập họ và tên của bạn' : 'Enter your full name'} style={{ borderColor: errors.fullName ? '#ff6b6b' : '' }} />
                       {errors.fullName && <p style={errorTextStyle}>{errors.fullName}</p>}
                     </div>
                     <div>
                       <label style={fieldLabelStyle}>{vi ? 'Ngày sinh' : 'Date of Birth'} <span style={{color:'var(--pink)'}}>*</span></label>
-                      <input type="date" className="mfc-input" value={formData.dob} onChange={setField('dob')} style={{ borderColor: errors.dob ? '#ff6b6b' : '' }} />
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          className="mfc-input"
+                          type="text"
+                          inputMode="numeric"
+                          value={formData.dob}
+                          onChange={handleDobTextChange}
+                          placeholder="dd/mm/yyyy"
+                          maxLength={10}
+                          style={{ paddingRight: 40, borderColor: errors.dob ? '#ff6b6b' : '' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={openDobPicker}
+                          aria-label={vi ? 'Chọn ngày sinh' : 'Pick date of birth'}
+                          style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: 6, display: 'flex', alignItems: 'center' }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>calendar_month</span>
+                        </button>
+                        <input
+                          ref={dobPickerRef}
+                          type="date"
+                          onChange={handleDobPickerChange}
+                          tabIndex={-1}
+                          aria-hidden="true"
+                          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, pointerEvents: 'none' }}
+                        />
+                      </div>
                       {errors.dob && <p style={errorTextStyle}>{errors.dob}</p>}
                     </div>
                   </div>
                   <div className="cc-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:16 }}>
                     <div>
                       <label style={fieldLabelStyle}>{vi ? 'Số điện thoại' : 'Phone'} <span style={{color:'var(--pink)'}}>*</span></label>
-                      <input type="tel" className="mfc-input" value={formData.phone} onChange={setField('phone')} placeholder="0912 345 678" style={{ borderColor: errors.phone ? '#ff6b6b' : '' }} />
+                      <input type="tel" className="mfc-input" value={formData.phone} onChange={setField('phone')} placeholder={vi ? 'Nhập số điện thoại' : 'Enter your phone number'} style={{ borderColor: errors.phone ? '#ff6b6b' : '' }} />
                       {errors.phone && <p style={errorTextStyle}>{errors.phone}</p>}
                     </div>
                     <div>
                       <label style={fieldLabelStyle}>Email <span style={{color:'var(--pink)'}}>*</span></label>
-                      <input type="email" className="mfc-input" value={formData.email} onChange={setField('email')} placeholder="you@email.com" style={{ borderColor: errors.email ? '#ff6b6b' : '' }} />
+                      <input type="email" className="mfc-input" value={formData.email} onChange={setField('email')} placeholder={vi ? 'Nhập email' : 'Enter your email'} style={{ borderColor: errors.email ? '#ff6b6b' : '' }} />
                       {errors.email && <p style={errorTextStyle}>{errors.email}</p>}
                     </div>
                   </div>
@@ -403,17 +455,17 @@ const CastingCallPage = () => {
                   <div className="cc-grid-3" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:16 }}>
                     <div>
                       <label style={fieldLabelStyle}>{vi ? 'Vòng 1 (cm)' : 'Bust (cm)'} <span style={{color:'var(--pink)'}}>*</span></label>
-                      <input type="number" className="mfc-input" value={formData.bust} onChange={setField('bust')} style={{ borderColor: errors.bust ? '#ff6b6b' : '' }} />
+                      <input type="number" className="mfc-input" value={formData.bust} onChange={setField('bust')} placeholder="85" style={{ borderColor: errors.bust ? '#ff6b6b' : '' }} />
                       {errors.bust && <p style={errorTextStyle}>{errors.bust}</p>}
                     </div>
                     <div>
                       <label style={fieldLabelStyle}>{vi ? 'Vòng 2 (cm)' : 'Waist (cm)'} <span style={{color:'var(--pink)'}}>*</span></label>
-                      <input type="number" className="mfc-input" value={formData.waist} onChange={setField('waist')} style={{ borderColor: errors.waist ? '#ff6b6b' : '' }} />
+                      <input type="number" className="mfc-input" value={formData.waist} onChange={setField('waist')} placeholder="60" style={{ borderColor: errors.waist ? '#ff6b6b' : '' }} />
                       {errors.waist && <p style={errorTextStyle}>{errors.waist}</p>}
                     </div>
                     <div>
                       <label style={fieldLabelStyle}>{vi ? 'Vòng 3 (cm)' : 'Hips (cm)'} <span style={{color:'var(--pink)'}}>*</span></label>
-                      <input type="number" className="mfc-input" value={formData.hips} onChange={setField('hips')} style={{ borderColor: errors.hips ? '#ff6b6b' : '' }} />
+                      <input type="number" className="mfc-input" value={formData.hips} onChange={setField('hips')} placeholder="90" style={{ borderColor: errors.hips ? '#ff6b6b' : '' }} />
                       {errors.hips && <p style={errorTextStyle}>{errors.hips}</p>}
                     </div>
                   </div>
@@ -426,6 +478,7 @@ const CastingCallPage = () => {
                     {vi ? 'Bạn đã từng tham gia trình diễn show thời trang nào trước đây chưa? Nếu có hãy kể chi tiết' : 'Have you participated in any runway shows? If yes, please describe in detail.'} <span style={{color:'var(--pink)'}}>*</span>
                   </label>
                   <textarea className="mfc-input" rows={4} value={formData.experience} onChange={setField('experience')}
+                    placeholder={vi ? 'Nhập câu trả lời của bạn...' : 'Enter your answer...'}
                     style={{ resize: 'vertical', borderColor: errors.experience ? '#ff6b6b' : '' }} />
                   {errors.experience && <p style={errorTextStyle}>{errors.experience}</p>}
                 </div>
@@ -541,6 +594,15 @@ const CastingCallPage = () => {
         </div>
       </section>
       <style>{`
+        .cc-grid-2 > div, .cc-grid-3 > div {
+          min-width: 0;
+        }
+        input[type="date"].mfc-input {
+          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
+          display: block;
+        }
         @media (max-width: 640px) {
           .cc-grid-2 { grid-template-columns: 1fr !important; }
           .cc-grid-3 { grid-template-columns: 1fr !important; }
