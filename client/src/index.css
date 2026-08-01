@@ -507,6 +507,20 @@ img { display: block; max-width: 100%; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .animate-spin { animation: spin .8s linear infinite; }
 
+@keyframes bounce-down {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8,0,1,1);
+  }
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0,0,0.2,1);
+  }
+}
+.animate-bounce-down {
+  animation: bounce-down 1s infinite;
+}
+
 @keyframes qrLaser {
   0%   { top: 5%;  opacity: 1; }
   48%  { top: 95%; opacity: 1; }

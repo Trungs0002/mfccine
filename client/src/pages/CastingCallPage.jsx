@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
 
@@ -65,6 +66,7 @@ const FormSection = ({ num, label }) => (
 
 /* ─── Page ───────────────────────────────────────────── */
 const CastingCallPage = () => {
+  const navigate = useNavigate();
   const { language } = useLanguage();
   const vi = language === 'vi';
 
@@ -143,16 +145,22 @@ const CastingCallPage = () => {
   const LOOKING_FOR = [
     {
       num: '01',
+      title_vi: 'Thần thái & Bản sắc',
+      title_en: 'Aura & Identity',
       vi: 'Sự tự tin, thần thái cuốn hút và bản sắc cá nhân không trộn lẫn.',
       en: 'Confidence, charismatic aura, and a distinctive personal identity.',
     },
     {
       num: '02',
+      title_vi: 'Đam mê trình diễn',
+      title_en: 'Passion for Runway',
       vi: 'Những gương mặt đam mê trình diễn, khao khát thể hiện bản thân trên sàn runway chuyên nghiệp.',
       en: 'Faces passionate about performing, eager to express themselves on a professional runway.',
     },
     {
       num: '03',
+      title_vi: 'Tự tin tỏa sáng',
+      title_en: 'Ready to Shine',
       vi: 'Không giới hạn về độ tuổi hay phong cách — chỉ cần bạn sẵn sàng tỏa sáng.',
       en: 'No age or style limits — as long as you are ready to shine.',
     },
@@ -209,13 +217,14 @@ const CastingCallPage = () => {
             </span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: 16 }}>
             {LOOKING_FOR.map(item => (
-              <div key={item.num} className="mfc-card" style={{
-                padding: '28px 24px',
-                borderTop: '2px solid var(--purple)',
-              }}>
-                <p style={{ color: 'var(--text)', fontSize: 15, lineHeight: 1.85, margin: 0 }}>
+              <div key={item.num} className="mfc-card" style={{ padding: '24px 22px', borderTop: '2px solid rgba(168,150,246,.4)' }}>
+                {/* (Removed numbers) */}
+                <h4 className="serif" style={{ fontSize: 16, color: '#fff', fontWeight: 600, margin: '0 0 8px' }}>
+                  {vi ? item.title_vi : item.title_en}
+                </h4>
+                <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.65, margin: 0 }}>
                   {vi ? item.vi : item.en}
                 </p>
               </div>
@@ -265,13 +274,13 @@ const CastingCallPage = () => {
               </h2>
 
               {/* Tagline */}
-              <p style={{ color: 'var(--muted)', fontSize: 14, letterSpacing: '.06em', textTransform: 'uppercase', margin: '0 0 28px' }}>
-                {vi ? 'Đăng ký ngay bên dưới' : 'Apply below'}
+              <p style={{ color: 'var(--mint)', fontSize: 14, letterSpacing: '.06em', textTransform: 'uppercase', margin: '0 0 28px' }}>
+                {vi ? 'Hãy Đăng ký ngay bên dưới' : 'Please Apply Below'}
               </p>
 
               {/* Arrow */}
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 28, color: 'var(--purple)', opacity: .7 }}>expand_more</span>
+              <div style={{ display: 'flex', justifyContent: 'center', height: 40 }}>
+                <span className="material-symbols-outlined animate-bounce-down" style={{ fontSize: 36, color: 'var(--mint)' }}>expand_more</span>
               </div>
             </div>
           </div>
@@ -325,8 +334,11 @@ const CastingCallPage = () => {
                   margin: '-36px -32px 28px', padding: '28px 32px 22px',
                   borderBottom: '1px dashed rgba(168,150,246,.28)',
                 }}>
+                  <div style={{ fontSize: 10, color: 'var(--mint)', textTransform: 'uppercase', letterSpacing: '.22em', marginBottom: 8 }}>
+                    {vi ? 'Đơn đăng ký' : 'Registration Form'}
+                  </div>
                   <h3 className="serif" style={{ color: '#fff', fontSize: 'clamp(18px, 4vw, 22px)', margin: 0, fontWeight: 700, letterSpacing: '.04em' }}>
-                    {vi ? 'Đơn đăng ký Model Casting Call' : 'Model Casting Call Application'}
+                    Model Casting Call - FTU Fashion Show 2026
                   </h3>
                   {/* Perforation notches */}
                   <div style={{ position:'absolute', left:0, bottom:0, width:18, height:18, borderRadius:'50%', background:'var(--black)', transform:'translate(-50%,50%)' }} />
@@ -458,7 +470,12 @@ const CastingCallPage = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: 16 }}>
             {BENEFITS.map(b => (
               <div key={b.num} className="mfc-card" style={{ padding: '24px 22px', borderTop: '2px solid rgba(168,150,246,.4)' }}>
-                <div className="serif" style={{ fontSize: 28, color: 'rgba(168,150,246,.35)', fontWeight: 700, lineHeight: 1, marginBottom: 12 }}>
+                <div className="serif" style={{
+                  fontSize: 32, fontWeight: 700, lineHeight: 1, marginBottom: 12,
+                  background: 'linear-gradient(135deg, var(--mint), var(--purple))',
+                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}>
                   {b.num}
                 </div>
                 <h4 className="serif" style={{ fontSize: 16, color: '#fff', fontWeight: 600, margin: '0 0 8px' }}>
@@ -511,6 +528,18 @@ const CastingCallPage = () => {
         </div>
       </section>
 
+      {/* CTA */}
+      <section style={{ padding: '0 0 72px', display: 'flex', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button
+            className="btn-outline-pill"
+            onClick={() => { navigate('/about'); window.scrollTo(0, 0); }}
+            style={{ fontSize: 16, padding: '16px 32px' }}
+          >
+            {vi ? 'Khám phá thêm về chúng tôi →' : 'Discover More About Us →'}
+          </button>
+        </div>
+      </section>
       <style>{`
         @media (max-width: 640px) {
           .cc-grid-2 { grid-template-columns: 1fr !important; }

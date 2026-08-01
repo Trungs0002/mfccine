@@ -153,91 +153,22 @@ const NhatPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const newErrors = {};
-    if (!formData.fullName.trim()) newErrors.fullName = vi ? 'Vui lòng nhập họ và tên.' : 'Please enter your full name.';
-    if (!formData.email.trim()) {
-      newErrors.email = vi ? 'Vui lòng nhập email.' : 'Please enter your email.';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-      newErrors.email = vi ? 'Vui lòng nhập một email hợp lệ.' : 'Please enter a valid email.';
+    setSubmitStatus('closed');
+    const section = document.getElementById('submission-section');
+    if (section) {
+      const topOffset = section.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: topOffset, behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    if (!formData.phone.trim()) newErrors.phone = vi ? 'Vui lòng nhập số điện thoại.' : 'Please enter your phone number.';
-    outfits.forEach((outfit, i) => {
-      if (!outfit.name || !outfit.name.trim()) newErrors[`outfitName_${i}`] = vi ? `Vui lòng nhập tên bộ đồ (bộ ${i + 1}).` : `Please enter outfit name (outfit ${i + 1}).`;
-      if (!outfit.designImage) newErrors[`designImage_${i}`] = vi ? `Vui lòng tải lên ảnh bản vẽ thiết kế (bộ ${i + 1}).` : `Please upload design sketch image (outfit ${i + 1}).`;
-      if (!outfit.outfitPhoto1) newErrors[`outfitPhoto1_${i}`] = vi ? `Vui lòng tải lên ảnh chụp bộ đồ ${i + 1} (1).` : `Please upload outfit ${i + 1} photo (1).`;
-      if (!outfit.outfitPhoto2) newErrors[`outfitPhoto2_${i}`] = vi ? `Vui lòng tải lên ảnh chụp bộ đồ ${i + 1} (2).` : `Please upload outfit ${i + 1} photo (2).`;
-    });
-    if (!formData.note.trim()) newErrors.note = vi ? 'Vui lòng nhập ghi chú thêm.' : 'Please enter additional notes.';
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      setSubmitStatus(null);
-      return;
-    }
-    setErrors({});
-    setSubmitting(true);
-    try {
-      const res = await fetch(`${API_URL}/api/nhat-submissions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, outfits }),
-      });
-      setSubmitStatus(res.ok ? 'success' : 'error');
-    } catch {
-      setSubmitStatus('error');
-    } finally {
-      setSubmitting(false);
-      const section = document.getElementById('submission-section');
-      if (section) {
-        const topOffset = section.getBoundingClientRect().top + window.scrollY - 80;
-        window.scrollTo({ top: topOffset, behavior: 'smooth' });
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }
+    return;
+    
   };
 
   return (
     <div className="animate-fade-in nhat-page" style={{ paddingTop: 96, paddingBottom: 64 }}>
-      {showPopup && language && createPortal(
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(0,0,0,0.8)', padding: 20
-        }}>
-          <div className="mfc-card" style={{ maxWidth: 500, width: '100%', position: 'relative', padding: 32, textAlign: 'center', borderTop: '2px solid var(--mint)' }}>
-            <button
-              onClick={() => setShowPopup(false)}
-              style={{ position: 'absolute', top: 16, right: 16, background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex' }}
-            >
-              <span className="material-symbols-outlined">close</span>
-            </button>
-            <h2 className="gradient-title-hero" style={{ fontSize: 24, marginBottom: 16, textTransform: 'uppercase' }}>
-              {vi ? 'Gia hạn vòng tuyển chọn!' : 'Selection Round Extended!'}
-            </h2>
-            <p style={{ color: '#ccc8f0', fontSize: 16, lineHeight: 1.6, marginBottom: 24 }}>
-              {vi ? (
-                <>
-                  Vòng tuyển chọn đã được gia hạn đến <strong style={{ color: 'var(--mint)' }}>31/7</strong>.<br />
-                  Hãy nhanh tay tham gia ngay để không bỏ lỡ cơ hội tỏa sáng nào!
-                </>
-              ) : (
-                <>
-                  The selection round has been extended to <strong style={{ color: 'var(--mint)' }}>July 31st</strong>.<br />
-                  Join now so you don't miss your chance to shine!
-                </>
-              )}
-            </p>
-            <button className="btn-pill btn-radiate" onClick={() => {
-              setShowPopup(false);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }} style={{ padding: '12px 24px', fontSize: 16 }}>
-              {vi ? 'Tham gia ngay' : 'Join now'}
-            </button>
-          </div>
-        </div>,
-        document.body
-      )}
       {/* Hero */}
+
       <section style={{ padding: '0 0 56px' }}>
         <div className="container" style={{ maxWidth: 760, textAlign: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 16 }}>
@@ -370,7 +301,24 @@ const NhatPage = () => {
             </span>
           </div>
 
-          {submitStatus === 'success' ? (
+          {submitStatus === 'closed' ? (
+            <div className="mfc-card" style={{ padding: '48px 24px', textAlign: 'center' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 52, color: '#f87171', marginBottom: 16, display: 'block' }}>inventory_2</span>
+              <h3 className="serif" style={{ color: '#fff', fontSize: 24, margin: '0 0 12px' }}>
+                {vi ? 'Đã đóng đơn dự thi' : 'Submission Closed'}
+              </h3>
+              <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.75, maxWidth: 440, margin: '0 auto 28px' }}>
+                {vi
+                  ? 'Rất tiếc, thời hạn nộp bài dự thi cuộc thi thiết kế "NHẤT" đã kết thúc. Cảm ơn sự quan tâm của bạn và hẹn gặp lại ở những sự kiện tiếp theo của MFC!'
+                  : 'Unfortunately, the submission deadline for the "NHẤT" design competition has ended. Thank you for your interest and see you in the next events of MFC!'}
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <button type="button" className="btn-pill btn-radiate" onClick={() => { navigate('/about'); window.scrollTo(0, 0); }} style={{ width: 220, justifyContent: 'center' }}>
+                  {vi ? 'Tìm hiểu về MFC →' : 'About MFC →'}
+                </button>
+              </div>
+            </div>
+          ) : submitStatus === 'success' ? (
             <div className="mfc-card" style={{ padding: '48px 32px', textAlign: 'center' }}>
               <span className="material-symbols-outlined" style={{ fontSize: 52, color: 'var(--mint)', marginBottom: 16, display: 'block' }}>check_circle</span>
               <h3 className="serif" style={{ color: '#fff', fontSize: 24, margin: '0 0 12px' }}>
