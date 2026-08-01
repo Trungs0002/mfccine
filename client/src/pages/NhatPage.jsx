@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { API_URL } from '../apiConfig';
 
 const fieldLabelStyle = { display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 };
 const errorTextStyle = { color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' };
@@ -105,9 +103,7 @@ const NhatPage = () => {
   const [formData, setFormData] = useState({ fullName: '', email: '', phone: '', school: '', note: '' });
   const [outfits, setOutfits] = useState([{ name: '', designImage: null, outfitPhoto1: null, outfitPhoto2: null }]);
   const [errors, setErrors] = useState({});
-  const [submitting, setSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState(null); // null | 'success' | 'error'
-  const [showPopup, setShowPopup] = useState(true);
+  const [submitStatus, setSubmitStatus] = useState(null); // null | 'success' | 'error' | 'closed'
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -488,8 +484,8 @@ const NhatPage = () => {
                   </p>
                 )}
 
-                <button type="submit" disabled={submitting} className="btn-pill" style={{ width: '100%', justifyContent: 'center', opacity: submitting ? .6 : 1 }}>
-                  {submitting ? (vi ? 'Đang gửi...' : 'Submitting...') : (vi ? 'Gửi bài dự thi' : 'Submit Entry')}
+                <button type="submit" className="btn-pill" style={{ width: '100%', justifyContent: 'center' }}>
+                  {vi ? 'Gửi bài dự thi' : 'Submit Entry'}
                 </button>
               </form>
             </div>

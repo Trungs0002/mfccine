@@ -2048,7 +2048,9 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                               <p style={{ margin: 0 }}><span style={{ color: 'var(--muted)' }}>{language === 'vi' ? 'Họ và tên: ' : 'Full Name: '}</span><span style={{ color: '#fff' }}>{s.fullName}</span></p>
                               <p style={{ margin: 0 }}><span style={{ color: 'var(--muted)' }}>Email: </span><span style={{ color: '#fff' }}>{s.email}</span></p>
                               <p style={{ margin: 0 }}><span style={{ color: 'var(--muted)' }}>{language === 'vi' ? 'Số điện thoại: ' : 'Phone: '}</span><span style={{ color: '#fff' }}>{s.phone}</span></p>
-                              <p style={{ margin: 0 }}><span style={{ color: 'var(--muted)' }}>Facebook: </span><a href={s.facebook} target="_blank" rel="noreferrer" style={{ color: 'var(--mint)' }}>{s.facebook}</a></p>
+                              {s.facebook && (
+                                <p style={{ margin: 0 }}><span style={{ color: 'var(--muted)' }}>Facebook: </span><a href={s.facebook} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--purple)', wordBreak: 'break-all' }}>{s.facebook}</a></p>
+                              )}
                               <p style={{ margin: 0 }}><span style={{ color: 'var(--muted)' }}>{language === 'vi' ? 'Ngày sinh: ' : 'DOB: '}</span><span style={{ color: '#fff' }}>{s.dob}</span></p>
                             </div>
                             <div>

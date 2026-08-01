@@ -380,7 +380,7 @@ const CastingCallPage = () => {
                   </div>
                   <div>
                     <label style={fieldLabelStyle}>{vi ? 'Link Facebook' : 'Facebook Link'} <span style={{color:'var(--pink)'}}>*</span></label>
-                    <input type="url" className="mfc-input" value={formData.facebook} onChange={setField('facebook')} placeholder="https://facebook.com/yourprofile" style={{ borderColor: errors.facebook ? '#ff6b6b' : '' }} />
+                    <input className="mfc-input" value={formData.facebook} onChange={setField('facebook')} placeholder="https://www.facebook.com/..." style={{ borderColor: errors.facebook ? '#ff6b6b' : '' }} />
                     {errors.facebook && <p style={errorTextStyle}>{errors.facebook}</p>}
                   </div>
                 </div>
