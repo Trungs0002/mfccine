@@ -40,7 +40,7 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   phone: { type: String, default: '' },
   password: { type: String, required: true },
-  role: { type: String, enum: ['user', 'admin', 'staff'], default: 'user' },
+  role: { type: String, enum: ['user', 'admin', 'staff', 'nhat_viewer'], default: 'user' },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -308,21 +308,25 @@ app.post('/api/auth/login', async (req, res) => {
 // endpoint so a normal sign-up can never self-assign the staff/admin role)
 app.post('/api/auth/register-staff', async (req, res) => {
   try {
-    const { fullName, email, password } = req.body;
+    const { fullName, email, password, role } = req.body;
     if (!fullName || !email || !password) return res.status(400).json({ error: 'Missing required fields.' });
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ error: 'Email already registered.' });
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ fullName, email, password: hashedPassword, role: 'staff' });
+    const assignedRole = role && ['admin', 'staff', 'nhat_viewer'].includes(role) ? role : 'staff';
+    const user = await User.create({ fullName, email, password: hashedPassword, role: assignedRole });
     res.status(201).json({ id: user._id, fullName: user.fullName, email: user.email, role: user.role });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// List users (e.g. GET /api/users?role=staff)
+// List users (e.g. GET /api/users?role=staff,nhat_viewer)
 app.get('/api/users', async (req, res) => {
   try {
     const filter = {};
-    if (req.query.role) filter.role = req.query.role;
+    if (req.query.role) {
+      const roles = req.query.role.split(',');
+      filter.role = roles.length > 1 ? { $in: roles } : req.query.role;
+    }
     const users = await User.find(filter).select('-password').sort({ createdAt: -1 });
     res.json(users);
   } catch (err) { res.status(500).json({ error: err.message }); }

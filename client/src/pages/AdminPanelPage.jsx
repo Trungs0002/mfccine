@@ -445,7 +445,8 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const { language, t } = useLanguage();
   const formatPrice = (p) => Number(p).toLocaleString('vi-VN') + (language === 'vi' ? 'đ' : ' VND');
   const isStaff = user?.role === 'staff'; // staff accounts only see Bookings & Applications
-  const [activeAdminTab, setActiveTab] = useState(isStaff ? 'bookings' : 'events'); // 'events', 'bookings', 'coupons', 'applications', or 'staff'
+  const isNhatViewer = user?.role === 'nhat_viewer'; // nhat_viewer accounts only see Nhat tab
+  const [activeAdminTab, setActiveTab] = useState(isNhatViewer ? 'nhat' : isStaff ? 'bookings' : 'events');
   const [showEventForm, setShowEventForm] = useState(false); // Controls visibility of the Create/Edit form
 
   const l = useCallback((field) => {
@@ -541,6 +542,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const [newStaffName, setNewStaffName] = useState('');
   const [newStaffEmail, setNewStaffEmail] = useState('');
   const [newStaffPassword, setNewStaffPassword] = useState('');
+  const [newStaffRole, setNewStaffRole] = useState('staff');
   const [creatingStaff, setCreatingStaff] = useState(false);
 
   // "Nhất" design contest submissions (admin-only tab)
@@ -598,7 +600,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
 
   const fetchStaffAccounts = (silent = false) => {
     if (!silent) setLoadingStaffAccounts(true);
-    fetch(`${API_URL}/api/users?role=staff`)
+    fetch(`${API_URL}/api/users?role=staff,nhat_viewer`)
       .then(res => res.json())
       .then(data => {
         setStaffAccounts(data);
@@ -676,7 +678,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
       const res = await fetch(`${API_URL}/api/auth/register-staff`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName: newStaffName.trim(), email: newStaffEmail.trim(), password: newStaffPassword }),
+        body: JSON.stringify({ fullName: newStaffName.trim(), email: newStaffEmail.trim(), password: newStaffPassword, role: newStaffRole }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -684,6 +686,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
         setNewStaffName('');
         setNewStaffEmail('');
         setNewStaffPassword('');
+        setNewStaffRole('staff');
       } else {
         alert(data.error || 'Failed to create staff account.');
       }
@@ -1036,7 +1039,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     { id: 'staff', icon: 'badge', label: language === 'vi' ? 'Nhân viên' : 'Staff' },
     { id: 'nhat', icon: 'checkroom', label: language === 'vi' ? 'Bài dự thi Nhất' : 'Nhất Entries' },
     { id: 'casting', icon: 'accessibility_new', label: language === 'vi' ? 'Đơn Casting Model' : 'Model Casting' },
-  ].filter(tab => !isStaff || tab.id === 'bookings' || tab.id === 'applications' || tab.id === 'nhat' || tab.id === 'casting');
+  ].filter(tab => {
+    if (isNhatViewer) return tab.id === 'nhat';
+    if (isStaff) return tab.id === 'bookings' || tab.id === 'applications' || tab.id === 'nhat' || tab.id === 'casting';
+    return true;
+  });
 
   const getStatCards = () => {
     if (activeAdminTab === 'events') {
@@ -1876,6 +1883,13 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                   <label style={fieldLabelStyle}>{language === 'vi' ? 'Mật khẩu' : 'Password'}</label>
                   <input type="password" value={newStaffPassword} onChange={e => setNewStaffPassword(e.target.value)} placeholder="••••••••" className="mfc-input" required />
                 </div>
+                <div style={{ flex: '1 1 140px' }}>
+                  <label style={fieldLabelStyle}>{language === 'vi' ? 'Vai trò' : 'Role'}</label>
+                  <select value={newStaffRole} onChange={e => setNewStaffRole(e.target.value)} className="mfc-input" style={{ width: '100%', height: 44 }}>
+                    <option value="staff">{language === 'vi' ? 'Nhân viên (Staff)' : 'Staff'}</option>
+                    <option value="nhat_viewer">{language === 'vi' ? 'Chấm thi Nhất' : 'Nhat Viewer'}</option>
+                  </select>
+                </div>
                 <button type="submit" disabled={creatingStaff} className="btn-pill" style={{ flexShrink: 0 }}>
                   {creatingStaff ? '...' : (language === 'vi' ? 'Tạo tài khoản' : 'Create Account')}
                 </button>
@@ -1896,6 +1910,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                       <div>
                         <span style={{ color: '#fff', fontWeight: 700, fontSize: 14 }}>{s.fullName}</span>
                         <span style={{ color: 'var(--muted)', fontSize: 12, marginLeft: 10 }}>{s.email}</span>
+                        <span style={{ color: 'var(--purple)', fontSize: 11, marginLeft: 10, padding: '2px 8px', borderRadius: 12, background: 'rgba(168,150,246,0.1)' }}>{s.role === 'nhat_viewer' ? 'Nhất Viewer' : 'Staff'}</span>
                       </div>
                       <button onClick={() => handleDeleteStaff(s._id)} style={{ padding: '8px 10px', borderRadius: 999, border: '1px solid rgba(255,107,107,.3)', background: 'rgba(255,107,107,.08)', color: '#ff6b6b', cursor: 'pointer', display: 'flex' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
@@ -1937,7 +1952,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                             <button onClick={() => setExpandedNhatId(isExpanded ? null : s._id)} className="btn-outline-pill" style={{ fontSize: 11, padding: '8px 16px' }}>
                               {isExpanded ? (language === 'vi' ? 'Thu gọn' : 'Collapse') : (language === 'vi' ? 'Xem chi tiết' : 'View details')}
                             </button>
-                            {!isStaff && (
+                            {user?.role === 'admin' && (
                               <button onClick={() => handleDeleteNhatSubmission(s._id)} style={{ padding: '8px 10px', borderRadius: 999, border: '1px solid rgba(255,107,107,.3)', background: 'rgba(255,107,107,.08)', color: '#ff6b6b', cursor: 'pointer', display: 'flex' }}>
                                 <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
                               </button>
@@ -1958,7 +1973,9 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                               <p style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '0 0 6px' }}>
                                 {language === 'vi' ? 'Ghi chú thêm' : 'Additional Notes'}
                               </p>
-                              <p style={{ color: '#e0dbff', margin: 0, lineHeight: 1.6 }}>{s.note || (language === 'vi' ? 'Không có' : 'None')}</p>
+                              <p style={{ color: '#e0dbff', margin: 0, lineHeight: 1.6 }}>
+                                {s.note ? s.note.split(/\\n|\n/).map((line, i) => <React.Fragment key={i}>{line}<br/></React.Fragment>) : (language === 'vi' ? 'Không có' : 'None')}
+                              </p>
                             </div>
 
                             {(s.outfits && s.outfits.length > 0 ? s.outfits : [{ designImage: s.designImage, outfitPhoto1: s.outfitPhoto1, outfitPhoto2: s.outfitPhoto2 }]).map((outfit, index) => (
