@@ -131,7 +131,8 @@ const BookingSchema = new mongoose.Schema({
   bookingDate: { type: Date, default: Date.now },
   isCheckedIn: { type: Boolean, default: false },
   checkInDate: { type: Date },
-  ticketSent: { type: Boolean, default: false } // Admin confirmed and sent ticket to customer
+  ticketSent: { type: Boolean, default: false }, // Admin confirmed and sent ticket to customer
+  studentInfos: [{ type: String }]
 });
 
 // 5. Discount Code Model

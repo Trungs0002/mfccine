@@ -2386,6 +2386,13 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                             <p style={{ fontWeight: 700, color: '#fff', margin: 0 }}>{booking.fullName}</p>
                             <p style={{ fontSize: 11, color: 'var(--muted)', margin: '2px 0 0' }}>{booking.email}</p>
                             <p style={{ fontSize: 10, color: 'var(--mint)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em', margin: '4px 0 0' }}>{l(booking.eventId?.title)}</p>
+                            {booking.studentInfos && booking.studentInfos.length > 0 && (
+                              <div style={{ marginTop: 6, paddingLeft: 8, borderLeft: '2px solid var(--purple)' }}>
+                                {booking.studentInfos.map((info, idx) => (
+                                  <p key={idx} style={{ fontSize: 11, color: '#ccc', margin: '2px 0' }}>{info}</p>
+                                ))}
+                              </div>
+                            )}
                           </>
                         )}
                       </div>

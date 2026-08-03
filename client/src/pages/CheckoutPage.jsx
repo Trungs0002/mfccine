@@ -22,6 +22,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const receiptRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [studentInfos, setStudentInfos] = useState(['']);
 
   const [discountInput, setDiscountInput] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null); // { code, percent, maxSeats }
@@ -61,7 +62,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
 
       const handleBeforeUnload = (e) => {
         e.preventDefault();
-        e.returnValue = ''; 
+        e.returnValue = '';
       };
 
       window.addEventListener('popstate', handlePopState);
@@ -112,10 +113,10 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
         hasAlerted.current = true;
         clearInterval(interval);
         setTimeLeft(0);
-        
+
         // Cancel the pending booking on timeout (await it so it frees seats BEFORE we navigate)
         try {
-          await fetch(`${API_URL}/api/bookings/${qrData.bookingId}/cancel`, { 
+          await fetch(`${API_URL}/api/bookings/${qrData.bookingId}/cancel`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
           });
@@ -212,6 +213,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
             discountCode: appliedCoupon?.code || null,
             paymentMethod,
             lockId: bookingDetails.lockId,
+            studentInfos: studentInfos.filter(info => info.trim() !== ''),
           }),
         });
         const data = await res.json();
@@ -223,8 +225,8 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
             expiresAt: new Date(Date.now() + 10 * 60000).toISOString()
           });
         } else {
-            alert(data.error || 'Checkout failed');
-            navigate('/seating');
+          alert(data.error || 'Checkout failed');
+          navigate('/seating');
         }
       } catch (err) {
         console.error(err);
@@ -289,10 +291,10 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
           <button
             onClick={() => {
               if (bookingDetails.lockId) {
-                fetch(`${API_URL}/api/bookings/unlock`, { 
-                  method: 'POST', 
-                  headers: { 'Content-Type': 'application/json' }, 
-                  body: JSON.stringify({ lockId: bookingDetails.lockId }) 
+                fetch(`${API_URL}/api/bookings/unlock`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ lockId: bookingDetails.lockId })
                 }).catch(e => console.error(e));
               }
               navigate('/seating');
@@ -340,7 +342,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
               <div className="checkout-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
                 <div>
                   <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
-                    {vi ? 'Họ và tên' : 'Full Name'}
+                    {vi ? 'Họ và tên' : 'Full Name'}<span style={{ color: '#ff6b6b' }}> *</span>
                   </label>
                   <input
                     type="text"
@@ -352,7 +354,9 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Email</label>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
+                    Email<span style={{ color: '#ff6b6b' }}> *</span>
+                  </label>
                   <input
                     type="email"
                     value={email}
@@ -365,7 +369,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
-                  {vi ? 'Số điện thoại' : 'Phone Number'}
+                  {vi ? 'Số điện thoại' : 'Phone Number'}<span style={{ color: '#ff6b6b' }}> *</span>
                 </label>
                 <input
                   type="tel"
@@ -376,6 +380,48 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
                   required
                 />
               </div>
+            </div>
+
+            {/* Student Info (Optional) */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 11, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 18, paddingBottom: 10, borderBottom: '1px solid rgba(168,150,246,.18)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>{vi ? 'Thông tin sinh viên (Nếu là sinh viên FTU)' : 'Student Information (if FTU student)'}</span>
+                <button type="button" onClick={() => setStudentInfos([...studentInfos, ''])} style={{ background: 'none', border: 'none', color: 'var(--mint)', cursor: 'pointer', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>add</span> {vi ? 'Thêm' : 'Add'}
+                </button>
+              </div>
+              <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 12 }}>
+                {vi ? 'Mã sinh viên - Lớp hành chính - Ngành - Khóa (VD: MSSV - Anh 01 - CLCQT - K62)' : 'Student ID - Class - Major - Cohort (e.g., Anh 01 - CLCQT - K62)'}
+              </p>
+              {studentInfos.map((info, index) => (
+                <div key={index} style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+                  <input
+                    type="text"
+                    value={info}
+                    onChange={(e) => {
+                      const newInfos = [...studentInfos];
+                      newInfos[index] = e.target.value;
+                      setStudentInfos(newInfos);
+                    }}
+                    className="mfc-input"
+                    placeholder={vi ? 'Nhập thông tin sinh viên trên 1 dòng' : 'Enter student info on 1 line'}
+                    style={{ flex: 1 }}
+                  />
+                  {studentInfos.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newInfos = studentInfos.filter((_, i) => i !== index);
+                        setStudentInfos(newInfos.length ? newInfos : ['']);
+                      }}
+                      className="btn-outline-pill"
+                      style={{ padding: '0 12px', borderColor: '#ff6b6b', color: '#ff6b6b' }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
 
             {/* Payment */}
@@ -477,8 +523,8 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
               <span className={`material-symbols-outlined ${isSubmitting ? 'animate-spin' : ''}`} style={{ fontSize: 18 }}>
                 {isSubmitting ? 'sync' : 'verified_user'}
               </span>
-              {isSubmitting 
-                ? (vi ? 'Đang xử lý...' : 'Processing...') 
+              {isSubmitting
+                ? (vi ? 'Đang xử lý...' : 'Processing...')
                 : (vi ? 'Xác nhận & Thanh toán' : 'Confirm & Pay')}
             </button>
           </form>
@@ -566,7 +612,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
 
       {/* VietQR Popup */}
       {qrData && (
-        <div 
+        <div
           id="qr-modal-overlay"
           style={{ position: 'fixed', inset: 0, background: 'rgba(1,1,10,.85)', backdropFilter: 'blur(8px)', zIndex: 1000, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px' }}
         >
@@ -589,9 +635,9 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
                 <p style={{ color: 'var(--muted)', fontSize: 13, margin: '0 0 24px', lineHeight: 1.5 }}>
                   {vi ? 'Vui lòng dùng ứng dụng ngân hàng quét mã QR dưới đây để thanh toán.' : 'Please use your banking app to scan this QR code.'}
                 </p>
-                
+
                 <div style={{ background: '#fff', padding: 16, borderRadius: 16, display: 'inline-block', marginBottom: 24 }}>
-                  <img 
+                  <img
                     src={`https://img.vietqr.io/image/vietcombank-1019712189-compact2.png?amount=${qrData.amount}&addInfo=${encodeURIComponent('Thanh toan don hang ' + qrData.bookingId.slice(-8).toUpperCase())}&accountName=Nguyen Ngoc Khanh Huyen`}
                     alt="VietQR"
                     style={{ width: '100%', maxWidth: 260, display: 'block' }}
@@ -622,15 +668,15 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <button 
-                    className="btn-pill" 
+                  <button
+                    className="btn-pill"
                     style={{ width: '100%', justifyContent: 'center' }}
                     onClick={() => setIsUploadingBill(true)}
                   >
                     {vi ? 'Tôi đã chuyển khoản thành công' : 'I have transferred successfully'}
                   </button>
-                  <button 
-                    className="btn-pill" 
+                  <button
+                    className="btn-pill"
                     style={{ width: '100%', justifyContent: 'center', background: 'rgba(255,107,107,0.1)', color: '#ff6b6b', border: '1px solid rgba(255,107,107,0.2)' }}
                     onClick={() => setShowLeaveWarning(true)}
                   >
@@ -670,15 +716,15 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
                 </label>
 
                 <div style={{ display: 'flex', gap: 12, flexDirection: 'column' }}>
-                  <button 
-                    className="btn-pill" 
+                  <button
+                    className="btn-pill"
                     style={{ width: '100%', justifyContent: 'center', opacity: (uploadingBillLoading || !billImage) ? 0.5 : 1, pointerEvents: (uploadingBillLoading || !billImage) ? 'none' : 'auto' }}
                     onClick={handleUploadBillSubmit}
                     disabled={!billImage}
                   >
                     {uploadingBillLoading ? (vi ? 'Đang tải lên...' : 'Uploading...') : (vi ? 'Đã thanh toán' : 'I have paid')}
                   </button>
-                  <button 
+                  <button
                     style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: 13, textDecoration: 'underline', cursor: 'pointer', padding: '8px 0' }}
                     onClick={() => setIsUploadingBill(false)}
                   >
@@ -693,7 +739,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
 
       {/* Success Popup */}
       {showSuccessPopup && (
-        <div 
+        <div
           id="success-modal-overlay"
           style={{ position: 'fixed', inset: 0, background: 'rgba(1,1,10,.85)', backdropFilter: 'blur(8px)', zIndex: 1001, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px' }}
         >
@@ -707,23 +753,23 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
                   </svg>
                 </div>
               </div>
-              
+
               <h3 className="serif" style={{ color: '#fff', fontSize: 24, margin: '0 0 12px' }}>
                 {vi ? 'Cảm ơn bạn đã đặt vé!' : 'Thank you for your booking!'}
               </h3>
-              
+
               <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 20, textAlign: 'left', marginBottom: 24 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                   <span style={{ color: 'var(--muted)', fontSize: 13 }}>{vi ? 'Người mua' : 'Buyer'}</span>
                   <span style={{ color: '#fff', fontSize: 13, fontWeight: 600, textAlign: 'right' }}>
-                    {fullName}<br/>
+                    {fullName}<br />
                     <span style={{ color: 'var(--muted)', fontSize: 11, fontWeight: 400 }}>{email}</span>
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                   <span style={{ color: 'var(--muted)', fontSize: 13 }}>{vi ? 'Ghế đã chọn' : 'Selected Seats'}</span>
                   <span style={{ color: '#fff', fontSize: 13, fontWeight: 600, textAlign: 'right' }}>
-                    {bookingDetails.selectedSeats?.map(s => s.seatId).join(', ')}<br/>
+                    {bookingDetails.selectedSeats?.map(s => s.seatId).join(', ')}<br />
                     <span style={{ color: 'var(--purple)', fontSize: 11 }}>{bookingDetails.selectedSeats?.length || 0} {vi ? 'vé' : 'tickets'}</span>
                   </span>
                 </div>
@@ -743,33 +789,33 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
               </div>
 
               <p style={{ color: 'var(--muted)', fontSize: 13, margin: '0', lineHeight: 1.6 }}>
-                {vi 
-                  ? 'Vé của bạn đang ở trạng thái chờ xử lý (Pending). Chúng tôi sẽ xác nhận thông tin thanh toán và gửi mã QR điện tử qua email cho bạn trong thời gian sớm nhất.' 
+                {vi
+                  ? 'Vé của bạn đang ở trạng thái chờ xử lý (Pending). Chúng tôi sẽ xác nhận thông tin thanh toán và gửi mã QR điện tử qua email cho bạn trong thời gian sớm nhất.'
                   : 'Your ticket is currently Pending. We will verify your payment and send the e-ticket QR code to your email as soon as possible.'}
               </p>
             </div>
 
             <div style={{ padding: '0 24px 32px', display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' }}>
-              <button 
-                className="btn-outline-pill" 
+              <button
+                className="btn-outline-pill"
                 style={{ width: '100%', justifyContent: 'center', gap: 8 }}
                 onClick={async () => {
                   const element = receiptRef.current;
                   if (element) {
                     const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#14141e' });
                     const imgData = canvas.toDataURL('image/png');
-                    
+
                     const pdfWidth = canvas.width;
                     const pdfHeight = canvas.height;
-                    
+
                     const pdf = new jsPDF({
                       orientation: pdfWidth > pdfHeight ? 'l' : 'p',
                       unit: 'px',
                       format: [pdfWidth, pdfHeight]
                     });
-                    
+
                     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                    
+
                     const pdfBlob = pdf.output('blob');
                     const blob = new Blob([pdfBlob], { type: 'application/octet-stream' });
                     const url = window.URL.createObjectURL(blob);
@@ -787,8 +833,8 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
                 <span className="material-symbols-outlined" style={{ fontSize: 16 }}>download</span>
                 {vi ? 'Hóa đơn' : 'Invoice'}
               </button>
-              <button 
-                className="btn-pill" 
+              <button
+                className="btn-pill"
                 style={{ width: '100%', justifyContent: 'center' }}
                 onClick={() => {
                   navigate('/');
@@ -808,28 +854,28 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
               {language === 'vi' ? 'Hủy thanh toán?' : 'Cancel payment?'}
             </h3>
             <p style={{ color: 'var(--muted)', fontSize: 14, margin: '0 0 24px', lineHeight: 1.5 }}>
-              {language === 'vi' 
-                ? 'Bạn có chắc chắn muốn rời khỏi trang thanh toán? Đơn hàng của bạn sẽ bị hủy và ghế sẽ được trả lại.' 
+              {language === 'vi'
+                ? 'Bạn có chắc chắn muốn rời khỏi trang thanh toán? Đơn hàng của bạn sẽ bị hủy và ghế sẽ được trả lại.'
                 : 'Are you sure you want to leave the payment page? Your booking will be cancelled and seats returned.'}
             </p>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button 
-                className="btn-pill" 
+              <button
+                className="btn-pill"
                 style={{ flex: 1, justifyContent: 'center', background: 'transparent', border: '1px solid var(--line)', color: '#fff' }}
                 onClick={() => setShowLeaveWarning(false)}
               >
                 {language === 'vi' ? 'Ở lại' : 'Stay'}
               </button>
-              <button 
-                className="btn-pill" 
+              <button
+                className="btn-pill"
                 style={{ flex: 1, justifyContent: 'center', background: 'rgba(255,107,107,.15)', color: '#ff6b6b', border: 'none' }}
                 onClick={() => {
-                  fetch(`${API_URL}/api/bookings/${qrData?.bookingId}/cancel`, { 
+                  fetch(`${API_URL}/api/bookings/${qrData?.bookingId}/cancel`, {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ lockId: bookingDetails?.lockId })
-                  }).catch(() => {});
-                  
+                  }).catch(() => { });
+
                   setQrData(null);
                   setShowLeaveWarning(false);
                   setTimeout(() => window.history.back(), 0);
