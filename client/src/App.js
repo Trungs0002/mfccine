@@ -21,6 +21,7 @@ import NhatPage           from './pages/NhatPage';
 import CastingCallPage    from './pages/CastingCallPage';
 import LoginPage          from './pages/LoginPage';
 import RegisterPage       from './pages/RegisterPage';
+import NhatCheckoutPage   from './pages/NhatCheckoutPage';
 
 const FALLBACK_EVENTS = [
   {
@@ -137,6 +138,7 @@ function AppContent() {
           <Route path="/about"     element={<AboutPage />} />
           <Route path="/recruit"   element={<RecruitPage settings={settings} />} />
           <Route path="/nhat"      element={<NhatPage settings={settings} />} />
+          <Route path="/nhat-checkout" element={<NhatCheckoutPage />} />
           <Route path="/casting-call" element={<CastingCallPage />} />
           <Route path="/login"     element={user ? <Navigate to="/" /> : <LoginPage setUser={setUser} />} />
           <Route path="/register"  element={user ? <Navigate to="/" /> : <RegisterPage setUser={setUser} />} />

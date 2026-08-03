@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
+import * as XLSX from 'xlsx';
 import QrScannerOverlay from '../components/QrScannerOverlay';
 import {
   buildSeats, CANVAS_W, CANVAS_H, CX, STAGE_W, STAGE_Y, STAGE_H, STAGE_BOT, RUNWAY_W, TOP_SECT_H, STAGE_RISER,
@@ -557,6 +558,184 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const [loadingCastingSubmissions, setLoadingCastingSubmissions] = useState(false);
   const [expandedCastingId, setExpandedCastingId] = useState(null);
 
+  // Nhat Tickets (Check-in & Checkout)
+  const [nhatTickets, setNhatTickets] = useState([]);
+  const [nhatCheckouts, setNhatCheckouts] = useState([]);
+  const [loadingNhatTickets, setLoadingNhatTickets] = useState(false);
+  // eslint-disable-next-line no-unused-vars
+  const [loadingNhatCheckouts, setLoadingNhatCheckouts] = useState(false);
+  const [ftuFilter, setFtuFilter] = useState(false);
+  const [nhatCheckinTab, setNhatCheckinTab] = useState('pending'); // 'pending', 'checked_in', 'checked_out', 'both'
+  const [expandedNhatTicketId, setExpandedNhatTicketId] = useState(null);
+  const [expandedNhatCheckoutId, setExpandedNhatCheckoutId] = useState(null);
+
+  // Nhat Scanner
+  const [nhatScanTicketId, setNhatScanTicketId] = useState('');
+  const [nhatScanning, setNhatScanning] = useState(false);
+  const [nhatScanResult, setNhatScanResult] = useState(null);
+  const [showNhatScanner, setShowNhatScanner] = useState(false);
+  const nhatScanInputRef = React.useRef(null);
+
+  // Auto-submit when exactly 10 chars starting with NHAT (e.g. NHAT000001)
+  useEffect(() => {
+    if (nhatScanTicketId.length === 10 && nhatScanTicketId.toUpperCase().startsWith('NHAT')) {
+      handleCheckinNhatTicketScan(nhatScanTicketId.toUpperCase());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nhatScanTicketId]);
+
+  const handleCheckinNhatTicketScan = async (code) => {
+    const idToScan = code || nhatScanTicketId;
+    if (!idToScan.trim()) return;
+    setNhatScanning(true);
+    setNhatScanResult(null);
+
+    // Immediately clear for physical scanners
+    setNhatScanTicketId('');
+
+    try {
+      const res = await fetch(`${API_URL}/api/nhat/tickets/scan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketCode: idToScan.trim().toUpperCase() })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setNhatScanResult({ status: 'valid', message: data.message, ticket: data.ticket, code: idToScan.trim().toUpperCase() });
+        fetchNhatTickets(true);
+      } else {
+        setNhatScanResult({ status: 'already_used', message: data.error, ticket: data.ticket, code: idToScan.trim().toUpperCase() });
+      }
+    } catch (err) {
+      setNhatScanResult({ status: 'error', message: 'Lỗi mạng hoặc server', code: idToScan.trim().toUpperCase() });
+    } finally {
+      setNhatScanning(false);
+      if (nhatScanInputRef.current) {
+        nhatScanInputRef.current.focus();
+      }
+    }
+  };
+
+  const fetchNhatTickets = (silent = false) => {
+    if (!silent) setLoadingNhatTickets(true);
+    fetch(`${API_URL}/api/nhat/tickets`)
+      .then(res => res.json())
+      .then(data => {
+        setNhatTickets(data);
+        if (!silent) setLoadingNhatTickets(false);
+      })
+      .catch(err => {
+        console.error('Error fetching nhat tickets:', err);
+        if (!silent) setLoadingNhatTickets(false);
+      });
+  };
+
+  const fetchNhatCheckouts = (silent = false) => {
+    if (!silent) setLoadingNhatCheckouts(true);
+    fetch(`${API_URL}/api/nhat/checkouts`)
+      .then(res => res.json())
+      .then(data => {
+        setNhatCheckouts(data);
+        if (!silent) setLoadingNhatCheckouts(false);
+      })
+      .catch(err => {
+        console.error('Error fetching nhat checkouts:', err);
+        if (!silent) setLoadingNhatCheckouts(false);
+      });
+  };
+
+  // eslint-disable-next-line no-unused-vars
+  const handleCheckinNhatTicket = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/api/nhat/tickets/${id}/checkin`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (res.ok) {
+        fetchNhatTickets(true);
+      } else {
+        const data = await res.json();
+        alert('Check-in failed: ' + data.error);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error checking in ticket.');
+    }
+  };
+
+  const handleDeleteNhatTicket = async (id) => {
+    if (!window.confirm(language === 'vi' ? 'Bạn có chắc chắn muốn xóa vé này không?' : 'Are you sure you want to delete this ticket?')) return;
+    try {
+      const res = await fetch(`${API_URL}/api/nhat/tickets/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchNhatTickets(true);
+        if (expandedNhatTicketId === id) setExpandedNhatTicketId(null);
+      } else {
+        const data = await res.json();
+        alert('Delete failed: ' + data.error);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error deleting ticket.');
+    }
+  };
+
+  const handleDeleteNhatCheckout = async (id) => {
+    if (!window.confirm(language === 'vi' ? 'Bạn có chắc chắn muốn xóa checkout này không?' : 'Are you sure you want to delete this checkout?')) return;
+    try {
+      const res = await fetch(`${API_URL}/api/nhat/checkouts/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchNhatCheckouts(true);
+        if (expandedNhatCheckoutId === id) setExpandedNhatCheckoutId(null);
+      } else {
+        const data = await res.json();
+        alert('Delete failed: ' + data.error);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error deleting checkout.');
+    }
+  };
+
+  const exportNhatTicketsToExcel = () => {
+    const dataToExport = nhatTickets
+      .filter(t => t.isCheckedIn) // Chỉ xuất những vé đã check-in
+      .filter(t => {
+        if (!ftuFilter) return true;
+        const schoolName = (t.school || '').toLowerCase();
+        return schoolName.includes('ngoại thương') || schoolName.includes('ftu');
+      })
+      .map((t, index) => {
+        let mssv = '';
+        let lop = t.studentInfo || '';
+        if (t.studentInfo) {
+          const mssvMatch = t.studentInfo.match(/\b\d{8,10}\b/);
+          if (mssvMatch) {
+            mssv = mssvMatch[0];
+            lop = t.studentInfo.replace(mssv, '').replace(/^[,\-\s]+|[,\-\s]+$/g, '').trim();
+          }
+        }
+        return {
+          'STT': index + 1,
+          'Họ và tên': t.fullName,
+          'MSSV': mssv,
+          'Lớp': lop,
+          'Ngày giờ checkin': t.checkInDate ? new Date(t.checkInDate).toLocaleString('vi-VN') : '',
+          'Mã vé': t.ticketCode
+        };
+      });
+
+    if (dataToExport.length === 0) {
+      alert('Không có dữ liệu để xuất Excel');
+      return;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "NhatTickets");
+    XLSX.writeFile(workbook, "nhat_checkin.xlsx");
+  };
+
   const [emailModalData, setEmailModalData] = useState(null);
 
   const fetchAnalytics = () => {
@@ -652,6 +831,10 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     if (activeAdminTab === 'staff') fetchStaffAccounts();
     if (activeAdminTab === 'nhat') fetchNhatSubmissions();
     if (activeAdminTab === 'casting') fetchCastingSubmissions();
+    if (activeAdminTab === 'nhat-checkin') {
+      fetchNhatTickets();
+      fetchNhatCheckouts();
+    }
   }, [events, activeAdminTab]);
 
   // Auto-sync the history tabs (bookings ledger, CTV applications, coupons, staff, Nhất entries)
@@ -665,6 +848,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     if (activeAdminTab === 'staff') fetchFn = () => fetchStaffAccounts(true);
     if (activeAdminTab === 'nhat') fetchFn = () => fetchNhatSubmissions(true);
     if (activeAdminTab === 'casting') fetchFn = () => fetchCastingSubmissions(true);
+    if (activeAdminTab === 'nhat-checkin') fetchFn = () => { fetchNhatTickets(true); fetchNhatCheckouts(true); };
     if (!fetchFn) return;
     const interval = setInterval(fetchFn, 5000);
     return () => clearInterval(interval);
@@ -1039,10 +1223,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     { id: 'applications', icon: 'assignment_ind', label: language === 'vi' ? 'Đơn ứng tuyển CTV' : 'CTV Applications' },
     { id: 'staff', icon: 'badge', label: language === 'vi' ? 'Nhân viên' : 'Staff' },
     { id: 'nhat', icon: 'checkroom', label: language === 'vi' ? 'Bài dự thi Nhất' : 'Nhất Entries' },
+    { id: 'nhat-checkin', icon: 'local_activity', label: language === 'vi' ? 'Nhất Check-in' : 'Nhất Check-in' },
     { id: 'casting', icon: 'accessibility_new', label: language === 'vi' ? 'Đơn Casting Model' : 'Model Casting' },
   ].filter(tab => {
-    if (isNhatViewer) return tab.id === 'nhat';
-    if (isStaff) return tab.id === 'bookings' || tab.id === 'applications' || tab.id === 'nhat' || tab.id === 'casting';
+    if (isNhatViewer) return tab.id === 'nhat' || tab.id === 'nhat-checkin';
+    if (isStaff) return tab.id === 'bookings' || tab.id === 'applications' || tab.id === 'nhat' || tab.id === 'casting' || tab.id === 'nhat-checkin';
     return true;
   });
 
@@ -1109,6 +1294,18 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
             handleCheckIn(code);
           }}
           onClose={() => setShowScanner(false)}
+        />
+      )}
+
+      {/* Full-screen QR Scanner Overlay for Nhat */}
+      {showNhatScanner && (
+        <QrScannerOverlay
+          language={language}
+          onScan={(code) => {
+            setShowNhatScanner(false);
+            handleCheckinNhatTicketScan(code);
+          }}
+          onClose={() => setShowNhatScanner(false)}
         />
       )}
 
@@ -2045,6 +2242,339 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                       </div>
                     );
                   })}
+                </div>
+              )}
+            </div>
+          ) : activeAdminTab === 'nhat-checkin' ? (
+            <div className="mfc-card animate-fade-in" style={{ padding: 32 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 16, marginBottom: 20, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
+                <h3 className="serif" style={{ color: '#fff', fontSize: 22, margin: 0 }}>
+                  {language === 'vi' ? 'Nhất Check-in' : 'Nhất Check-in'}
+                </h3>
+              </div>
+
+              {/* ── Live Scanner ── */}
+              <h3 style={sectionLabelStyle}>{language === 'vi' ? 'Quét mã trực tiếp' : 'Live Scanner'}</h3>
+              <button
+                onClick={() => { setNhatScanResult(null); setShowNhatScanner(true); }}
+                className="btn-pill"
+                style={{ width: '100%', justifyContent: 'center', marginBottom: 18, padding: '14px 20px' }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>photo_camera</span>
+                {language === 'vi' ? 'Bật camera quét QR' : 'Start Camera Scanner'}
+              </button>
+
+              <p style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>
+                {language === 'vi' ? 'Hoặc nhập mã vé thủ công' : 'Or enter ticket code manually'}
+              </p>
+              <form onSubmit={(e) => { e.preventDefault(); handleCheckinNhatTicketScan(); }} style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
+                <input
+                  ref={nhatScanInputRef}
+                  autoFocus
+                  type="text"
+                  value={nhatScanTicketId}
+                  onChange={(e) => setNhatScanTicketId(e.target.value)}
+                  placeholder="NHATXXXXXX"
+                  className="mfc-input"
+                  style={{ fontFamily: 'monospace' }}
+                  required
+                />
+                <button type="submit" disabled={nhatScanning} className="btn-pill" style={{ flexShrink: 0 }}>
+                  {nhatScanning ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: 18 }}>sync</span> : (language === 'vi' ? 'Quét' : 'Scan')}
+                </button>
+              </form>
+
+              {/* ── Scan Result Card ── */}
+              {nhatScanResult && (() => {
+                const isValid = nhatScanResult.status === 'valid';
+                const isUsed = nhatScanResult.status === 'already_used';
+                const d = nhatScanResult.ticket; // the Nhat ticket
+
+                const cfg = isValid
+                  ? { color: 'var(--mint)', bg: 'rgba(158, 254, 253, 0.1)', icon: 'check_circle', label: language === 'vi' ? 'HỢP LỆ — VÀO CỬA' : 'VALID — ADMITTED' }
+                  : isUsed
+                    ? { color: '#ffb800', bg: 'rgba(255, 184, 0, 0.1)', icon: 'warning', label: language === 'vi' ? 'ĐÃ SỬ DỤNG' : 'ALREADY USED' }
+                    : { color: '#ff6b6b', bg: 'rgba(255, 107, 107, 0.1)', icon: 'cancel', label: language === 'vi' ? 'KHÔNG TÌM THẤY' : 'NOT FOUND' };
+
+                return (
+                  <div style={{ marginBottom: 28, borderRadius: 20, overflow: 'hidden', border: `1px solid ${cfg.color}55`, background: 'var(--card-bg)', boxShadow: `0 8px 32px ${cfg.bg}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', background: cfg.bg, borderBottom: `1px solid ${cfg.color}33` }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 28, color: cfg.color }}>{cfg.icon}</span>
+                      <span style={{ fontSize: 14, fontWeight: 900, letterSpacing: '.1em', color: cfg.color, textTransform: 'uppercase' }}>{cfg.label}</span>
+                      <button onClick={() => setNhatScanResult(null)} style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.1)', border: 'none', cursor: 'pointer', color: '#fff', display: 'flex', width: 32, height: 32, borderRadius: '50%', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
+                      </button>
+                    </div>
+
+                    {d ? (
+                      <div className="admin-scan-grid" style={{ padding: '24px 20px', fontSize: 14 }}>
+                        <style>{`
+                          .admin-scan-grid { display: flex; flex-direction: column; gap: 20px; }
+                        `}</style>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          <div>
+                            <p style={{ color: 'var(--muted)', fontSize: 11, textTransform: 'uppercase', margin: '0 0 4px', letterSpacing: '.05em' }}>Mã vé</p>
+                            <p style={{ color: '#fff', margin: 0, fontWeight: 700, fontFamily: 'monospace', fontSize: 16 }}>{d.ticketCode}</p>
+                          </div>
+                          <div>
+                            <p style={{ color: 'var(--muted)', fontSize: 11, textTransform: 'uppercase', margin: '0 0 4px', letterSpacing: '.05em' }}>Khách hàng</p>
+                            <p style={{ color: '#fff', margin: 0, fontWeight: 700, fontSize: 16 }}>{d.fullName}</p>
+                          </div>
+                          <div>
+                            <p style={{ color: 'var(--muted)', fontSize: 11, textTransform: 'uppercase', margin: '0 0 4px', letterSpacing: '.05em' }}>Trường học</p>
+                            <p style={{ color: '#e0dbff', margin: 0 }}>{d.school}</p>
+                          </div>
+                          <div>
+                            <p style={{ color: 'var(--muted)', fontSize: 11, textTransform: 'uppercase', margin: '0 0 4px', letterSpacing: '.05em' }}>Mã SV / Lớp</p>
+                            <p style={{ color: '#e0dbff', margin: 0 }}>{d.studentInfo}</p>
+                          </div>
+                          <div style={{ marginTop: 12, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,.05)' }}>
+                            <p style={{ color: 'var(--muted)', fontSize: 11, textTransform: 'uppercase', margin: '0 0 4px', letterSpacing: '.05em' }}>Tình trạng Check-in</p>
+                            <p style={{ color: d.isCheckedIn ? 'var(--mint)' : '#ffb800', margin: 0, fontWeight: 700 }}>
+                              {d.isCheckedIn ? `Đã Check-in vào lúc ${new Date(d.checkInDate).toLocaleString('vi-VN')}` : 'Chưa Check-in'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <p style={{ padding: 24, fontSize: 14, color: '#ff6b6b', margin: 0, textAlign: 'center' }}>{nhatScanResult.message}</p>
+                    )}
+                  </div>
+                );
+              })()}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 16, marginBottom: 20, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
+                <h3 className="serif" style={{ color: '#fff', fontSize: 18, margin: 0 }}>
+                  {language === 'vi' ? 'Danh sách vé' : 'Ticket List'}
+                </h3>
+                {nhatCheckinTab === 'checked_in' && (
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--muted)', fontSize: 13, cursor: 'pointer' }}>
+                      <input type="checkbox" checked={ftuFilter} onChange={(e) => setFtuFilter(e.target.checked)} />
+                      {language === 'vi' ? 'Lọc sinh viên FTU' : 'Filter FTU Students'}
+                    </label>
+                    <button onClick={exportNhatTicketsToExcel} className="btn-outline-pill" style={{ fontSize: 12, padding: '8px 16px' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>download</span>
+                      {language === 'vi' ? 'Xuất Excel' : 'Export Excel'}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
+                <button
+                  onClick={() => setNhatCheckinTab('pending')}
+                  className={nhatCheckinTab === 'pending' ? 'btn-pill' : 'btn-outline-pill'}
+                  style={{ padding: '8px 16px', fontSize: 13, whiteSpace: 'nowrap' }}
+                >
+                  {language === 'vi' ? `Chưa check-in (${nhatTickets.filter(t => !t.isCheckedIn).length})` : `Pending (${nhatTickets.filter(t => !t.isCheckedIn).length})`}
+                </button>
+                <button
+                  onClick={() => setNhatCheckinTab('checked_in')}
+                  className={nhatCheckinTab === 'checked_in' ? 'btn-pill' : 'btn-outline-pill'}
+                  style={{ padding: '8px 16px', fontSize: 13, whiteSpace: 'nowrap' }}
+                >
+                  {language === 'vi' ? `Đã check-in (${nhatTickets.filter(t => t.isCheckedIn).length})` : `Checked In (${nhatTickets.filter(t => t.isCheckedIn).length})`}
+                </button>
+                <button
+                  onClick={() => setNhatCheckinTab('checked_out')}
+                  className={nhatCheckinTab === 'checked_out' ? 'btn-pill' : 'btn-outline-pill'}
+                  style={{ padding: '8px 16px', fontSize: 13, whiteSpace: 'nowrap' }}
+                >
+                  {language === 'vi' ? `Đã checkout (${nhatCheckouts.length})` : `Checked Out (${nhatCheckouts.length})`}
+                </button>
+                <button
+                  onClick={() => setNhatCheckinTab('both')}
+                  className={nhatCheckinTab === 'both' ? 'btn-pill' : 'btn-outline-pill'}
+                  style={{ padding: '8px 16px', fontSize: 13, whiteSpace: 'nowrap' }}
+                >
+                  {language === 'vi' ? `Đã check-in & checkout` : `Both In & Out`}
+                </button>
+              </div>
+
+              {loadingNhatTickets ? (
+                <p style={{ textAlign: 'center', padding: '60px 0', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', fontSize: 12 }}>
+                  {language === 'vi' ? 'Đang tải...' : 'Loading...'}
+                </p>
+              ) : nhatTickets.length === 0 ? (
+                <p style={{ textAlign: 'center', padding: '32px 0', color: 'var(--muted)', fontSize: 13 }}>
+                  {language === 'vi' ? 'Chưa có vé nào.' : 'No tickets yet.'}
+                </p>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--line)', color: 'var(--muted)' }}>
+                        <th style={{ padding: '12px 8px', fontWeight: 600 }}>Mã vé</th>
+                        <th style={{ padding: '12px 8px', fontWeight: 600 }}>Họ và tên</th>
+                        <th style={{ padding: '12px 8px', fontWeight: 600 }}>Trường</th>
+                        <th style={{ padding: '12px 8px', fontWeight: 600 }}>Mã SV / Lớp</th>
+                        {nhatCheckinTab !== 'checked_out' && <th style={{ padding: '12px 8px', fontWeight: 600 }}>Câu hỏi</th>}
+                        <th style={{ padding: '12px 8px', fontWeight: 600 }}>{nhatCheckinTab === 'checked_out' ? 'Checkout' : (nhatCheckinTab === 'both' ? 'Thời gian' : 'Check-in')}</th>
+                        <th style={{ padding: '12px 8px', fontWeight: 600, textAlign: 'center' }}>Hành động</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {nhatCheckinTab === 'checked_out' ? (
+                        nhatCheckouts.filter(t => {
+                          if (!ftuFilter) return true;
+                          const s = (t.school || '').toLowerCase();
+                          return s.includes('ngoại thương') || s.includes('ftu');
+                        }).map(checkout => (
+                          <React.Fragment key={checkout._id}>
+                            <tr style={{ borderBottom: '1px solid rgba(168,150,246,.1)' }}>
+                              <td style={{ padding: '12px 8px', fontFamily: 'monospace', color: 'var(--purple)', fontWeight: 700 }}>{checkout.ticketCode}</td>
+                              <td style={{ padding: '12px 8px', color: '#fff' }}>{checkout.fullName}</td>
+                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{checkout.school}</td>
+                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{checkout.studentInfo}</td>
+                              <td style={{ padding: '12px 8px' }}>
+                                <span style={{ color: 'var(--mint)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check_circle</span>
+                                  {new Date(checkout.checkoutDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </td>
+                              <td style={{ padding: '12px 8px', textAlign: 'center' }}>
+                                <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                                  <button
+                                    onClick={() => setExpandedNhatCheckoutId(expandedNhatCheckoutId === checkout._id ? null : checkout._id)}
+                                    className="btn-outline-pill"
+                                    style={{ fontSize: 11, padding: '6px 12px', border: '1px solid var(--muted)', color: 'var(--muted)' }}
+                                  >
+                                    {expandedNhatCheckoutId === checkout._id ? 'Đóng' : 'Chi tiết'}
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteNhatCheckout(checkout._id)}
+                                    className="btn-outline-pill"
+                                    style={{ fontSize: 11, padding: '6px 12px', border: '1px solid #ff6b6b', color: '#ff6b6b' }}
+                                  >
+                                    Xóa
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                            {expandedNhatCheckoutId === checkout._id && (
+                              <tr style={{ borderBottom: '1px solid rgba(168,150,246,.1)', background: 'rgba(255,255,255,0.02)' }}>
+                                <td colSpan="7" style={{ padding: '16px 20px' }}>
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 16 }}>
+                                    <div>
+                                      <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Ảnh minh chứng Checkout</p>
+                                      {checkout.proofImage ? (
+                                        <img src={checkout.proofImage} alt="Checkout Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: checkout.proofImage, name: `${checkout.ticketCode}_Checkout` })} />
+                                      ) : <span style={{ color: 'var(--muted)' }}>Không có</span>}
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        ))
+                      ) : nhatCheckinTab === 'both' ? (
+                        nhatTickets.filter(t => {
+                          if (!t.isCheckedIn) return false;
+                          const norm = s => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
+                          const hasCheckout = nhatCheckouts.some(c => norm(c.ticketCode) === norm(t.ticketCode) && norm(c.fullName) === norm(t.fullName));
+                          if (!hasCheckout) return false;
+                          if (!ftuFilter) return true;
+                          const s = (t.school || '').toLowerCase();
+                          return s.includes('ngoại thương') || s.includes('ftu');
+                        }).map(ticket => {
+                          const norm = s => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
+                          const checkoutInfo = nhatCheckouts.find(c => norm(c.ticketCode) === norm(ticket.ticketCode) && norm(c.fullName) === norm(ticket.fullName));
+                          return (
+                          <React.Fragment key={ticket._id}>
+                            <tr style={{ borderBottom: '1px solid rgba(168,150,246,.1)' }}>
+                              <td style={{ padding: '12px 8px', fontFamily: 'monospace', color: 'var(--purple)', fontWeight: 700 }}>{ticket.ticketCode}</td>
+                              <td style={{ padding: '12px 8px', color: '#fff' }}>{ticket.fullName}</td>
+                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.school}</td>
+                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.studentInfo}</td>
+                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.question ? 'Có' : 'Không'}</td>
+                              <td style={{ padding: '12px 8px' }}>
+                                <span style={{ color: 'var(--mint)', display: 'flex', flexDirection: 'column', gap: 2, fontSize: 11 }}>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>In: {new Date(ticket.checkInDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Out: {new Date(checkoutInfo.checkoutDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+                                </span>
+                              </td>
+                              <td style={{ padding: '12px 8px', textAlign: 'center' }}>
+                                <span style={{ color: 'var(--mint)', fontWeight: 600 }}>Hoàn tất</span>
+                              </td>
+                            </tr>
+                          </React.Fragment>
+                        )})
+                      ) : (
+                        nhatTickets.filter(t => {
+                          if (nhatCheckinTab === 'pending' && t.isCheckedIn) return false;
+                          if (nhatCheckinTab === 'checked_in' && !t.isCheckedIn) return false;
+                          if (!ftuFilter) return true;
+                          const s = (t.school || '').toLowerCase();
+                          return s.includes('ngoại thương') || s.includes('ftu');
+                        }).map(ticket => (
+                          <React.Fragment key={ticket._id}>
+                            <tr style={{ borderBottom: '1px solid rgba(168,150,246,.1)' }}>
+                              <td style={{ padding: '12px 8px', fontFamily: 'monospace', color: 'var(--purple)', fontWeight: 700 }}>{ticket.ticketCode}</td>
+                              <td style={{ padding: '12px 8px', color: '#fff' }}>{ticket.fullName}</td>
+                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.school}</td>
+                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.studentInfo}</td>
+                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.question ? 'Có' : 'Không'}</td>
+                              <td style={{ padding: '12px 8px' }}>
+                                {ticket.isCheckedIn ? (
+                                  <span style={{ color: 'var(--mint)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check_circle</span>
+                                    {new Date(ticket.checkInDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                ) : (
+                                  <span style={{ color: 'var(--muted)' }}>Chưa</span>
+                                )}
+                              </td>
+                              <td style={{ padding: '12px 8px', textAlign: 'center' }}>
+                                  <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                                    <button
+                                      onClick={() => setExpandedNhatTicketId(expandedNhatTicketId === ticket._id ? null : ticket._id)}
+                                      className="btn-outline-pill"
+                                      style={{ fontSize: 11, padding: '6px 12px', border: '1px solid var(--muted)', color: 'var(--muted)' }}
+                                    >
+                                      {expandedNhatTicketId === ticket._id ? 'Đóng' : 'Chi tiết'}
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteNhatTicket(ticket._id)}
+                                      className="btn-outline-pill"
+                                      style={{ fontSize: 11, padding: '6px 12px', border: '1px solid #ff6b6b', color: '#ff6b6b' }}
+                                    >
+                                      Xóa
+                                    </button>
+                                  </div>
+                              </td>
+                            </tr>
+                            {expandedNhatTicketId === ticket._id && (
+                              <tr style={{ borderBottom: '1px solid rgba(168,150,246,.1)', background: 'rgba(255,255,255,0.02)' }}>
+                                <td colSpan="7" style={{ padding: '16px 20px' }}>
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 16 }}>
+                                    <div>
+                                      <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Minh chứng Like Bài</p>
+                                      {ticket.likePostProof ? (
+                                        <img src={ticket.likePostProof} alt="Like Post Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likePostProof, name: `${ticket.ticketCode}_LikePost` })} />
+                                      ) : <span style={{ color: 'var(--muted)' }}>Không có</span>}
+                                    </div>
+                                    <div>
+                                      <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Minh chứng Like Page</p>
+                                      {ticket.likePageProof ? (
+                                        <img src={ticket.likePageProof} alt="Like Page Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likePageProof, name: `${ticket.ticketCode}_LikePage` })} />
+                                      ) : <span style={{ color: 'var(--muted)' }}>Không có</span>}
+                                    </div>
+                                  </div>
+                                  {ticket.question && (
+                                    <div style={{ marginBottom: 16 }}>
+                                      <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Câu hỏi cho BTC</p>
+                                      <p style={{ color: '#e0dbff', margin: 0, fontSize: 13, background: 'rgba(0,0,0,0.2)', padding: 12, borderRadius: 8 }}>{ticket.question}</p>
+                                    </div>
+                                  )}
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>

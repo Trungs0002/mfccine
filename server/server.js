@@ -231,6 +231,34 @@ const CastingCallSubmissionSchema = new mongoose.Schema({
 
 const CastingCallSubmission = mongoose.model('CastingCallSubmission', CastingCallSubmissionSchema);
 
+// 9. Nhat Viewer Ticket Model
+const NhatTicketSchema = new mongoose.Schema({
+  fullName: { type: String, required: true },
+  school: { type: String, required: true },
+  studentInfo: { type: String, required: true },
+  likePostProof: { type: String, required: true },
+  likePageProof: { type: String, required: true },
+  question: { type: String, default: '' },
+  ticketCode: { type: String, required: true, unique: true },
+  isCheckedIn: { type: Boolean, default: false },
+  checkInDate: { type: Date },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const NhatTicket = mongoose.model('NhatTicket', NhatTicketSchema);
+
+// 10. Nhat Checkout Model
+const NhatCheckoutSchema = new mongoose.Schema({
+  ticketCode: { type: String, required: true },
+  fullName: { type: String, required: true },
+  school: { type: String, required: true },
+  studentInfo: { type: String, required: true },
+  proofImage: { type: String, required: true },
+  checkoutDate: { type: Date, default: Date.now }
+});
+
+const NhatCheckout = mongoose.model('NhatCheckout', NhatCheckoutSchema);
+
 // Generate unique ticket code: MFC-XXXXXXXX
 const generateTicketCode = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -1204,6 +1232,129 @@ app.delete('/api/casting-call-submissions/:id', async (req, res) => {
   try {
     await CastingCallSubmission.deleteOne({ _id: req.params.id });
     res.json({ message: 'Đã xóa hồ sơ casting' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// NHAT TICKETS
+app.post('/api/nhat/tickets', async (req, res) => {
+  try {
+    const { fullName, school, studentInfo, likePostProof, likePageProof, question } = req.body;
+    
+    // upload proofs to cloudinary
+    let postProofUrl = '';
+    if (likePostProof && likePostProof.startsWith('data:image')) {
+      const uploadRes = await cloudinary.uploader.upload(likePostProof, { folder: 'mfc_nhat_tickets' });
+      postProofUrl = uploadRes.secure_url;
+    }
+    let pageProofUrl = '';
+    if (likePageProof && likePageProof.startsWith('data:image')) {
+      const uploadRes = await cloudinary.uploader.upload(likePageProof, { folder: 'mfc_nhat_tickets' });
+      pageProofUrl = uploadRes.secure_url;
+    }
+
+    let ticketCode;
+    let isUnique = false;
+    while (!isUnique) {
+      // NHATxxxxxx
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      ticketCode = 'NHAT';
+      for (let i = 0; i < 6; i++) {
+        ticketCode += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      const existing = await NhatTicket.findOne({ ticketCode });
+      if (!existing) isUnique = true;
+    }
+
+    const ticket = await NhatTicket.create({
+      fullName, school, studentInfo, likePostProof: postProofUrl, likePageProof: pageProofUrl, question, ticketCode
+    });
+    res.status(201).json(ticket);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/nhat/tickets', async (req, res) => {
+  try {
+    const tickets = await NhatTicket.find().sort({ createdAt: -1 });
+    res.json(tickets);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/nhat/tickets/:id/checkin', async (req, res) => {
+  try {
+    const ticket = await NhatTicket.findById(req.params.id);
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    if (ticket.isCheckedIn) return res.status(400).json({ error: 'Already checked in' });
+    ticket.isCheckedIn = true;
+    ticket.checkInDate = new Date();
+    await ticket.save();
+    res.json(ticket);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/nhat/tickets/scan', async (req, res) => {
+  try {
+    const { ticketCode } = req.body;
+    if (!ticketCode) return res.status(400).json({ error: 'Missing ticket code' });
+    const ticket = await NhatTicket.findOne({ ticketCode });
+    if (!ticket) return res.status(404).json({ error: 'Vé không tồn tại hoặc sai mã.' });
+    if (ticket.isCheckedIn) return res.status(400).json({ error: 'Vé này đã được check-in trước đó.', ticket });
+    ticket.isCheckedIn = true;
+    ticket.checkInDate = new Date();
+    await ticket.save();
+    res.json({ message: 'Check-in thành công!', ticket });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/nhat/tickets/:id', async (req, res) => {
+  try {
+    const ticket = await NhatTicket.findById(req.params.id);
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    await NhatTicket.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Nhat Checkout Routes
+app.get('/api/nhat/checkouts', async (req, res) => {
+  try {
+    const checkouts = await NhatCheckout.find().sort({ checkoutDate: -1 });
+    res.json(checkouts);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/nhat/checkouts', async (req, res) => {
+  try {
+    const { ticketCode, fullName, school, studentInfo, proofImage } = req.body;
+    if (!ticketCode || !fullName || !school || !studentInfo || !proofImage) {
+      return res.status(400).json({ error: 'Missing fields' });
+    }
+    
+    // Upload base64 image to cloudinary
+    let proofUrl = '';
+    if (proofImage.startsWith('data:image')) {
+      const uploadRes = await cloudinary.uploader.upload(proofImage, { folder: 'nhat_checkouts' });
+      proofUrl = uploadRes.secure_url;
+    } else {
+      proofUrl = proofImage;
+    }
+
+    const checkout = await NhatCheckout.create({
+      ticketCode: ticketCode.toUpperCase().trim(),
+      fullName,
+      school,
+      studentInfo,
+      proofImage: proofUrl
+    });
+    res.status(201).json(checkout);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/nhat/checkouts/:id', async (req, res) => {
+  try {
+    const checkout = await NhatCheckout.findById(req.params.id);
+    if (!checkout) return res.status(404).json({ error: 'Checkout not found' });
+    await NhatCheckout.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
