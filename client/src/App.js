@@ -136,7 +136,7 @@ function AppContent() {
           <Route path="/landing"   element={<LandingPage events={events} setEvent={setSelectedEvent} settings={settings} user={user} />} />
           <Route path="/about"     element={<AboutPage />} />
           <Route path="/recruit"   element={<RecruitPage settings={settings} />} />
-          <Route path="/nhat"      element={<NhatPage />} />
+          <Route path="/nhat"      element={<NhatPage settings={settings} />} />
           <Route path="/casting-call" element={<CastingCallPage />} />
           <Route path="/login"     element={user ? <Navigate to="/" /> : <LoginPage setUser={setUser} />} />
           <Route path="/register"  element={user ? <Navigate to="/" /> : <RegisterPage setUser={setUser} />} />

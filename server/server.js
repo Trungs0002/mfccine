@@ -53,7 +53,8 @@ const SettingsSchema = new mongoose.Schema({
   contactEmail: { type: String, default: 'support@ftufashionshow.com' },
   ticketSalesEnabled: { type: Boolean, default: true },
   adminTestSalesEnabled: { type: Boolean, default: true },
-  recruitFormEnabled: { type: Boolean, default: false }
+  recruitFormEnabled: { type: Boolean, default: false },
+  nhatFormEnabled: { type: Boolean, default: false }
 });
 
 const Settings = mongoose.model('Settings', SettingsSchema);
@@ -376,7 +377,7 @@ app.get('/api/settings', async (req, res) => {
 
 app.put('/api/settings', async (req, res) => {
   try {
-    const { siteName, siteTagline, contactEmail, ticketSalesEnabled, adminTestSalesEnabled, recruitFormEnabled } = req.body;
+    const { siteName, siteTagline, contactEmail, ticketSalesEnabled, adminTestSalesEnabled, recruitFormEnabled, nhatFormEnabled } = req.body;
     let settings = await Settings.findOne();
     if (!settings) settings = new Settings();
     if (siteName) settings.siteName = siteName;
@@ -385,6 +386,7 @@ app.put('/api/settings', async (req, res) => {
     if (typeof ticketSalesEnabled === 'boolean') settings.ticketSalesEnabled = ticketSalesEnabled;
     if (typeof adminTestSalesEnabled === 'boolean') settings.adminTestSalesEnabled = adminTestSalesEnabled;
     if (typeof recruitFormEnabled === 'boolean') settings.recruitFormEnabled = recruitFormEnabled;
+    if (typeof nhatFormEnabled === 'boolean') settings.nhatFormEnabled = nhatFormEnabled;
     await settings.save();
     res.json(settings);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -1078,6 +1080,11 @@ const isJpegOrPngDataUri = (str) => typeof str === 'string' && /^data:image\/(jp
 
 app.post('/api/nhat-submissions', async (req, res) => {
   try {
+    const settings = await Settings.findOne();
+    if (settings && !settings.nhatFormEnabled) {
+      return res.status(403).json({ error: 'Nhat form submissions are currently closed.' });
+    }
+
     const { fullName, email, phone, school, note, outfits } = req.body;
     if (!fullName || !email || !phone || !outfits || !Array.isArray(outfits) || outfits.length === 0) {
       return res.status(400).json({ error: 'Missing required fields or outfits.' });

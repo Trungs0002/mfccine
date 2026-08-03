@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { API_URL } from '../apiConfig';
 
 const fieldLabelStyle = { display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 };
 const errorTextStyle = { color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' };
@@ -94,7 +95,7 @@ const JudgeCard = ({ index, vi }) => (
 
 const HERO_IMAGES = ['/nhat.jpg', '/nhat2.jpg', '/nhat3.jpg', '/nhat4.jpg'];
 
-const NhatPage = () => {
+const NhatPage = ({ settings }) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const vi = language === 'vi';
@@ -149,7 +150,55 @@ const NhatPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitStatus('closed');
+    
+    // Disable form submission if the form is closed in settings
+    if (settings && !settings.nhatFormEnabled) {
+      setSubmitStatus('closed');
+      return;
+    }
+
+    // Optional: add a simple validation step
+    const newErrors = {};
+    if (!formData.fullName.trim()) newErrors.fullName = vi ? 'Vui lòng nhập họ và tên' : 'Please enter your full name';
+    if (!formData.email.trim()) newErrors.email = vi ? 'Vui lòng nhập email' : 'Please enter your email';
+    if (!formData.phone.trim()) newErrors.phone = vi ? 'Vui lòng nhập số điện thoại' : 'Please enter your phone number';
+    if (!formData.note.trim()) newErrors.note = vi ? 'Vui lòng điền ghi chú thêm' : 'Please add additional notes';
+    
+    outfits.forEach((outfit, index) => {
+      if (!outfit.name.trim()) newErrors[`outfitName_${index}`] = vi ? 'Vui lòng nhập tên bộ đồ' : 'Please enter outfit name';
+      if (!outfit.designImage) newErrors[`designImage_${index}`] = vi ? 'Vui lòng tải lên ảnh bản vẽ' : 'Please upload design sketch';
+      if (!outfit.outfitPhoto1) newErrors[`outfitPhoto1_${index}`] = vi ? 'Vui lòng tải lên ảnh chụp 1' : 'Please upload photo 1';
+      if (!outfit.outfitPhoto2) newErrors[`outfitPhoto2_${index}`] = vi ? 'Vui lòng tải lên ảnh chụp 2' : 'Please upload photo 2';
+    });
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setSubmitStatus('error');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/api/nhat-submissions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, outfits }),
+      });
+      if (res.ok) {
+        setSubmitStatus('success');
+      } else {
+        const data = await res.json();
+        console.error('Submission failed:', data.error);
+        if (data.error === 'Nhat form submissions are currently closed.') {
+          setSubmitStatus('closed');
+        } else {
+          setSubmitStatus('error');
+        }
+      }
+    } catch (err) {
+      console.error('Error submitting form:', err);
+      setSubmitStatus('error');
+    }
+
     const section = document.getElementById('submission-section');
     if (section) {
       const topOffset = section.getBoundingClientRect().top + window.scrollY - 80;
@@ -157,8 +206,6 @@ const NhatPage = () => {
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    return;
-    
   };
 
   return (

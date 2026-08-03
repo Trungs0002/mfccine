@@ -469,6 +469,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const [ticketSalesEnabled, setTicketSalesEnabled] = useState(settings?.ticketSalesEnabled !== false);
   const [adminTestSalesEnabled, setAdminTestSalesEnabled] = useState(settings?.adminTestSalesEnabled !== false);
   const [recruitFormEnabled, setRecruitFormEnabled] = useState(settings?.recruitFormEnabled || false);
+  const [nhatFormEnabled, setNhatFormEnabled] = useState(settings?.nhatFormEnabled || false);
   const [updatingSettings, setUpdatingSettings] = useState(false);
 
   // Bilingual Event Management states
@@ -786,7 +787,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     fetch(`${API_URL}/api/settings`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ siteName, siteTagline, contactEmail: 'support@ftufashionshow.com', ticketSalesEnabled, adminTestSalesEnabled, recruitFormEnabled })
+      body: JSON.stringify({ siteName, siteTagline, contactEmail: 'support@ftufashionshow.com', ticketSalesEnabled, adminTestSalesEnabled, recruitFormEnabled, nhatFormEnabled })
     })
       .then(res => res.json())
       .then(data => {
@@ -1246,6 +1247,34 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                       <div
                         style={{
                           position: 'absolute', top: 3, left: recruitFormEnabled ? 25 : 3, width: 20, height: 20, borderRadius: '50%',
+                          background: '#fff', transition: 'all .3s', boxShadow: '0 2px 5px rgba(0,0,0,.2)'
+                        }}
+                      />
+                    </button>
+                  </div>
+
+                  <div style={{ flex: '1 1 100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(168,150,246,.28)', background: 'rgba(1,1,10,.4)' }}>
+                    <div>
+                      <div style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>
+                        {language === 'vi' ? 'Nhận đơn đăng ký NHẤT' : 'Accept NHAT Submissions'}
+                      </div>
+                      <div style={{ color: 'var(--muted)', fontSize: 11, marginTop: 2 }}>
+                        {language === 'vi'
+                          ? 'Mở để cho phép gửi bài thi ở trang NHẤT. Tắt để đóng form và hiện thông báo kết thúc đợt nộp.'
+                          : 'Turn on to allow submissions on the NHAT page. Turn off to close the form and show the expired message.'}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setNhatFormEnabled(v => !v)}
+                      style={{
+                        position: 'relative', width: 48, height: 26, borderRadius: 999, border: 'none', cursor: 'pointer', transition: 'all .3s',
+                        background: nhatFormEnabled ? 'linear-gradient(135deg, var(--ultra), var(--purple))' : 'rgba(255,255,255,.15)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: 'absolute', top: 3, left: nhatFormEnabled ? 25 : 3, width: 20, height: 20, borderRadius: '50%',
                           background: '#fff', transition: 'all .3s', boxShadow: '0 2px 5px rgba(0,0,0,.2)'
                         }}
                       />
