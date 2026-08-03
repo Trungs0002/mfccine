@@ -173,7 +173,6 @@ const NhatPage = ({ settings }) => {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      setSubmitStatus('error');
       return;
     }
 
