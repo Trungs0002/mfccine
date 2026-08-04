@@ -70,6 +70,11 @@ const NhatViewerRegisterPage = ({ settings }) => {
       e.target.value = '';
       return;
     }
+    if (file.size > 200 * 1024 * 1024) {
+      setViewerErrors(er => ({ ...er, [field]: vi ? 'Kích thước ảnh không được vượt quá 200MB.' : 'Image size cannot exceed 200MB.' }));
+      e.target.value = '';
+      return;
+    }
     const base64 = await fileToBase64(file);
     setViewerFormData(f => ({ ...f, [field]: base64 }));
     setViewerErrors(er => (er[field] ? { ...er, [field]: undefined } : er));
@@ -83,8 +88,10 @@ const NhatViewerRegisterPage = ({ settings }) => {
     else if (!/^\S+@\S+\.\S+$/.test(viewerFormData.email)) newErrors.email = vi ? 'Email không hợp lệ' : 'Invalid email';
     if (!viewerFormData.schoolOption) newErrors.schoolOption = vi ? 'Vui lòng chọn trường' : 'Please select a school';
     else if (viewerFormData.schoolOption === 'Trường khác' && !viewerFormData.school.trim()) newErrors.school = vi ? 'Vui lòng nhập tên trường' : 'Please enter your school';
-    if (!viewerFormData.studentId.trim()) newErrors.studentId = vi ? 'Vui lòng nhập MSSV' : 'Please enter your student ID';
-    if (!viewerFormData.classInfo.trim()) newErrors.classInfo = vi ? 'Vui lòng nhập lớp - ngành - khóa' : 'Please enter class - major - cohort';
+    if (viewerFormData.schoolOption === 'FTU') {
+      if (!viewerFormData.studentId.trim()) newErrors.studentId = vi ? 'Vui lòng nhập MSSV' : 'Please enter your student ID';
+      if (!viewerFormData.classInfo.trim()) newErrors.classInfo = vi ? 'Vui lòng nhập lớp - ngành - khóa' : 'Please enter class - major - cohort';
+    }
     if (!viewerFormData.likePostProof) newErrors.likePostProof = vi ? 'Vui lòng tải lên minh chứng bài viết' : 'Please upload proof';
     if (!viewerFormData.likePageProof) newErrors.likePageProof = vi ? 'Vui lòng tải lên minh chứng trang MFC' : 'Please upload proof';
     if (!viewerFormData.likeFfsPageProof) newErrors.likeFfsPageProof = vi ? 'Vui lòng tải lên minh chứng trang FTU Fashion Show' : 'Please upload proof';
@@ -96,13 +103,20 @@ const NhatViewerRegisterPage = ({ settings }) => {
 
     setViewerSubmitStatus('submitting');
     try {
+      const payload = { ...viewerFormData };
+      if (payload.schoolOption === 'Trường khác') {
+        payload.studentId = 'Trường khác';
+        payload.classInfo = 'Trường khác';
+      }
+
       const res = await fetch(`${API_URL}/api/nhat/tickets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(viewerFormData),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         setViewerSubmitStatus('success');
+        window.scrollTo(0, 0);
       } else {
         alert(vi ? 'Có lỗi xảy ra, vui lòng thử lại.' : 'An error occurred, please try again.');
         setViewerSubmitStatus(null);
@@ -175,16 +189,20 @@ const NhatViewerRegisterPage = ({ settings }) => {
                   </div>
                 )}
               </div>
-              <div style={{ marginBottom: 16 }}>
-                <label style={fieldLabelStyle}>{vi ? 'Mã sinh viên *' : 'Student ID *'}</label>
-                <input className="mfc-input" value={viewerFormData.studentId} onChange={setViewerField('studentId')} placeholder="VD: 23111111" />
-                {viewerErrors.studentId && <p style={errorTextStyle}>{viewerErrors.studentId}</p>}
-              </div>
-              <div style={{ marginBottom: 16 }}>
-                <label style={fieldLabelStyle}>{vi ? 'Lớp hành chính - ngành - khóa *' : 'Class - Major - Cohort *'}</label>
-                <input className="mfc-input" value={viewerFormData.classInfo} onChange={setViewerField('classInfo')} placeholder="VD: Anh 01 - CLCQT - K62" />
-                {viewerErrors.classInfo && <p style={errorTextStyle}>{viewerErrors.classInfo}</p>}
-              </div>
+              {viewerFormData.schoolOption === 'FTU' && (
+                <>
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={fieldLabelStyle}>{vi ? 'Mã sinh viên *' : 'Student ID *'}</label>
+                    <input className="mfc-input" value={viewerFormData.studentId} onChange={setViewerField('studentId')} placeholder="VD: 23111111" />
+                    {viewerErrors.studentId && <p style={errorTextStyle}>{viewerErrors.studentId}</p>}
+                  </div>
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={fieldLabelStyle}>{vi ? 'Lớp hành chính - ngành - khóa *' : 'Class - Major - Cohort *'}</label>
+                    <input className="mfc-input" value={viewerFormData.classInfo} onChange={setViewerField('classInfo')} placeholder="VD: Anh 01 - CLCQT - K62" />
+                    {viewerErrors.classInfo && <p style={errorTextStyle}>{viewerErrors.classInfo}</p>}
+                  </div>
+                </>
+              )}
               <div style={{ marginBottom: 16 }}>
                 <ImageUploadField
                   label={vi ? 'Minh chứng đã like bài mở đơn đăng kí' : 'Proof of liking the registration post'}

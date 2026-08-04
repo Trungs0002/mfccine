@@ -70,6 +70,11 @@ const NhatCheckoutPage = () => {
       e.target.value = '';
       return;
     }
+    if (file.size > 200 * 1024 * 1024) {
+      setErrors(er => ({ ...er, proofImage: vi ? 'Kích thước file vượt quá 200MB.' : 'File size exceeds 200MB.' }));
+      e.target.value = '';
+      return;
+    }
     const base64 = await fileToBase64(file);
     setFormData(f => ({ ...f, proofImage: base64 }));
     setErrors(er => (er.proofImage ? { ...er, proofImage: undefined } : er));
@@ -82,8 +87,10 @@ const NhatCheckoutPage = () => {
     if (!formData.fullName.trim()) newErrors.fullName = 'Vui lòng nhập họ tên';
     if (!formData.schoolOption) newErrors.schoolOption = 'Vui lòng chọn trường';
     else if (formData.schoolOption === 'Trường khác' && !formData.school.trim()) newErrors.school = 'Vui lòng nhập tên trường';
-    if (!formData.studentId.trim()) newErrors.studentId = 'Vui lòng nhập MSSV';
-    if (!formData.classInfo.trim()) newErrors.classInfo = 'Vui lòng nhập Lớp - Ngành - Khóa';
+    if (formData.schoolOption === 'FTU') {
+      if (!formData.studentId.trim()) newErrors.studentId = 'Vui lòng nhập MSSV';
+      if (!formData.classInfo.trim()) newErrors.classInfo = 'Vui lòng nhập Lớp - Ngành - Khóa';
+    }
     if (!formData.proofImage) newErrors.proofImage = 'Vui lòng tải ảnh minh chứng';
 
     if (Object.keys(newErrors).length > 0) {
@@ -93,13 +100,20 @@ const NhatCheckoutPage = () => {
 
     setStatus('submitting');
     try {
+      const payload = { ...formData };
+      if (payload.schoolOption === 'Trường khác') {
+        payload.studentId = 'Trường khác';
+        payload.classInfo = 'Trường khác';
+      }
+
       const res = await fetch(`${API_URL}/api/nhat/checkouts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
       if (res.ok) {
         setStatus('success');
+        window.scrollTo(0, 0);
       } else {
         setStatus('error');
       }
@@ -128,9 +142,6 @@ const NhatCheckoutPage = () => {
               <span className="material-symbols-outlined" style={{ fontSize: 64, color: 'var(--mint)', marginBottom: 16 }}>check_circle</span>
               <h3 className="serif" style={{ color: '#fff', fontSize: 24, margin: '0 0 12px' }}>Checkout thành công!</h3>
               <p style={{ color: 'var(--muted)' }}>Cảm ơn bạn đã tham gia sự kiện Nhất. Hẹn gặp lại bạn lần sau!</p>
-              <button onClick={() => { setStatus(null); setFormData({ ticketCode: '', fullName: '', schoolOption: '', school: '', studentId: '', classInfo: '', proofImage: null }); }} className="btn-pill" style={{ marginTop: 24 }}>
-                Checkout thêm người khác
-              </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
@@ -172,17 +183,21 @@ const NhatCheckoutPage = () => {
                 )}
               </div>
 
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: 13, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.05em' }}>Mã sinh viên *</label>
-                <input className="mfc-input" value={formData.studentId} onChange={setField('studentId')} placeholder="VD: 23111111" />
-                {errors.studentId && <p style={{ color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' }}>{errors.studentId}</p>}
-              </div>
+              {formData.schoolOption === 'FTU' && (
+                <>
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={{ display: 'block', fontSize: 13, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.05em' }}>Mã sinh viên *</label>
+                    <input className="mfc-input" value={formData.studentId} onChange={setField('studentId')} placeholder="VD: 23111111" />
+                    {errors.studentId && <p style={{ color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' }}>{errors.studentId}</p>}
+                  </div>
 
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: 13, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.05em' }}>Lớp hành chính - ngành - khóa *</label>
-                <input className="mfc-input" value={formData.classInfo} onChange={setField('classInfo')} placeholder="VD: Anh 01 - CLCQT - K62" />
-                {errors.classInfo && <p style={{ color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' }}>{errors.classInfo}</p>}
-              </div>
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={{ display: 'block', fontSize: 13, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.05em' }}>Lớp hành chính - ngành - khóa *</label>
+                    <input className="mfc-input" value={formData.classInfo} onChange={setField('classInfo')} placeholder="VD: Anh 01 - CLCQT - K62" />
+                    {errors.classInfo && <p style={{ color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' }}>{errors.classInfo}</p>}
+                  </div>
+                </>
+              )}
 
               <div style={{ marginBottom: 24 }}>
                 <ImageUploadField
