@@ -590,11 +590,11 @@ const NhatPage = ({ settings }) => {
             onClick={() => { navigate('/nhat-viewer-register'); window.scrollTo(0, 0); }}
             style={{
               position: 'relative',
-              fontSize: 'clamp(18px, 4vw, 24px)',
+              fontSize: 'clamp(14px, 3.5vw, 24px)',
               fontWeight: 900,
               textTransform: 'uppercase',
               letterSpacing: '.1em',
-              padding: '24px 72px',
+              padding: '24px clamp(32px, 8vw, 72px)',
               background: 'linear-gradient(135deg, var(--ultra), var(--purple))',
               color: '#fff',
               border: 'none',
@@ -604,7 +604,8 @@ const NhatPage = ({ settings }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              whiteSpace: 'nowrap'
             }}
           >
             <div style={{ position: 'absolute', top: 0, left: '-100%', width: '50%', height: '100%', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)', transform: 'skewX(-20deg)', animation: 'nhat-shimmer 2.5s infinite' }} />
