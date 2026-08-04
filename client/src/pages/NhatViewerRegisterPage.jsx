@@ -116,7 +116,7 @@ const NhatViewerRegisterPage = ({ settings }) => {
       });
       if (res.ok) {
         setViewerSubmitStatus('success');
-        window.scrollTo(0, 0);
+        setTimeout(() => document.getElementById('nhat-register-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
       } else {
         alert(vi ? 'Có lỗi xảy ra, vui lòng thử lại.' : 'An error occurred, please try again.');
         setViewerSubmitStatus(null);
@@ -128,8 +128,113 @@ const NhatViewerRegisterPage = ({ settings }) => {
   };
 
   return (
-    <div className="animate-fade-in nhat-page" style={{ paddingTop: 96, paddingBottom: 64, display: 'flex', justifyContent: 'center' }}>
-      <div className="mfc-card" style={{ padding: '32px 24px', maxWidth: 560, width: '100%', background: 'var(--card-bg)' }}>
+    <div className="animate-fade-in nhat-page" style={{ paddingTop: 96, paddingBottom: 64, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 32, paddingLeft: 20, paddingRight: 20 }}>
+      {viewerSubmitStatus !== 'success' && (
+        <div style={{ maxWidth: 640, width: '100%', display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* Top block: 2 Training points */}
+          <div style={{ textAlign: 'center', padding: '24px 16px', background: 'radial-gradient(ellipse at center, rgba(168,150,246,0.15) 0%, transparent 80%)' }}>
+            <h2 className="gradient-title-hero serif" style={{ fontSize: 'clamp(28px, 5vw, 42px)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', margin: '0 0 12px', lineHeight: 1.3 }}>
+              {vi ? 'Đăng ký ngay để nhận' : 'Register now to get'}
+              <br />
+              <span style={{ color: 'var(--mint)', textShadow: '0 0 20px rgba(85,255,200,0.5)', display: 'inline-block', marginTop: 4, WebkitTextFillColor: 'var(--mint)' }}>02 ĐIỂM RÈN LUYỆN</span>
+            </h2>
+            <p style={{ color: 'var(--muted)', fontSize: 15, margin: 0, fontStyle: 'italic', maxWidth: 480, marginInline: 'auto', lineHeight: 1.5 }}>
+              {vi ? 'Áp dụng cho sinh viên Ngoại Thương vào kỳ 1 năm học 2026-2027 khi tham gia sự kiện Nhất đầy đủ.' : 'Applicable for FTU students in Semester 1 of 2026-2027 if attending the event fully.'}
+            </p>
+          </div>
+          
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ color: 'var(--muted)', fontSize: 14, margin: 0, fontStyle: 'italic' }}>
+              {vi ? 'Ngoài ra, hãy tham gia Nhất để có cơ hội:' : 'Besides, join Nhất for the opportunity to:'}
+            </p>
+          </div>
+
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <img 
+              src="/ok123.jpg" 
+              alt="Quyền lợi tham dự Nhất" 
+              style={{ 
+                width: '100%', 
+                maxWidth: 640,
+                aspectRatio: '10 / 4',
+                borderRadius: 16, 
+                border: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                display: 'block',
+                objectFit: 'cover'
+              }} 
+            />
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24, padding: '16px 0' }}>
+            {/* Ticket 1 */}
+            <div style={{
+              position: 'relative',
+              background: 'linear-gradient(135deg, rgba(40,40,55,0.85), rgba(20,20,30,0.95))',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '3px solid var(--mint)',
+              borderRadius: 24,
+              WebkitMaskImage: 'radial-gradient(circle at 0px calc(50%), transparent 14px, black 15px), radial-gradient(circle at 100% calc(50%), transparent 14px, black 15px)',
+              WebkitMaskSize: '51% 100%',
+              WebkitMaskPosition: '0 0, 100% 0',
+              WebkitMaskRepeat: 'no-repeat',
+              overflow: 'hidden',
+              boxShadow: '0 15px 40px rgba(85,255,200,0.15)',
+              padding: '40px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              textAlign: 'center'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: 0, left: 0, right: 0, height: '100%',
+                background: 'radial-gradient(circle at 50% 0%, rgba(85,255,200,0.3) 0%, transparent 60%)',
+                pointerEvents: 'none',
+              }} />
+              
+              <p style={{ color: '#fff', fontSize: 15, margin: 0, lineHeight: 1.6, position: 'relative', zIndex: 1, fontWeight: 500 }}>
+                {vi ? 'Trực tiếp chiêm ngưỡng những thiết kế nguyên bản và cảm nhận các ý tưởng sáng tạo được hiện thực hóa trên sân khấu.' : 'Experience original designs and creative ideas brought to life on stage.'}
+              </p>
+            </div>
+
+            {/* Ticket 2 */}
+            <div style={{
+              position: 'relative',
+              background: 'linear-gradient(135deg, rgba(40,40,55,0.85), rgba(20,20,30,0.95))',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '3px solid var(--purple)',
+              borderRadius: 24,
+              WebkitMaskImage: 'radial-gradient(circle at 0px calc(50%), transparent 14px, black 15px), radial-gradient(circle at 100% calc(50%), transparent 14px, black 15px)',
+              WebkitMaskSize: '51% 100%',
+              WebkitMaskPosition: '0 0, 100% 0',
+              WebkitMaskRepeat: 'no-repeat',
+              overflow: 'hidden',
+              boxShadow: '0 15px 40px rgba(168,150,246,0.15)',
+              padding: '40px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              textAlign: 'center'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: 0, left: 0, right: 0, height: '100%',
+                background: 'radial-gradient(circle at 50% 0%, rgba(168,150,246,0.3) 0%, transparent 60%)',
+                pointerEvents: 'none',
+              }} />
+
+              <p style={{ color: '#fff', fontSize: 15, margin: 0, lineHeight: 1.6, position: 'relative', zIndex: 1, fontWeight: 500 }}>
+                {vi ? 'Đắm mình trong không gian thời trang, nơi mỗi thiết kế đều mang dấu ấn riêng và lan toả câu chuyện của người sáng tạo.' : 'Immerse yourself in a fashion atmosphere where every design tells a unique story.'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div id="nhat-register-card" className="mfc-card" style={{ padding: '32px 24px', maxWidth: 560, width: '100%', background: 'var(--card-bg)' }}>
         {viewerSubmitStatus === 'success' ? (
           <div style={{ textAlign: 'center' }}>
             <span className="material-symbols-outlined" style={{ fontSize: 48, color: 'var(--mint)', marginBottom: 16 }}>check_circle</span>
@@ -145,14 +250,14 @@ const NhatViewerRegisterPage = ({ settings }) => {
           </div>
         ) : (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <h3 className="serif" style={{ color: '#fff', fontSize: 22, margin: 0 }}>
-                {vi ? 'Đăng kí đến xem Nhất' : 'Register to Watch Nhất'}
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 40 }}>
+              <h3 className="gradient-title-hero serif" style={{ fontSize: 'clamp(20px, 4.5vw, 30px)', margin: 0, textTransform: 'uppercase', letterSpacing: '.05em', textAlign: 'center', fontWeight: 900, textShadow: '0 0 30px rgba(168,150,246,0.6)', whiteSpace: 'nowrap' }}>
+                {vi ? 'Đăng kí đến xem Nhất ngay!' : 'Register to Watch Nhất Now!'}
               </h3>
-              <button type="button" onClick={() => navigate('/nhat')} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer' }}>
-                <span className="material-symbols-outlined">close</span>
-              </button>
             </div>
+
+
+
             <form onSubmit={handleViewerSubmit}>
               <div style={{ marginBottom: 16 }}>
                 <label style={fieldLabelStyle}>{vi ? 'Họ và tên *' : 'Full Name *'}</label>

@@ -572,36 +572,45 @@ const NhatPage = ({ settings }) => {
 
       {/* Registration CTA */}
       <section style={{ padding: '32px 0 64px', display: 'flex', justifyContent: 'center' }}>
-        <button
-          onClick={() => { navigate('/nhat-viewer-register'); window.scrollTo(0, 0); }}
+        <div 
           style={{
-            position: 'relative',
-            fontSize: 'clamp(16px, 4vw, 20px)',
-            fontWeight: 800,
-            textTransform: 'uppercase',
-            letterSpacing: '.1em',
-            padding: '20px 48px',
-            borderRadius: 999,
-            background: 'linear-gradient(135deg, var(--ultra), var(--purple))',
-            color: '#fff',
-            border: 'none',
-            cursor: 'pointer',
-            boxShadow: '0 0 40px rgba(168,150,246, 0.4), inset 0 0 20px rgba(255,255,255, 0.3)',
-            transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-            overflow: 'hidden'
+            filter: 'drop-shadow(0 15px 30px rgba(168,150,246,0.4))',
+            transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.05) translateY(-4px)';
-            e.currentTarget.style.boxShadow = '0 0 60px rgba(168,150,246, 0.6), inset 0 0 20px rgba(255,255,255, 0.4)';
+            e.currentTarget.style.filter = 'drop-shadow(0 20px 50px rgba(168,150,246,0.7))';
+            e.currentTarget.style.transform = 'translateY(-4px) scale(1.05)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1) translateY(0)';
-            e.currentTarget.style.boxShadow = '0 0 40px rgba(168,150,246, 0.4), inset 0 0 20px rgba(255,255,255, 0.3)';
+            e.currentTarget.style.filter = 'drop-shadow(0 15px 30px rgba(168,150,246,0.4))';
+            e.currentTarget.style.transform = 'translateY(0) scale(1)';
           }}
         >
-          <div style={{ position: 'absolute', top: 0, left: '-100%', width: '50%', height: '100%', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)', transform: 'skewX(-20deg)', animation: 'nhat-shimmer 3s infinite' }} />
-          {vi ? 'Đăng kí đến xem Nhất' : 'Register to Watch Nhất'}
-        </button>
+          <button
+            onClick={() => { navigate('/nhat-viewer-register'); window.scrollTo(0, 0); }}
+            style={{
+              position: 'relative',
+              fontSize: 'clamp(18px, 4vw, 24px)',
+              fontWeight: 900,
+              textTransform: 'uppercase',
+              letterSpacing: '.1em',
+              padding: '24px 72px',
+              background: 'linear-gradient(135deg, var(--ultra), var(--purple))',
+              color: '#fff',
+              border: 'none',
+              cursor: 'pointer',
+              /* Hình lục giác (Hexagon) vuốt nhọn 2 đầu */
+              clipPath: 'polygon(24px 0, calc(100% - 24px) 0, 100% 50%, calc(100% - 24px) 100%, 24px 100%, 0 50%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{ position: 'absolute', top: 0, left: '-100%', width: '50%', height: '100%', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)', transform: 'skewX(-20deg)', animation: 'nhat-shimmer 2.5s infinite' }} />
+            {vi ? 'Đăng kí đến xem Nhất' : 'Register to Watch Nhất'}
+          </button>
+        </div>
       </section>
 
       {/* Timeline */}

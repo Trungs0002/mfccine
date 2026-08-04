@@ -113,7 +113,7 @@ const NhatCheckoutPage = () => {
       });
       if (res.ok) {
         setStatus('success');
-        window.scrollTo(0, 0);
+        setTimeout(() => document.getElementById('nhat-checkout-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
       } else {
         setStatus('error');
       }
@@ -136,7 +136,7 @@ const NhatCheckoutPage = () => {
         </div>
 
         {/* Form Section */}
-        <div className="mfc-card animate-fade-in" style={{ padding: '32px 24px', animationDelay: '0.1s' }}>
+        <div id="nhat-checkout-card" className="mfc-card animate-fade-in" style={{ padding: '32px 24px', animationDelay: '0.1s' }}>
           {status === 'success' ? (
             <div style={{ textAlign: 'center' }}>
               <span className="material-symbols-outlined" style={{ fontSize: 64, color: 'var(--mint)', marginBottom: 16 }}>check_circle</span>
