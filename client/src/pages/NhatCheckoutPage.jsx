@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useLanguage } from '../context/LanguageContext';
 
-const API_URL = 'http://localhost:5000';
+import { API_URL } from '../apiConfig';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
 const ALLOWED_EXTENSIONS = /\.(jpg|jpeg|png)$/i;

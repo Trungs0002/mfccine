@@ -570,6 +570,40 @@ const NhatPage = ({ settings }) => {
         </div>
       </section>
 
+      {/* Registration CTA */}
+      <section style={{ padding: '32px 0 64px', display: 'flex', justifyContent: 'center' }}>
+        <button
+          onClick={() => { navigate('/nhat-viewer-register'); window.scrollTo(0, 0); }}
+          style={{
+            position: 'relative',
+            fontSize: 'clamp(16px, 4vw, 20px)',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: '.1em',
+            padding: '20px 48px',
+            borderRadius: 999,
+            background: 'linear-gradient(135deg, var(--ultra), var(--purple))',
+            color: '#fff',
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 0 40px rgba(168,150,246, 0.4), inset 0 0 20px rgba(255,255,255, 0.3)',
+            transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            overflow: 'hidden'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.05) translateY(-4px)';
+            e.currentTarget.style.boxShadow = '0 0 60px rgba(168,150,246, 0.6), inset 0 0 20px rgba(255,255,255, 0.4)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1) translateY(0)';
+            e.currentTarget.style.boxShadow = '0 0 40px rgba(168,150,246, 0.4), inset 0 0 20px rgba(255,255,255, 0.3)';
+          }}
+        >
+          <div style={{ position: 'absolute', top: 0, left: '-100%', width: '50%', height: '100%', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)', transform: 'skewX(-20deg)', animation: 'nhat-shimmer 3s infinite' }} />
+          {vi ? 'Đăng kí đến xem Nhất' : 'Register to Watch Nhất'}
+        </button>
+      </section>
+
       {/* Timeline */}
       <section style={{ padding: '0 0 64px' }}>
         <div className="container" style={{ maxWidth: 640 }}>
@@ -609,13 +643,6 @@ const NhatPage = ({ settings }) => {
             {vi ? 'Khám phá thêm về chúng tôi →' : 'Discover More About Us →'}
           </button>
           <button
-            className="btn-pill"
-            onClick={() => { navigate('/nhat-viewer-register'); window.scrollTo(0, 0); }}
-            style={{ fontSize: 16, padding: '16px 32px', background: 'var(--purple)', color: '#fff' }}
-          >
-            {vi ? 'Đăng kí đến xem Nhất' : 'Register to Watch Nhất'}
-          </button>
-          <button
             className="btn-pill btn-radiate"
             onClick={() => { navigate('/seating'); window.scrollTo(0, 0); }}
             style={{ fontSize: 16, padding: '16px 32px' }}
@@ -628,6 +655,14 @@ const NhatPage = ({ settings }) => {
       <style>{`
         /* Selective rounding: photography and the judges' cards stay sharp/editorial,
            while the form and highlight cards keep their natural soft rounded corners. */
+        .nhat-judges-grid > div { border-radius: 4px !important; }
+        .nhat-judge-img { border-radius: 4px !important; }
+
+        @keyframes nhat-shimmer {
+          0% { left: -100%; }
+          100% { left: 200%; }
+        }
+
         .nhat-page img,
         .nhat-page .nhat-sharp-card {
           border-radius: 0 !important;
