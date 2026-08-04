@@ -234,12 +234,16 @@ const CastingCallSubmission = mongoose.model('CastingCallSubmission', CastingCal
 // 9. Nhat Viewer Ticket Model
 const NhatTicketSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
+  email: { type: String },
   school: { type: String, required: true },
-  studentInfo: { type: String, required: true },
+  studentId: { type: String, required: true },
+  classInfo: { type: String, required: true },
   likePostProof: { type: String, required: true },
   likePageProof: { type: String, required: true },
   question: { type: String, default: '' },
   ticketCode: { type: String, required: true, unique: true },
+  ticketLink: { type: String },
+  isSent: { type: Boolean, default: false },
   isCheckedIn: { type: Boolean, default: false },
   checkInDate: { type: Date },
   createdAt: { type: Date, default: Date.now }
@@ -252,7 +256,8 @@ const NhatCheckoutSchema = new mongoose.Schema({
   ticketCode: { type: String, required: true },
   fullName: { type: String, required: true },
   school: { type: String, required: true },
-  studentInfo: { type: String, required: true },
+  studentId: { type: String, required: true },
+  classInfo: { type: String, required: true },
   proofImage: { type: String, required: true },
   checkoutDate: { type: Date, default: Date.now }
 });
@@ -1238,7 +1243,7 @@ app.delete('/api/casting-call-submissions/:id', async (req, res) => {
 // NHAT TICKETS
 app.post('/api/nhat/tickets', async (req, res) => {
   try {
-    const { fullName, school, studentInfo, likePostProof, likePageProof, question } = req.body;
+    const { fullName, email, school, studentId, classInfo, likePostProof, likePageProof, question } = req.body;
     
     // upload proofs to cloudinary
     let postProofUrl = '';
@@ -1265,17 +1270,95 @@ app.post('/api/nhat/tickets', async (req, res) => {
       if (!existing) isUnique = true;
     }
 
+    const origin = req.headers.origin || 'http://localhost:3000';
+    const ticketLink = `${origin}/nhatticket/${ticketCode}`;
     const ticket = await NhatTicket.create({
-      fullName, school, studentInfo, likePostProof: postProofUrl, likePageProof: pageProofUrl, question, ticketCode
+      fullName, email, school, studentId, classInfo, likePostProof: postProofUrl, likePageProof: pageProofUrl, question, ticketCode, ticketLink
     });
     res.status(201).json(ticket);
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/nhat/tickets/:id/send-ticket', async (req, res) => {
+  try {
+    const { to, subject, body } = req.body;
+    if (!to || !subject || !body) return res.status(400).json({ error: 'Missing required fields' });
+    
+    if (process.env.SMTP_HOST && process.env.SMTP_USER && to) {
+      const htmlBody = body;
+      const textBody = htmlBody.replace(/<br\s*[\/]?>/gi, '\n').replace(/<[^>]+>/g, '');
+      const fromName = process.env.SMTP_FROM_NAME || 'MFC';
+      const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER;
+
+      if (process.env.SMTP_HOST === 'resend.com') {
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.SMTP_PASS}`
+          },
+          body: JSON.stringify({
+            from: `${fromName} <${fromEmail}>`,
+            to: [to],
+            subject: subject,
+            text: textBody,
+            html: htmlBody
+          })
+        });
+        
+        if (!response.ok) {
+          const errData = await response.text();
+          throw new Error('Resend API Error: ' + errData);
+        }
+      } else {
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: process.env.SMTP_PORT || 465,
+          secure: process.env.SMTP_PORT == 465,
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS
+          }
+        });
+
+        await transporter.sendMail({
+          from: `"${fromName}" <${fromEmail}>`,
+          to: to,
+          subject: subject,
+          text: textBody,
+          html: htmlBody
+        });
+      }
+    } else {
+      return res.status(500).json({ error: 'SMTP config missing' });
+    }
+
+    // Update isSent flag in database
+    const ticket = await NhatTicket.findById(req.params.id);
+    if (ticket) {
+      ticket.isSent = true;
+      await ticket.save();
+    }
+
+    res.json({ message: 'Email sent successfully' });
+  } catch (err) {
+    console.error('Error sending Nhat ticket email:', err);
+    res.status(500).json({ error: 'Failed to send email' });
+  }
 });
 
 app.get('/api/nhat/tickets', async (req, res) => {
   try {
     const tickets = await NhatTicket.find().sort({ createdAt: -1 });
     res.json(tickets);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/nhat/tickets/code/:ticketCode', async (req, res) => {
+  try {
+    const ticket = await NhatTicket.findOne({ ticketCode: req.params.ticketCode.toUpperCase() });
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    res.json(ticket);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -1324,8 +1407,8 @@ app.get('/api/nhat/checkouts', async (req, res) => {
 
 app.post('/api/nhat/checkouts', async (req, res) => {
   try {
-    const { ticketCode, fullName, school, studentInfo, proofImage } = req.body;
-    if (!ticketCode || !fullName || !school || !studentInfo || !proofImage) {
+    const { ticketCode, fullName, school, studentId, classInfo, proofImage } = req.body;
+    if (!ticketCode || !fullName || !school || !studentId || !classInfo || !proofImage) {
       return res.status(400).json({ error: 'Missing fields' });
     }
     
@@ -1342,7 +1425,8 @@ app.post('/api/nhat/checkouts', async (req, res) => {
       ticketCode: ticketCode.toUpperCase().trim(),
       fullName,
       school,
-      studentInfo,
+      studentId,
+      classInfo,
       proofImage: proofUrl
     });
     res.status(201).json(checkout);

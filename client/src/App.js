@@ -23,6 +23,7 @@ import LoginPage          from './pages/LoginPage';
 import RegisterPage       from './pages/RegisterPage';
 import NhatCheckoutPage   from './pages/NhatCheckoutPage';
 import NhatViewerRegisterPage from './pages/NhatViewerRegisterPage';
+import NhatTicketPage from './pages/NhatTicketPage';
 
 const FALLBACK_EVENTS = [
   {
@@ -140,6 +141,7 @@ function AppContent() {
           <Route path="/recruit"   element={<RecruitPage settings={settings} />} />
           <Route path="/nhat"      element={<NhatPage settings={settings} />} />
           <Route path="/nhat-viewer-register" element={<NhatViewerRegisterPage settings={settings} />} />
+          <Route path="/nhatticket/:ticketCode" element={<NhatTicketPage />} />
           <Route path="/nhat-checkout" element={<NhatCheckoutPage />} />
           <Route path="/casting-call" element={<CastingCallPage />} />
           <Route path="/login"     element={user ? <Navigate to="/" /> : <LoginPage setUser={setUser} />} />

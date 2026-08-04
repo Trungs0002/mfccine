@@ -136,6 +136,109 @@ export const generateEmailHTML = (emailModalData) => {
 </html>`;
 };
 
+export const generateNhatEmailHTML = (emailModalData) => {
+  if (!emailModalData || !emailModalData.ticket) return '';
+  const link = `https://mfcftu.site/nhatticket/${emailModalData.ticket.ticketCode}`;
+  const customerName = emailModalData.customerName || emailModalData.ticket.fullName || 'bạn';
+  const eventImageUrl = 'https://res.cloudinary.com/dxlhalj80/image/upload/w_600,q_auto/v1785235186/mfc_gmail_banner.jpg'; 
+  const supportEmail = 'hienanhngn.mfc@gmail.com';
+  const facebookUrl = 'https://facebook.com/mfcfashionshow';
+
+  let customMessageHtml = '';
+  if (emailModalData.body && emailModalData.body.trim()) {
+    customMessageHtml = `<div style="padding: 15px; background: #fff5eb; border-left: 4px solid #ff9f43; margin-bottom: 24px; border-radius: 4px;">
+      <p style="margin: 0; font-size: 15px; color: #d35400;"><strong>Lời nhắn từ BTC:</strong><br>${emailModalData.body.replace(/\n/g, '<br>')}</p>
+    </div>`;
+  }
+
+  return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[MFC Fashion Show] Vé điện tử Nhất của bạn đã sẵn sàng</title>
+</head>
+<body contenteditable="true" style="margin: 0; padding: 0; background-color: #ffffff; font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased; line-height: 1.6; color: #333333; outline: none;">
+    <!-- Preheader -->
+    <div style="display: none; max-height: 0px; overflow: hidden; opacity: 0; mso-hide: all;">
+        Vui lòng mở email để xem, lưu và sử dụng vé khi check-in tại sự kiện.
+    </div>
+    
+    <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-color: #ffffff; width: 100%;">
+        <tr>
+            <td align="center" style="padding: 40px 10px;">
+                <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                    <tr>
+                        <td style="padding: 40px 24px;">
+                            <img src="${eventImageUrl}" alt="Nhất 2026" width="600" style="width: 100%; max-width: 600px; display: block; border-radius: 8px; margin-bottom: 32px; height: auto;">
+                            
+                            <h2 style="margin-top: 0; margin-bottom: 16px; font-size: 24px; color: #1a1a1a;">Đăng ký thành công!</h2>
+                            <p style="margin-top: 0; margin-bottom: 16px; font-size: 16px;">Thân gửi ${customerName},</p>
+                            
+                            <p style="margin-top: 0; margin-bottom: 16px; font-size: 16px;">Bạn đã đăng ký thành công tham dự Vòng Chung khảo Cuộc thi Thiết kế <strong>"NHẤT"</strong> thuộc khuôn khổ FTU Fashion Show 2026.</p>
+                            
+                            <div style="background-color: #f8f9fa; border-radius: 8px; padding: 24px; margin-bottom: 24px; border: 1px solid #eeeeee;">
+                                <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 17px; color: #1a1a1a;">Thông tin sự kiện</h3>
+                                <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+                                    <tr>
+                                        <td width="35%" style="padding-bottom: 10px; font-size: 15px; color: #666666; vertical-align: top;">Tên sự kiện:</td>
+                                        <td style="padding-bottom: 10px; font-size: 15px; font-weight: bold; color: #333333; vertical-align: top;">Vòng Chung khảo NHẤT FASHION SHOW 2026</td>
+                                    </tr>
+                                    <tr>
+                                        <td width="35%" style="padding-bottom: 10px; font-size: 15px; color: #666666; vertical-align: top;">Thời gian:</td>
+                                        <td style="padding-bottom: 10px; font-size: 15px; font-weight: bold; color: #333333; vertical-align: top;">14:00 Thứ Bảy, Ngày 08/08/2026</td>
+                                    </tr>
+                                    <tr>
+                                        <td width="35%" style="font-size: 15px; color: #666666; vertical-align: top;">Địa điểm:</td>
+                                        <td style="font-size: 15px; font-weight: bold; color: #333333; vertical-align: top;">Hội Trường D201 trường Đại Học Ngoại Thương, 91 Chùa Láng, Hà Nội</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <p style="margin-top: 0; margin-bottom: 24px; font-size: 16px;">Đây là mã vé check-in của bạn. Vui lòng lưu lại hoặc chụp màn hình mã QR (hoặc mã vé điện tử) và xuất trình khi đến sự kiện để hoàn tất thủ tục check-in.</p>
+                            
+                            ${customMessageHtml}
+
+                            <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom: 24px;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="${link}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #2c3e50; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: bold; padding: 14px 32px; border-radius: 6px; text-transform: uppercase;">XEM VÉ ĐIỆN TỬ VÀ MÃ QR</a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="margin-top: 0; margin-bottom: 8px; font-size: 14px; color: #666666;">Trong trường hợp nút phía trên không hoạt động, vui lòng sao chép và mở đường dẫn sau trên trình duyệt:</p>
+                            <p style="margin-top: 0; margin-bottom: 32px; font-size: 14px; word-break: break-all;">
+                                <a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #2980b9; text-decoration: underline;">${link}</a>
+                            </p>
+                            
+                            <p style="margin-top: 0; margin-bottom: 16px; font-size: 16px;">Sự hiện diện của bạn là niềm vinh hạnh của Ban Tổ chức và góp phần tạo nên thành công của Vòng Chung khảo cũng như hành trình hướng tới <a href="https://mfcftu.site/ticket" target="_blank" rel="noopener noreferrer" style="color: #2980b9; text-decoration: underline; font-weight: bold;">FTU Fashion Show 2026</a> sẽ diễn ra vào <strong>18:00 ngày 22/08/2026</strong>.</p>
+                            
+                            <p style="margin-top: 0; margin-bottom: 24px; font-size: 16px; font-weight: bold;">Hẹn gặp bạn tại Vòng Chung khảo!</p>
+                            
+                            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 16px; margin-bottom: 32px;">
+                                <p style="margin: 0; font-size: 15px; color: #856404;">
+                                    <strong>Lưu ý:</strong> Vui lòng có mặt trước giờ diễn ra sự kiện khoảng 15-30 phút để hoàn tất thủ tục check-in.
+                                </p>
+                            </div>
+                            
+                            <div style="border-top: 1px solid #eeeeee; padding-top: 32px; text-align: center;">
+                                <p style="margin-top: 0; margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #333333;">CLB MC & Thời Trang ĐH Ngoại Thương - MFC</p>
+                                <p style="margin-top: 0; margin-bottom: 24px; font-size: 13px; color: #666666;">
+                                    Bất kỳ thắc mắc nào, vui lòng liên hệ: <a href="mailto:${supportEmail}" style="color: #2980b9; text-decoration: none;">${supportEmail}</a>
+                                    <br>hoặc nhắn tin qua <a href="${facebookUrl}" target="_blank" rel="noopener noreferrer" style="color: #2980b9; text-decoration: none;">Fanpage MFC</a>
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`;
+};
+
 const AdminSeatMap = ({ matchedSeats, language }) => {
   const allSeats = React.useMemo(() => buildSeats(language === 'vi', 0, 0, 0), [language]);
   const [scale, setScale] = useState(1);
@@ -449,6 +552,8 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const isNhatViewer = user?.role === 'nhat_viewer'; // nhat_viewer accounts only see Nhat tab
   const [activeAdminTab, setActiveTab] = useState(isNhatViewer ? 'nhat' : isStaff ? 'bookings' : 'events');
   const [showEventForm, setShowEventForm] = useState(false); // Controls visibility of the Create/Edit form
+  const [emailModalData, setEmailModalData] = useState(null);
+  const [nhatEmailModalData, setNhatEmailModalData] = useState(null);
 
   const l = useCallback((field) => {
     if (!field) return '';
@@ -706,22 +811,14 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
         return schoolName.includes('ngoại thương') || schoolName.includes('ftu');
       })
       .map((t, index) => {
-        let mssv = '';
-        let lop = t.studentInfo || '';
-        if (t.studentInfo) {
-          const mssvMatch = t.studentInfo.match(/\b\d{8,10}\b/);
-          if (mssvMatch) {
-            mssv = mssvMatch[0];
-            lop = t.studentInfo.replace(mssv, '').replace(/^[,\-\s]+|[,\-\s]+$/g, '').trim();
-          }
-        }
         return {
           'STT': index + 1,
           'Họ và tên': t.fullName,
-          'MSSV': mssv,
-          'Lớp': lop,
+          'MSSV': t.studentId,
+          'Lớp': t.classInfo,
           'Ngày giờ checkin': t.checkInDate ? new Date(t.checkInDate).toLocaleString('vi-VN') : '',
-          'Mã vé': t.ticketCode
+          'Mã vé': t.ticketCode,
+          'Link vé': t.ticketLink || ''
         };
       });
 
@@ -735,8 +832,6 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     XLSX.utils.book_append_sheet(workbook, worksheet, "NhatTickets");
     XLSX.writeFile(workbook, "nhat_checkin.xlsx");
   };
-
-  const [emailModalData, setEmailModalData] = useState(null);
 
   const fetchAnalytics = () => {
     fetch(`${API_URL}/api/analytics`)
@@ -1285,6 +1380,133 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
 
   return (
     <>
+      {/* Email Generator Modal */}
+      {emailModalData && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div className="mfc-card" style={{ width: '100%', maxWidth: 500, padding: 24, maxHeight: '90vh', overflowY: 'auto' }}>
+            <h3 style={{ margin: '0 0 20px', color: '#fff' }}>{language === 'vi' ? 'Soạn Email Gửi Vé' : 'Compose Ticket Email'}</h3>
+            <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 10 }}>{language === 'vi' ? 'Gửi tới' : 'To'}: {emailModalData.to}</p>
+            <textarea
+              className="mfc-input"
+              style={{ width: '100%', height: 120, marginBottom: 20 }}
+              placeholder={language === 'vi' ? 'Lời nhắn riêng...' : 'Custom message...'}
+              value={emailModalData.body || ''}
+              onChange={e => setEmailModalData({ ...emailModalData, body: e.target.value })}
+            />
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="btn-outline-pill" style={{ flex: 1 }} onClick={() => setEmailModalData(null)}>{t('cancel')}</button>
+              <button className="btn-pill" style={{ flex: 1 }} onClick={() => {
+                const html = generateEmailHTML(emailModalData);
+                // Trigger mailto link or API call here
+                window.location.href = `mailto:${emailModalData.to}?subject=${encodeURIComponent(emailModalData.subject)}&body=${encodeURIComponent('Please view this email in a HTML-capable client.')}`;
+                // For production, suggest a backend integration to send the HTML directly
+                alert('Mã HTML đã được tạo. Vui lòng gửi email qua hệ thống.');
+              }}>{language === 'vi' ? 'Gửi Email' : 'Send Email'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Nhất Email Generator Modal */}
+      {nhatEmailModalData && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.7)', padding: 16 }}>
+          <div className="mfc-card" style={{ width: '100%', maxWidth: 500, maxHeight: '90vh', overflowY: 'auto', padding: 24, background: '#0a0a0a', border: '1px solid var(--line)', borderRadius: 16 }}>
+            <h3 style={{ color: '#fff', fontSize: 18, margin: '0 0 16px' }}>{language === 'vi' ? 'Soạn Email Nhất' : 'Compose Nhat Email'}</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div>
+                <p style={{ margin: '0 0 6px', color: 'var(--muted)', fontSize: 12 }}>{language === 'vi' ? 'Email người nhận' : 'Recipient Email'}</p>
+                <input
+                  type="email"
+                  value={nhatEmailModalData.to}
+                  onChange={e => setNhatEmailModalData({ ...nhatEmailModalData, to: e.target.value })}
+                  placeholder="name@example.com"
+                  className="mfc-input"
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div>
+                <p style={{ margin: '0 0 6px', color: 'var(--muted)', fontSize: 12 }}>{language === 'vi' ? 'Tên khách hàng' : 'Customer Name'}</p>
+                <input
+                  type="text"
+                  value={nhatEmailModalData.customerName}
+                  onChange={e => setNhatEmailModalData({ ...nhatEmailModalData, customerName: e.target.value })}
+                  placeholder="Tên hiển thị trong mail"
+                  className="mfc-input"
+                  style={{ width: '100%' }}
+                />
+              </div>
+              
+              <div>
+                <p style={{ margin: '0 0 6px', color: 'var(--muted)', fontSize: 12 }}>{language === 'vi' ? 'Tiêu đề thư' : 'Email Subject'}</p>
+                <input
+                  type="text"
+                  value={nhatEmailModalData.subject}
+                  onChange={e => setNhatEmailModalData({ ...nhatEmailModalData, subject: e.target.value })}
+                  placeholder="Subject (Tiêu đề)"
+                  className="mfc-input"
+                  style={{ width: '100%' }}
+                />
+              </div>
+            <div style={{ marginTop: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 6 }}>
+                <p style={{ margin: 0, color: 'var(--muted)', fontSize: 12 }}>{language === 'vi' ? 'Xem trước & Chỉnh sửa (Click trực tiếp vào chữ để sửa)' : 'Preview & Edit'}</p>
+                <span style={{ fontSize: 11, color: '#ff6b6b' }}>{language === 'vi' ? '*Lưu ý: Đổi tên sẽ làm reset lại những gì bạn đã sửa bên dưới' : '*Note: Changing name resets edits below'}</span>
+              </div>
+              <iframe
+                id="nhat-email-preview-iframe"
+                title="Nhat Email Preview"
+                srcDoc={generateNhatEmailHTML(nhatEmailModalData)}
+                style={{ width: '100%', height: '40vh', minHeight: 250, border: '1px solid var(--mint)', borderRadius: 8, background: '#fff' }}
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 12 }}>
+              <button className="btn-outline-pill" onClick={() => setNhatEmailModalData(null)}>{t('cancel')}</button>
+              <button className="btn-pill" disabled={nhatEmailModalData.sending} onClick={async () => {
+                setNhatEmailModalData({ ...nhatEmailModalData, sending: true });
+                let finalBody = generateNhatEmailHTML(nhatEmailModalData);
+                try {
+                  const iframe = document.getElementById('nhat-email-preview-iframe');
+                  if (iframe && iframe.contentDocument) {
+                    const clone = iframe.contentDocument.documentElement.cloneNode(true);
+                    const body = clone.querySelector('body');
+                    if (body) body.removeAttribute('contenteditable');
+                    finalBody = '<!DOCTYPE html>\n' + clone.outerHTML;
+                  }
+                } catch (e) {
+                  console.error('Could not read iframe content', e);
+                }
+
+                try {
+                  const res = await fetch(`${API_URL}/api/nhat/tickets/${nhatEmailModalData.ticket._id}/send-ticket`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      to: nhatEmailModalData.to,
+                      subject: nhatEmailModalData.subject,
+                      body: finalBody
+                    })
+                  });
+                  if (res.ok) {
+                    alert(language === 'vi' ? 'Đã gửi mail thành công!' : 'Email sent!');
+                    setNhatEmailModalData(null);
+                    fetchNhatTickets(true);
+                  } else {
+                    const err = await res.json();
+                    alert('Lỗi: ' + err.error);
+                    setNhatEmailModalData({ ...nhatEmailModalData, sending: false });
+                  }
+                } catch (e) {
+                  alert('Lỗi mạng');
+                  setNhatEmailModalData({ ...nhatEmailModalData, sending: false });
+                }
+              }}>{nhatEmailModalData.sending ? (language === 'vi' ? 'Đang gửi...' : 'Sending...') : (language === 'vi' ? 'Gửi Email' : 'Send Email')}</button>
+            </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Full-screen QR Scanner Overlay */}
       {showScanner && (
         <QrScannerOverlay
@@ -2407,10 +2629,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                       <tr style={{ borderBottom: '1px solid var(--line)', color: 'var(--muted)' }}>
                         <th style={{ padding: '12px 8px', fontWeight: 600 }}>Mã vé</th>
                         <th style={{ padding: '12px 8px', fontWeight: 600 }}>Họ và tên</th>
+                        <th style={{ padding: '12px 8px', fontWeight: 600 }}>Email</th>
                         <th style={{ padding: '12px 8px', fontWeight: 600 }}>Trường</th>
                         <th style={{ padding: '12px 8px', fontWeight: 600 }}>Mã SV / Lớp</th>
                         {nhatCheckinTab !== 'checked_out' && <th style={{ padding: '12px 8px', fontWeight: 600 }}>Câu hỏi</th>}
-                        <th style={{ padding: '12px 8px', fontWeight: 600 }}>{nhatCheckinTab === 'checked_out' ? 'Checkout' : (nhatCheckinTab === 'both' ? 'Thời gian' : 'Check-in')}</th>
+                        <th style={{ padding: '12px 8px', fontWeight: 600 }}>{nhatCheckinTab === 'checked_out' ? 'Checkout' : (nhatCheckinTab === 'both' ? 'Thời gian' : (nhatCheckinTab === 'pending' ? 'Gửi Mail' : 'Check-in'))}</th>
                         <th style={{ padding: '12px 8px', fontWeight: 600, textAlign: 'center' }}>Hành động</th>
                       </tr>
                     </thead>
@@ -2425,8 +2648,9 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                             <tr style={{ borderBottom: '1px solid rgba(168,150,246,.1)' }}>
                               <td style={{ padding: '12px 8px', fontFamily: 'monospace', color: 'var(--purple)', fontWeight: 700 }}>{checkout.ticketCode}</td>
                               <td style={{ padding: '12px 8px', color: '#fff' }}>{checkout.fullName}</td>
+                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{checkout.email || '-'}</td>
                               <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{checkout.school}</td>
-                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{checkout.studentInfo}</td>
+                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{checkout.studentId} / {checkout.classInfo}</td>
                               <td style={{ padding: '12px 8px' }}>
                                 <span style={{ color: 'var(--mint)', display: 'flex', alignItems: 'center', gap: 4 }}>
                                   <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check_circle</span>
@@ -2472,21 +2696,34 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                         nhatTickets.filter(t => {
                           if (!t.isCheckedIn) return false;
                           const norm = s => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
-                          const hasCheckout = nhatCheckouts.some(c => norm(c.ticketCode) === norm(t.ticketCode) && norm(c.fullName) === norm(t.fullName));
+                          const tName = norm(t.fullName);
+                          const tId = norm(t.studentId);
+                          const hasCheckout = nhatCheckouts.some(c => {
+                            const cName = norm(c.fullName);
+                            const cId = norm(c.studentId);
+                            return cId === tId && (cName.includes(tName) || tName.includes(cName));
+                          });
                           if (!hasCheckout) return false;
                           if (!ftuFilter) return true;
                           const s = (t.school || '').toLowerCase();
                           return s.includes('ngoại thương') || s.includes('ftu');
                         }).map(ticket => {
                           const norm = s => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
-                          const checkoutInfo = nhatCheckouts.find(c => norm(c.ticketCode) === norm(ticket.ticketCode) && norm(c.fullName) === norm(ticket.fullName));
+                          const tName = norm(ticket.fullName);
+                          const tId = norm(ticket.studentId);
+                          const checkoutInfo = nhatCheckouts.find(c => {
+                            const cName = norm(c.fullName);
+                            const cId = norm(c.studentId);
+                            return cId === tId && (cName.includes(tName) || tName.includes(cName));
+                          });
                           return (
                           <React.Fragment key={ticket._id}>
                             <tr style={{ borderBottom: '1px solid rgba(168,150,246,.1)' }}>
                               <td style={{ padding: '12px 8px', fontFamily: 'monospace', color: 'var(--purple)', fontWeight: 700 }}>{ticket.ticketCode}</td>
                               <td style={{ padding: '12px 8px', color: '#fff' }}>{ticket.fullName}</td>
+                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.email || '-'}</td>
                               <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.school}</td>
-                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.studentInfo}</td>
+                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.studentId} / {ticket.classInfo}</td>
                               <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.question ? 'Có' : 'Không'}</td>
                               <td style={{ padding: '12px 8px' }}>
                                 <span style={{ color: 'var(--mint)', display: 'flex', flexDirection: 'column', gap: 2, fontSize: 11 }}>
@@ -2512,17 +2749,29 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                             <tr style={{ borderBottom: '1px solid rgba(168,150,246,.1)' }}>
                               <td style={{ padding: '12px 8px', fontFamily: 'monospace', color: 'var(--purple)', fontWeight: 700 }}>{ticket.ticketCode}</td>
                               <td style={{ padding: '12px 8px', color: '#fff' }}>{ticket.fullName}</td>
+                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.email || '-'}</td>
                               <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.school}</td>
-                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.studentInfo}</td>
+                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.studentId} / {ticket.classInfo}</td>
                               <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.question ? 'Có' : 'Không'}</td>
                               <td style={{ padding: '12px 8px' }}>
-                                {ticket.isCheckedIn ? (
-                                  <span style={{ color: 'var(--mint)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check_circle</span>
-                                    {new Date(ticket.checkInDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-                                  </span>
+                                {nhatCheckinTab === 'pending' ? (
+                                  ticket.isSent ? (
+                                    <span style={{ color: 'var(--purple)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>mark_email_read</span>
+                                      Đã gửi
+                                    </span>
+                                  ) : (
+                                    <span style={{ color: 'var(--muted)' }}>Chưa gửi</span>
+                                  )
                                 ) : (
-                                  <span style={{ color: 'var(--muted)' }}>Chưa</span>
+                                  ticket.isCheckedIn ? (
+                                    <span style={{ color: 'var(--mint)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check_circle</span>
+                                      {new Date(ticket.checkInDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  ) : (
+                                    <span style={{ color: 'var(--muted)' }}>Chưa</span>
+                                  )
                                 )}
                               </td>
                               <td style={{ padding: '12px 8px', textAlign: 'center' }}>
@@ -2533,6 +2782,19 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                       style={{ fontSize: 11, padding: '6px 12px', border: '1px solid var(--muted)', color: 'var(--muted)' }}
                                     >
                                       {expandedNhatTicketId === ticket._id ? 'Đóng' : 'Chi tiết'}
+                                    </button>
+                                    <button
+                                      className="btn-outline-pill"
+                                      onClick={() => setNhatEmailModalData({
+                                        ticket: ticket,
+                                        to: ticket.email || '',
+                                        customerName: ticket.fullName,
+                                        subject: '[MFC] Vé điện tử tham dự NHẤT',
+                                        body: ''
+                                      })}
+                                      style={{ fontSize: 11, padding: '6px 12px', border: '1px solid #a896f6', color: '#a896f6', background: 'rgba(168,150,246,0.1)' }}
+                                    >
+                                      {language === 'vi' ? 'Gửi Mail' : 'Email'}
                                     </button>
                                     <button
                                       onClick={() => handleDeleteNhatTicket(ticket._id)}

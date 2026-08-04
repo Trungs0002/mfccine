@@ -48,7 +48,7 @@ const NhatViewerRegisterPage = ({ settings }) => {
   const { language } = useLanguage();
   const vi = language === 'vi';
 
-  const [viewerFormData, setViewerFormData] = useState({ fullName: '', school: '', studentInfo: '', likePostProof: null, likePageProof: null, question: '' });
+  const [viewerFormData, setViewerFormData] = useState({ fullName: '', email: '', schoolOption: '', school: '', studentId: '', classInfo: '', likePostProof: null, likePageProof: null, question: '' });
   const [viewerErrors, setViewerErrors] = useState({});
   const [viewerSubmitStatus, setViewerSubmitStatus] = useState(null);
   const [viewerTicket, setViewerTicket] = useState(null);
@@ -80,8 +80,12 @@ const NhatViewerRegisterPage = ({ settings }) => {
     e.preventDefault();
     const newErrors = {};
     if (!viewerFormData.fullName.trim()) newErrors.fullName = vi ? 'Vui lòng nhập họ và tên' : 'Please enter your full name';
-    if (!viewerFormData.school.trim()) newErrors.school = vi ? 'Vui lòng nhập trường' : 'Please enter your school';
-    if (!viewerFormData.studentInfo.trim()) newErrors.studentInfo = vi ? 'Vui lòng nhập MSSV' : 'Please enter your student ID';
+    if (!viewerFormData.email.trim()) newErrors.email = vi ? 'Vui lòng nhập email' : 'Please enter your email';
+    else if (!/^\S+@\S+\.\S+$/.test(viewerFormData.email)) newErrors.email = vi ? 'Email không hợp lệ' : 'Invalid email';
+    if (!viewerFormData.schoolOption) newErrors.schoolOption = vi ? 'Vui lòng chọn trường' : 'Please select a school';
+    else if (viewerFormData.schoolOption === 'Trường khác' && !viewerFormData.school.trim()) newErrors.school = vi ? 'Vui lòng nhập tên trường' : 'Please enter your school';
+    if (!viewerFormData.studentId.trim()) newErrors.studentId = vi ? 'Vui lòng nhập MSSV' : 'Please enter your student ID';
+    if (!viewerFormData.classInfo.trim()) newErrors.classInfo = vi ? 'Vui lòng nhập lớp - ngành - khóa' : 'Please enter class - major - cohort';
     if (!viewerFormData.likePostProof) newErrors.likePostProof = vi ? 'Vui lòng tải lên minh chứng bài viết' : 'Please upload proof';
     if (!viewerFormData.likePageProof) newErrors.likePageProof = vi ? 'Vui lòng tải lên minh chứng trang' : 'Please upload proof';
 
@@ -98,8 +102,6 @@ const NhatViewerRegisterPage = ({ settings }) => {
         body: JSON.stringify(viewerFormData),
       });
       if (res.ok) {
-        const ticket = await res.json();
-        setViewerTicket(ticket);
         setViewerSubmitStatus('success');
       } else {
         alert(vi ? 'Có lỗi xảy ra, vui lòng thử lại.' : 'An error occurred, please try again.');
@@ -114,23 +116,15 @@ const NhatViewerRegisterPage = ({ settings }) => {
   return (
     <div className="animate-fade-in nhat-page" style={{ paddingTop: 96, paddingBottom: 64, display: 'flex', justifyContent: 'center' }}>
       <div className="mfc-card" style={{ padding: '32px 24px', maxWidth: 560, width: '100%', background: 'var(--card-bg)' }}>
-        {viewerSubmitStatus === 'success' && viewerTicket ? (
+        {viewerSubmitStatus === 'success' ? (
           <div style={{ textAlign: 'center' }}>
             <span className="material-symbols-outlined" style={{ fontSize: 48, color: 'var(--mint)', marginBottom: 16 }}>check_circle</span>
             <h3 className="serif" style={{ color: '#fff', fontSize: 24, margin: '0 0 12px' }}>
               {vi ? 'Đăng kí thành công!' : 'Registration successful!'}
             </h3>
             <p style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 24 }}>
-              {vi ? 'Đây là vé QR của bạn. Vui lòng lưu lại để check-in tại sự kiện.' : 'This is your QR ticket. Please save it for event check-in.'}
+              {vi ? 'Thông tin của bạn đã được ghi nhận. Vé sẽ được gửi qua email sau khi chúng tôi duyệt minh chứng.' : 'Your information has been recorded. The ticket will be sent via email after we verify your proof.'}
             </p>
-            <div style={{ background: '#fff', padding: 16, borderRadius: 12, display: 'inline-block', marginBottom: 24 }}>
-              <QRCodeSVG value={viewerTicket.ticketCode} size={200} />
-            </div>
-            <div style={{ textAlign: 'left', background: 'rgba(255,255,255,0.03)', padding: 16, borderRadius: 12, marginBottom: 24 }}>
-              <p style={{ color: 'var(--mint)', fontWeight: 700, margin: '0 0 8px' }}>Mã vé: {viewerTicket.ticketCode}</p>
-              <p style={{ color: '#fff', fontSize: 13, margin: '0 0 8px' }}><strong>Thời gian:</strong> 14:00 Thứ Bảy, Ngày 8/8/2026</p>
-              <p style={{ color: '#fff', fontSize: 13, margin: 0 }}><strong>Địa điểm:</strong> Hội Trường D201 Trường Đại Học Ngoại Thương, 91 Chùa Láng, Hà Nội</p>
-            </div>
             <button type="button" className="btn-pill" style={{ width: '100%', justifyContent: 'center' }} onClick={() => navigate('/nhat')}>
               {vi ? 'Trở về trang Nhất' : 'Back to Nhất'}
             </button>
@@ -152,14 +146,44 @@ const NhatViewerRegisterPage = ({ settings }) => {
                 {viewerErrors.fullName && <p style={errorTextStyle}>{viewerErrors.fullName}</p>}
               </div>
               <div style={{ marginBottom: 16 }}>
-                <label style={fieldLabelStyle}>{vi ? 'Trường *' : 'School *'}</label>
-                <input className="mfc-input" value={viewerFormData.school} onChange={setViewerField('school')} placeholder={vi ? 'Nhập tên trường' : 'Enter your school'} />
-                {viewerErrors.school && <p style={errorTextStyle}>{viewerErrors.school}</p>}
+                <label style={fieldLabelStyle}>Email *</label>
+                <input type="email" className="mfc-input" value={viewerFormData.email} onChange={setViewerField('email')} placeholder="example@gmail.com" />
+                {viewerErrors.email && <p style={errorTextStyle}>{viewerErrors.email}</p>}
               </div>
               <div style={{ marginBottom: 16 }}>
-                <label style={fieldLabelStyle}>{vi ? 'Mã sinh viên, lớp hành chính - ngành - khóa *' : 'Student ID, Class - Major - Cohort *'}</label>
-                <input className="mfc-input" value={viewerFormData.studentInfo} onChange={setViewerField('studentInfo')} placeholder="VD: Anh 01 - CLCQT - K62" />
-                {viewerErrors.studentInfo && <p style={errorTextStyle}>{viewerErrors.studentInfo}</p>}
+                <label style={fieldLabelStyle}>{vi ? 'Trường *' : 'School *'}</label>
+                <select 
+                  className="mfc-input" 
+                  value={viewerFormData.schoolOption} 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setViewerFormData(f => ({ ...f, schoolOption: val, school: val === 'FTU' ? 'FTU' : '' }));
+                    setViewerErrors(er => ({ ...er, schoolOption: undefined, school: undefined }));
+                  }} 
+                  style={{ appearance: 'auto', background: 'var(--input-bg)', color: '#fff' }}
+                >
+                  <option value="" disabled hidden>{vi ? '-- Chọn trường --' : '-- Select School --'}</option>
+                  <option value="FTU" style={{ color: '#000' }}>FTU (Đại học Ngoại Thương)</option>
+                  <option value="Trường khác" style={{ color: '#000' }}>{vi ? 'Trường khác' : 'Other School'}</option>
+                </select>
+                {viewerErrors.schoolOption && <p style={errorTextStyle}>{viewerErrors.schoolOption}</p>}
+                
+                {viewerFormData.schoolOption === 'Trường khác' && (
+                  <div style={{ marginTop: 8 }}>
+                    <input className="mfc-input" value={viewerFormData.school} onChange={setViewerField('school')} placeholder={vi ? 'Nhập tên trường của bạn' : 'Enter your school name'} />
+                    {viewerErrors.school && <p style={errorTextStyle}>{viewerErrors.school}</p>}
+                  </div>
+                )}
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={fieldLabelStyle}>{vi ? 'Mã sinh viên *' : 'Student ID *'}</label>
+                <input className="mfc-input" value={viewerFormData.studentId} onChange={setViewerField('studentId')} placeholder="VD: 23111111" />
+                {viewerErrors.studentId && <p style={errorTextStyle}>{viewerErrors.studentId}</p>}
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={fieldLabelStyle}>{vi ? 'Lớp hành chính - ngành - khóa *' : 'Class - Major - Cohort *'}</label>
+                <input className="mfc-input" value={viewerFormData.classInfo} onChange={setViewerField('classInfo')} placeholder="VD: Anh 01 - CLCQT - K62" />
+                {viewerErrors.classInfo && <p style={errorTextStyle}>{viewerErrors.classInfo}</p>}
               </div>
               <div style={{ marginBottom: 16 }}>
                 <ImageUploadField

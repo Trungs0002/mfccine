@@ -47,8 +47,10 @@ const NhatCheckoutPage = () => {
   const [formData, setFormData] = useState({
     ticketCode: '',
     fullName: '',
+    schoolOption: '',
     school: '',
-    studentInfo: '',
+    studentId: '',
+    classInfo: '',
     proofImage: null
   });
   const [errors, setErrors] = useState({});
@@ -78,8 +80,10 @@ const NhatCheckoutPage = () => {
     const newErrors = {};
     if (!formData.ticketCode.trim()) newErrors.ticketCode = 'Vui lòng nhập mã vé';
     if (!formData.fullName.trim()) newErrors.fullName = 'Vui lòng nhập họ tên';
-    if (!formData.school.trim()) newErrors.school = 'Vui lòng nhập trường';
-    if (!formData.studentInfo.trim()) newErrors.studentInfo = 'Vui lòng nhập MSSV, Lớp';
+    if (!formData.schoolOption) newErrors.schoolOption = 'Vui lòng chọn trường';
+    else if (formData.schoolOption === 'Trường khác' && !formData.school.trim()) newErrors.school = 'Vui lòng nhập tên trường';
+    if (!formData.studentId.trim()) newErrors.studentId = 'Vui lòng nhập MSSV';
+    if (!formData.classInfo.trim()) newErrors.classInfo = 'Vui lòng nhập Lớp - Ngành - Khóa';
     if (!formData.proofImage) newErrors.proofImage = 'Vui lòng tải ảnh minh chứng';
 
     if (Object.keys(newErrors).length > 0) {
@@ -124,7 +128,7 @@ const NhatCheckoutPage = () => {
               <span className="material-symbols-outlined" style={{ fontSize: 64, color: 'var(--mint)', marginBottom: 16 }}>check_circle</span>
               <h3 className="serif" style={{ color: '#fff', fontSize: 24, margin: '0 0 12px' }}>Checkout thành công!</h3>
               <p style={{ color: 'var(--muted)' }}>Cảm ơn bạn đã tham gia sự kiện Nhất. Hẹn gặp lại bạn lần sau!</p>
-              <button onClick={() => { setStatus(null); setFormData({ ticketCode: '', fullName: '', school: '', studentInfo: '', proofImage: null }); }} className="btn-pill" style={{ marginTop: 24 }}>
+              <button onClick={() => { setStatus(null); setFormData({ ticketCode: '', fullName: '', school: '', studentId: '', classInfo: '', proofImage: null }); }} className="btn-pill" style={{ marginTop: 24 }}>
                 Checkout thêm người khác
               </button>
             </div>
@@ -144,14 +148,40 @@ const NhatCheckoutPage = () => {
 
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: 'block', fontSize: 13, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.05em' }}>Trường *</label>
-                <input className="mfc-input" value={formData.school} onChange={setField('school')} placeholder="Nhập tên trường" />
-                {errors.school && <p style={{ color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' }}>{errors.school}</p>}
+                <select 
+                  className="mfc-input" 
+                  value={formData.schoolOption} 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setFormData(prev => ({ ...prev, schoolOption: val, school: val === 'FTU' ? 'FTU' : '' }));
+                    setErrors(er => ({ ...er, schoolOption: null, school: null }));
+                  }} 
+                  style={{ appearance: 'auto', background: 'var(--input-bg)', color: '#fff' }}
+                >
+                  <option value="" disabled hidden>-- Chọn trường --</option>
+                  <option value="FTU" style={{ color: '#000' }}>FTU (Đại học Ngoại Thương)</option>
+                  <option value="Trường khác" style={{ color: '#000' }}>Trường khác</option>
+                </select>
+                {errors.schoolOption && <p style={{ color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' }}>{errors.schoolOption}</p>}
+                
+                {formData.schoolOption === 'Trường khác' && (
+                  <div style={{ marginTop: 8 }}>
+                    <input className="mfc-input" value={formData.school} onChange={setField('school')} placeholder="Nhập tên trường của bạn" />
+                    {errors.school && <p style={{ color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' }}>{errors.school}</p>}
+                  </div>
+                )}
               </div>
 
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: 13, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.05em' }}>Mã SV / Lớp *</label>
-                <input className="mfc-input" value={formData.studentInfo} onChange={setField('studentInfo')} placeholder="VD: 23111111 - Anh 01 - CLCQT" />
-                {errors.studentInfo && <p style={{ color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' }}>{errors.studentInfo}</p>}
+                <label style={{ display: 'block', fontSize: 13, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.05em' }}>Mã sinh viên *</label>
+                <input className="mfc-input" value={formData.studentId} onChange={setField('studentId')} placeholder="VD: 23111111" />
+                {errors.studentId && <p style={{ color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' }}>{errors.studentId}</p>}
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 13, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.05em' }}>Lớp hành chính - ngành - khóa *</label>
+                <input className="mfc-input" value={formData.classInfo} onChange={setField('classInfo')} placeholder="VD: Anh 01 - CLCQT - K62" />
+                {errors.classInfo && <p style={{ color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' }}>{errors.classInfo}</p>}
               </div>
 
               <div style={{ marginBottom: 24 }}>
