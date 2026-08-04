@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
-import { QRCodeSVG } from 'qrcode.react';
 
 const fieldLabelStyle = { display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 };
 const errorTextStyle = { color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' };
@@ -51,7 +50,6 @@ const NhatViewerRegisterPage = ({ settings }) => {
   const [viewerFormData, setViewerFormData] = useState({ fullName: '', email: '', schoolOption: '', school: '', studentId: '', classInfo: '', likePostProof: null, likePageProof: null, question: '' });
   const [viewerErrors, setViewerErrors] = useState({});
   const [viewerSubmitStatus, setViewerSubmitStatus] = useState(null);
-  const [viewerTicket, setViewerTicket] = useState(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);

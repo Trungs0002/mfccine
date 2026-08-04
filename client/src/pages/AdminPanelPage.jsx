@@ -1396,7 +1396,6 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
             <div style={{ display: 'flex', gap: 10 }}>
               <button className="btn-outline-pill" style={{ flex: 1 }} onClick={() => setEmailModalData(null)}>{t('cancel')}</button>
               <button className="btn-pill" style={{ flex: 1 }} onClick={() => {
-                const html = generateEmailHTML(emailModalData);
                 // Trigger mailto link or API call here
                 window.location.href = `mailto:${emailModalData.to}?subject=${encodeURIComponent(emailModalData.subject)}&body=${encodeURIComponent('Please view this email in a HTML-capable client.')}`;
                 // For production, suggest a backend integration to send the HTML directly
