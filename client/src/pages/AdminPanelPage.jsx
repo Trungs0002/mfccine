@@ -2592,7 +2592,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                             <p style={{ color: '#fff', margin: 0, fontWeight: 700, fontFamily: 'monospace', fontSize: 16 }}>{d.ticketCode}</p>
                           </div>
                           <div>
-                            <p style={{ color: 'var(--muted)', fontSize: 11, textTransform: 'uppercase', margin: '0 0 4px', letterSpacing: '.05em' }}>Khách hàng</p>
+                            <p style={{ color: 'var(--muted)', fontSize: 11, textTransform: 'uppercase', margin: '0 0 4px', letterSpacing: '.05em' }}>Họ và tên</p>
                             <p style={{ color: '#fff', margin: 0, fontWeight: 700, fontSize: 16 }}>{d.fullName}</p>
                           </div>
                           <div>
@@ -3194,7 +3194,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
 
                           {/* User Info */}
                           <div style={{ background: 'rgba(255,255,255,0.03)', padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)' }}>
-                            <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}><span className="material-symbols-outlined" style={{ fontSize: 14 }}>person</span> Khách hàng</div>
+                            <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}><span className="material-symbols-outlined" style={{ fontSize: 14 }}>person</span> Họ và tên</div>
                             <div style={{ fontWeight: 700, color: '#fff', fontSize: 15 }}>{d.fullName}</div>
                             <div style={{ color: 'var(--muted)', fontSize: 12, marginTop: 2 }}>{d.email}</div>
                           </div>
