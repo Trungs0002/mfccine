@@ -13,7 +13,7 @@ const fileToBase64 = (file) => new Promise((resolve, reject) => {
   reader.readAsDataURL(file);
 });
 
-const ImageUploadField = ({ label, value, onChange, onRemove, error }) => {
+const ImageUploadField = ({ label, helpText, value, onChange, onRemove, error }) => {
   const inputRef = useRef(null);
   const handleRemove = () => {
     if (inputRef.current) inputRef.current.value = '';
@@ -22,6 +22,7 @@ const ImageUploadField = ({ label, value, onChange, onRemove, error }) => {
   return (
     <div>
       <label style={fieldLabelStyle}>{label} *</label>
+      {helpText && <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: -4, marginBottom: 8 }}>{helpText}</p>}
       <input ref={inputRef} type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" onChange={onChange} className="mfc-input" style={{ padding: '10px 16px', cursor: 'pointer' }} />
       {value && (
         <div style={{ position: 'relative', marginTop: 10, display: 'inline-block' }}>
@@ -47,7 +48,7 @@ const NhatViewerRegisterPage = ({ settings }) => {
   const { language } = useLanguage();
   const vi = language === 'vi';
 
-  const [viewerFormData, setViewerFormData] = useState({ fullName: '', email: '', schoolOption: '', school: '', studentId: '', classInfo: '', likePostProof: null, likePageProof: null, question: '' });
+  const [viewerFormData, setViewerFormData] = useState({ fullName: '', email: '', schoolOption: '', school: '', studentId: '', classInfo: '', likePostProof: null, likePageProof: null, likeFfsPageProof: null, question: '' });
   const [viewerErrors, setViewerErrors] = useState({});
   const [viewerSubmitStatus, setViewerSubmitStatus] = useState(null);
 
@@ -85,7 +86,8 @@ const NhatViewerRegisterPage = ({ settings }) => {
     if (!viewerFormData.studentId.trim()) newErrors.studentId = vi ? 'Vui lòng nhập MSSV' : 'Please enter your student ID';
     if (!viewerFormData.classInfo.trim()) newErrors.classInfo = vi ? 'Vui lòng nhập lớp - ngành - khóa' : 'Please enter class - major - cohort';
     if (!viewerFormData.likePostProof) newErrors.likePostProof = vi ? 'Vui lòng tải lên minh chứng bài viết' : 'Please upload proof';
-    if (!viewerFormData.likePageProof) newErrors.likePageProof = vi ? 'Vui lòng tải lên minh chứng trang' : 'Please upload proof';
+    if (!viewerFormData.likePageProof) newErrors.likePageProof = vi ? 'Vui lòng tải lên minh chứng trang MFC' : 'Please upload proof';
+    if (!viewerFormData.likeFfsPageProof) newErrors.likeFfsPageProof = vi ? 'Vui lòng tải lên minh chứng trang FTU Fashion Show' : 'Please upload proof';
 
     if (Object.keys(newErrors).length > 0) {
       setViewerErrors(newErrors);
@@ -150,14 +152,14 @@ const NhatViewerRegisterPage = ({ settings }) => {
               </div>
               <div style={{ marginBottom: 16 }}>
                 <label style={fieldLabelStyle}>{vi ? 'Trường *' : 'School *'}</label>
-                <select 
-                  className="mfc-input" 
-                  value={viewerFormData.schoolOption} 
+                <select
+                  className="mfc-input"
+                  value={viewerFormData.schoolOption}
                   onChange={(e) => {
                     const val = e.target.value;
                     setViewerFormData(f => ({ ...f, schoolOption: val, school: val === 'FTU' ? 'FTU' : '' }));
                     setViewerErrors(er => ({ ...er, schoolOption: undefined, school: undefined }));
-                  }} 
+                  }}
                   style={{ appearance: 'auto', background: 'var(--input-bg)', color: '#fff' }}
                 >
                   <option value="" disabled hidden>{vi ? '-- Chọn trường --' : '-- Select School --'}</option>
@@ -165,7 +167,7 @@ const NhatViewerRegisterPage = ({ settings }) => {
                   <option value="Trường khác" style={{ color: '#000' }}>{vi ? 'Trường khác' : 'Other School'}</option>
                 </select>
                 {viewerErrors.schoolOption && <p style={errorTextStyle}>{viewerErrors.schoolOption}</p>}
-                
+
                 {viewerFormData.schoolOption === 'Trường khác' && (
                   <div style={{ marginTop: 8 }}>
                     <input className="mfc-input" value={viewerFormData.school} onChange={setViewerField('school')} placeholder={vi ? 'Nhập tên trường của bạn' : 'Enter your school name'} />
@@ -194,7 +196,18 @@ const NhatViewerRegisterPage = ({ settings }) => {
               </div>
               <div style={{ marginBottom: 16 }}>
                 <ImageUploadField
-                  label={vi ? 'Minh chứng đã like page CLB MC và Thời trang trường ĐH Ngoại Thương' : 'Proof of liking the MFC FTU fanpage'}
+                  label={vi ? 'Minh chứng đã like page FTU Fashion Show' : 'Proof of liking the FTU Fashion Show fanpage'}
+                  helpText={<span>{vi ? 'Truy cập page tại: ' : 'Visit page at: '}<a href="https://www.facebook.com/ftufashionshow.mfc" target="_blank" rel="noopener noreferrer" style={{ color: '#a896f6', textDecoration: 'none' }}>https://www.facebook.com/ftufashionshow.mfc</a></span>}
+                  value={viewerFormData.likeFfsPageProof}
+                  onChange={handleViewerFileChange('likeFfsPageProof')}
+                  onRemove={() => setViewerFormData(f => ({ ...f, likeFfsPageProof: null }))}
+                  error={viewerErrors.likeFfsPageProof}
+                />
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <ImageUploadField
+                  label={vi ? 'Minh chứng đã like page CLB MC và Thời trang ĐH Ngoại Thương' : 'Proof of liking the MFC FTU fanpage'}
+                  helpText={<span>{vi ? 'Truy cập page tại: ' : 'Visit page at: '}<a href="https://www.facebook.com/mfc.ftu" target="_blank" rel="noopener noreferrer" style={{ color: '#a896f6', textDecoration: 'none' }}>https://www.facebook.com/mfc.ftu</a></span>}
                   value={viewerFormData.likePageProof}
                   onChange={handleViewerFileChange('likePageProof')}
                   onRemove={() => setViewerFormData(f => ({ ...f, likePageProof: null }))}

@@ -128,7 +128,7 @@ const NhatCheckoutPage = () => {
               <span className="material-symbols-outlined" style={{ fontSize: 64, color: 'var(--mint)', marginBottom: 16 }}>check_circle</span>
               <h3 className="serif" style={{ color: '#fff', fontSize: 24, margin: '0 0 12px' }}>Checkout thành công!</h3>
               <p style={{ color: 'var(--muted)' }}>Cảm ơn bạn đã tham gia sự kiện Nhất. Hẹn gặp lại bạn lần sau!</p>
-              <button onClick={() => { setStatus(null); setFormData({ ticketCode: '', fullName: '', school: '', studentId: '', classInfo: '', proofImage: null }); }} className="btn-pill" style={{ marginTop: 24 }}>
+              <button onClick={() => { setStatus(null); setFormData({ ticketCode: '', fullName: '', schoolOption: '', school: '', studentId: '', classInfo: '', proofImage: null }); }} className="btn-pill" style={{ marginTop: 24 }}>
                 Checkout thêm người khác
               </button>
             </div>
@@ -136,7 +136,7 @@ const NhatCheckoutPage = () => {
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: 'block', fontSize: 13, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.05em' }}>Mã vé *</label>
-                <input className="mfc-input" value={formData.ticketCode} onChange={setField('ticketCode')} placeholder="VD: NHAT123456" />
+                <input className="mfc-input" value={formData.ticketCode} onChange={setField('ticketCode')} placeholder="VD: NHATXXXXXX" />
                 {errors.ticketCode && <p style={{ color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' }}>{errors.ticketCode}</p>}
               </div>
 
@@ -148,14 +148,14 @@ const NhatCheckoutPage = () => {
 
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: 'block', fontSize: 13, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.05em' }}>Trường *</label>
-                <select 
-                  className="mfc-input" 
-                  value={formData.schoolOption} 
+                <select
+                  className="mfc-input"
+                  value={formData.schoolOption}
                   onChange={(e) => {
                     const val = e.target.value;
                     setFormData(prev => ({ ...prev, schoolOption: val, school: val === 'FTU' ? 'FTU' : '' }));
                     setErrors(er => ({ ...er, schoolOption: null, school: null }));
-                  }} 
+                  }}
                   style={{ appearance: 'auto', background: 'var(--input-bg)', color: '#fff' }}
                 >
                   <option value="" disabled hidden>-- Chọn trường --</option>
@@ -163,7 +163,7 @@ const NhatCheckoutPage = () => {
                   <option value="Trường khác" style={{ color: '#000' }}>Trường khác</option>
                 </select>
                 {errors.schoolOption && <p style={{ color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' }}>{errors.schoolOption}</p>}
-                
+
                 {formData.schoolOption === 'Trường khác' && (
                   <div style={{ marginTop: 8 }}>
                     <input className="mfc-input" value={formData.school} onChange={setField('school')} placeholder="Nhập tên trường của bạn" />

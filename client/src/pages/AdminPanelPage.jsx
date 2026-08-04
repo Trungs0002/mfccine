@@ -803,34 +803,88 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   };
 
   const exportNhatTicketsToExcel = () => {
-    const dataToExport = nhatTickets
-      .filter(t => t.isCheckedIn) // Chỉ xuất những vé đã check-in
-      .filter(t => {
-        if (!ftuFilter) return true;
-        const schoolName = (t.school || '').toLowerCase();
-        return schoolName.includes('ngoại thương') || schoolName.includes('ftu');
-      })
-      .map((t, index) => {
-        return {
+    let dataToExport = [];
+    const norm = s => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
+
+    if (nhatCheckinTab === 'checked_in') {
+      dataToExport = nhatTickets
+        .filter(t => t.isCheckedIn)
+        .filter(t => {
+          if (!ftuFilter) return true;
+          const schoolName = (t.school || '').toLowerCase();
+          return schoolName.includes('ngoại thương') || schoolName.includes('ftu');
+        })
+        .map((t, index) => ({
           'STT': index + 1,
+          'Mã vé': t.ticketCode,
           'Họ và tên': t.fullName,
           'MSSV': t.studentId,
           'Lớp': t.classInfo,
-          'Ngày giờ checkin': t.checkInDate ? new Date(t.checkInDate).toLocaleString('vi-VN') : '',
-          'Mã vé': t.ticketCode,
-          'Link vé': t.ticketLink || ''
-        };
-      });
+          'Ngày giờ checkin': t.checkInDate ? new Date(t.checkInDate).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '',
+        }));
+    } else if (nhatCheckinTab === 'checked_out') {
+      dataToExport = nhatCheckouts
+        .filter(t => {
+          if (!ftuFilter) return true;
+          const s = (t.school || '').toLowerCase();
+          return s.includes('ngoại thương') || s.includes('ftu');
+        })
+        .map((c, index) => ({
+          'STT': index + 1,
+          'Mã vé': c.ticketCode,
+          'Họ và tên': c.fullName,
+          'Trường': c.school,
+          'MSSV': c.studentId,
+          'Lớp': c.classInfo,
+          'Ngày giờ checkout': c.checkoutDate ? new Date(c.checkoutDate).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '',
+        }));
+    } else if (nhatCheckinTab === 'both') {
+      dataToExport = nhatTickets
+        .filter(t => {
+          if (!t.isCheckedIn) return false;
+          const tName = norm(t.fullName);
+          const tId = norm(t.studentId);
+          const hasCheckout = nhatCheckouts.some(c => {
+            const cName = norm(c.fullName);
+            const cId = norm(c.studentId);
+            return c.ticketCode === t.ticketCode && cId === tId && (cName.includes(tName) || tName.includes(cName));
+          });
+          if (!hasCheckout) return false;
+          if (!ftuFilter) return true;
+          const s = (t.school || '').toLowerCase();
+          return s.includes('ngoại thương') || s.includes('ftu');
+        })
+        .map((t, index) => {
+          const tName = norm(t.fullName);
+          const tId = norm(t.studentId);
+          const checkoutInfo = nhatCheckouts.find(c => {
+            const cName = norm(c.fullName);
+            const cId = norm(c.studentId);
+            return c.ticketCode === t.ticketCode && cId === tId && (cName.includes(tName) || tName.includes(cName));
+          });
+          return {
+            'STT': index + 1,
+            'Mã vé': t.ticketCode,
+            'Họ và tên': t.fullName,
+            'Trường': t.school,
+            'MSSV': t.studentId,
+            'Lớp': t.classInfo,
+            'Ngày giờ checkin': t.checkInDate ? new Date(t.checkInDate).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '',
+            'Ngày giờ checkout': checkoutInfo && checkoutInfo.checkoutDate ? new Date(checkoutInfo.checkoutDate).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '',
+          };
+        });
+    }
 
     if (dataToExport.length === 0) {
-      alert('Không có dữ liệu để xuất Excel');
+      alert('Không có dữ liệu để xuất Excel cho tab này');
       return;
     }
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "NhatTickets");
-    XLSX.writeFile(workbook, "nhat_checkin.xlsx");
+    const sheetName = nhatCheckinTab === 'checked_in' ? 'Checkin' : (nhatCheckinTab === 'checked_out' ? 'Checkout' : 'Both');
+    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+    XLSX.writeFile(workbook, `nhat_${sheetName.toLowerCase()}.xlsx`);
   };
 
   const fetchAnalytics = () => {
@@ -2547,7 +2601,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                           </div>
                           <div>
                             <p style={{ color: 'var(--muted)', fontSize: 11, textTransform: 'uppercase', margin: '0 0 4px', letterSpacing: '.05em' }}>Mã SV / Lớp</p>
-                            <p style={{ color: '#e0dbff', margin: 0 }}>{d.studentInfo}</p>
+                            <p style={{ color: '#e0dbff', margin: 0 }}>{d.studentId} / {d.classInfo}</p>
                           </div>
                           <div style={{ marginTop: 12, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,.05)' }}>
                             <p style={{ color: 'var(--muted)', fontSize: 11, textTransform: 'uppercase', margin: '0 0 4px', letterSpacing: '.05em' }}>Tình trạng Check-in</p>
@@ -2568,18 +2622,26 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                 <h3 className="serif" style={{ color: '#fff', fontSize: 18, margin: 0 }}>
                   {language === 'vi' ? 'Danh sách vé' : 'Ticket List'}
                 </h3>
-                {nhatCheckinTab === 'checked_in' && (
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--muted)', fontSize: 13, cursor: 'pointer' }}>
-                      <input type="checkbox" checked={ftuFilter} onChange={(e) => setFtuFilter(e.target.checked)} />
-                      {language === 'vi' ? 'Lọc sinh viên FTU' : 'Filter FTU Students'}
-                    </label>
-                    <button onClick={exportNhatTicketsToExcel} className="btn-outline-pill" style={{ fontSize: 12, padding: '8px 16px' }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>download</span>
-                      {language === 'vi' ? 'Xuất Excel' : 'Export Excel'}
-                    </button>
-                  </div>
-                )}
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  {nhatCheckinTab === 'checked_out' && (
+                    <a href="/nhat-checkout" target="_blank" rel="noopener noreferrer" className="btn-outline-pill" style={{ fontSize: 12, padding: '8px 16px', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>open_in_new</span>
+                      {language === 'vi' ? 'Mở màn hình Checkout' : 'Open Checkout Screen'}
+                    </a>
+                  )}
+                  {nhatCheckinTab !== 'pending' && (
+                    <>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--muted)', fontSize: 13, cursor: 'pointer' }}>
+                        <input type="checkbox" checked={ftuFilter} onChange={(e) => setFtuFilter(e.target.checked)} />
+                        {language === 'vi' ? 'Lọc sinh viên FTU' : 'Filter FTU Students'}
+                      </label>
+                      <button onClick={exportNhatTicketsToExcel} className="btn-outline-pill" style={{ fontSize: 12, padding: '8px 16px' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>download</span>
+                        {language === 'vi' ? 'Xuất Excel' : 'Export Excel'}
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
 
               <div style={{ display: 'flex', gap: 10, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
@@ -2617,7 +2679,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                 <p style={{ textAlign: 'center', padding: '60px 0', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', fontSize: 12 }}>
                   {language === 'vi' ? 'Đang tải...' : 'Loading...'}
                 </p>
-              ) : nhatTickets.length === 0 ? (
+              ) : (nhatTickets.length === 0 && nhatCheckouts.length === 0) ? (
                 <p style={{ textAlign: 'center', padding: '32px 0', color: 'var(--muted)', fontSize: 13 }}>
                   {language === 'vi' ? 'Chưa có vé nào.' : 'No tickets yet.'}
                 </p>
@@ -2628,7 +2690,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                       <tr style={{ borderBottom: '1px solid var(--line)', color: 'var(--muted)' }}>
                         <th style={{ padding: '12px 8px', fontWeight: 600 }}>Mã vé</th>
                         <th style={{ padding: '12px 8px', fontWeight: 600 }}>Họ và tên</th>
-                        <th style={{ padding: '12px 8px', fontWeight: 600 }}>Email</th>
+                        {nhatCheckinTab !== 'checked_out' && <th style={{ padding: '12px 8px', fontWeight: 600 }}>Email</th>}
                         <th style={{ padding: '12px 8px', fontWeight: 600 }}>Trường</th>
                         <th style={{ padding: '12px 8px', fontWeight: 600 }}>Mã SV / Lớp</th>
                         {nhatCheckinTab !== 'checked_out' && <th style={{ padding: '12px 8px', fontWeight: 600 }}>Câu hỏi</th>}
@@ -2647,13 +2709,12 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                             <tr style={{ borderBottom: '1px solid rgba(168,150,246,.1)' }}>
                               <td style={{ padding: '12px 8px', fontFamily: 'monospace', color: 'var(--purple)', fontWeight: 700 }}>{checkout.ticketCode}</td>
                               <td style={{ padding: '12px 8px', color: '#fff' }}>{checkout.fullName}</td>
-                              <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{checkout.email || '-'}</td>
                               <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{checkout.school}</td>
                               <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{checkout.studentId} / {checkout.classInfo}</td>
                               <td style={{ padding: '12px 8px' }}>
-                                <span style={{ color: 'var(--mint)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check_circle</span>
-                                  {new Date(checkout.checkoutDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                                <span style={{ color: '#ff6b6b', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>logout</span>
+                                  {new Date(checkout.checkoutDate).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                 </span>
                               </td>
                               <td style={{ padding: '12px 8px', textAlign: 'center' }}>
@@ -2700,7 +2761,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                           const hasCheckout = nhatCheckouts.some(c => {
                             const cName = norm(c.fullName);
                             const cId = norm(c.studentId);
-                            return cId === tId && (cName.includes(tName) || tName.includes(cName));
+                            return c.ticketCode === t.ticketCode && cId === tId && (cName.includes(tName) || tName.includes(cName));
                           });
                           if (!hasCheckout) return false;
                           if (!ftuFilter) return true;
@@ -2713,7 +2774,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                           const checkoutInfo = nhatCheckouts.find(c => {
                             const cName = norm(c.fullName);
                             const cId = norm(c.studentId);
-                            return cId === tId && (cName.includes(tName) || tName.includes(cName));
+                            return c.ticketCode === ticket.ticketCode && cId === tId && (cName.includes(tName) || tName.includes(cName));
                           });
                           return (
                           <React.Fragment key={ticket._id}>
@@ -2725,15 +2786,53 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                               <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.studentId} / {ticket.classInfo}</td>
                               <td style={{ padding: '12px 8px', color: 'var(--muted)' }}>{ticket.question ? 'Có' : 'Không'}</td>
                               <td style={{ padding: '12px 8px' }}>
-                                <span style={{ color: 'var(--mint)', display: 'flex', flexDirection: 'column', gap: 2, fontSize: 11 }}>
-                                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>In: {new Date(ticket.checkInDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
-                                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Out: {new Date(checkoutInfo.checkoutDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+                                <span style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 11 }}>
+                                  <span style={{ color: 'var(--mint)', display: 'flex', alignItems: 'center', gap: 4 }}>In: {new Date(ticket.checkInDate).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                                  <span style={{ color: '#ff6b6b', display: 'flex', alignItems: 'center', gap: 4 }}>Out: {new Date(checkoutInfo.checkoutDate).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
                                 </span>
                               </td>
                               <td style={{ padding: '12px 8px', textAlign: 'center' }}>
-                                <span style={{ color: 'var(--mint)', fontWeight: 600 }}>Hoàn tất</span>
+                                <button
+                                  onClick={() => setExpandedNhatTicketId(expandedNhatTicketId === ticket._id ? null : ticket._id)}
+                                  className="btn-outline-pill"
+                                  style={{ fontSize: 11, padding: '6px 12px', border: '1px solid var(--muted)', color: 'var(--muted)' }}
+                                >
+                                  {expandedNhatTicketId === ticket._id ? 'Đóng' : 'Chi tiết'}
+                                </button>
                               </td>
                             </tr>
+                            {expandedNhatTicketId === ticket._id && (
+                              <tr style={{ borderBottom: '1px solid rgba(168,150,246,.1)', background: 'rgba(255,255,255,0.02)' }}>
+                                <td colSpan="8" style={{ padding: '16px 20px' }}>
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 16 }}>
+                                    <div>
+                                      <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Minh chứng Checkout</p>
+                                      {checkoutInfo.proofImage ? (
+                                        <img src={checkoutInfo.proofImage} alt="Checkout Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: checkoutInfo.proofImage, name: `${ticket.ticketCode}_CheckoutProof` })} />
+                                      ) : <span style={{ color: 'var(--muted)' }}>Không có</span>}
+                                    </div>
+                                    <div>
+                                      <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Minh chứng Like Bài</p>
+                                      {ticket.likePostProof ? (
+                                        <img src={ticket.likePostProof} alt="Like Post Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likePostProof, name: `${ticket.ticketCode}_LikePost` })} />
+                                      ) : <span style={{ color: 'var(--muted)' }}>Không có</span>}
+                                    </div>
+                                    <div>
+                                      <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Minh chứng Like Page</p>
+                                      {ticket.likePageProof ? (
+                                        <img src={ticket.likePageProof} alt="Like Page Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likePageProof, name: `${ticket.ticketCode}_LikePage` })} />
+                                      ) : <span style={{ color: 'var(--muted)' }}>Không có</span>}
+                                    </div>
+                                    <div>
+                                      <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Minh chứng Like Page FFS</p>
+                                      {ticket.likeFfsPageProof ? (
+                                        <img src={ticket.likeFfsPageProof} alt="Like FFS Page Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likeFfsPageProof, name: `${ticket.ticketCode}_LikeFfsPage` })} />
+                                      ) : <span style={{ color: 'var(--muted)' }}>Không có</span>}
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
                           </React.Fragment>
                         )})
                       ) : (
@@ -2766,7 +2865,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                   ticket.isCheckedIn ? (
                                     <span style={{ color: 'var(--mint)', display: 'flex', alignItems: 'center', gap: 4 }}>
                                       <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check_circle</span>
-                                      {new Date(ticket.checkInDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                                      {new Date(ticket.checkInDate).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                     </span>
                                   ) : (
                                     <span style={{ color: 'var(--muted)' }}>Chưa</span>
@@ -2782,19 +2881,21 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                     >
                                       {expandedNhatTicketId === ticket._id ? 'Đóng' : 'Chi tiết'}
                                     </button>
-                                    <button
-                                      className="btn-outline-pill"
-                                      onClick={() => setNhatEmailModalData({
-                                        ticket: ticket,
-                                        to: ticket.email || '',
-                                        customerName: ticket.fullName,
-                                        subject: '[MFC] Vé điện tử tham dự NHẤT',
-                                        body: ''
-                                      })}
-                                      style={{ fontSize: 11, padding: '6px 12px', border: '1px solid #a896f6', color: '#a896f6', background: 'rgba(168,150,246,0.1)' }}
-                                    >
-                                      {language === 'vi' ? 'Gửi Mail' : 'Email'}
-                                    </button>
+                                    {nhatCheckinTab !== 'checked_in' && (
+                                      <button
+                                        className="btn-outline-pill"
+                                        onClick={() => setNhatEmailModalData({
+                                          ticket: ticket,
+                                          to: ticket.email || '',
+                                          customerName: ticket.fullName,
+                                          subject: '[MFC] Vé điện tử tham dự NHẤT',
+                                          body: ''
+                                        })}
+                                        style={{ fontSize: 11, padding: '6px 12px', border: '1px solid #a896f6', color: '#a896f6', background: 'rgba(168,150,246,0.1)' }}
+                                      >
+                                        {language === 'vi' ? 'Gửi Mail' : 'Email'}
+                                      </button>
+                                    )}
                                     <button
                                       onClick={() => handleDeleteNhatTicket(ticket._id)}
                                       className="btn-outline-pill"
@@ -2819,6 +2920,12 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                       <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Minh chứng Like Page</p>
                                       {ticket.likePageProof ? (
                                         <img src={ticket.likePageProof} alt="Like Page Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likePageProof, name: `${ticket.ticketCode}_LikePage` })} />
+                                      ) : <span style={{ color: 'var(--muted)' }}>Không có</span>}
+                                    </div>
+                                    <div>
+                                      <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Minh chứng Like Page FFS</p>
+                                      {ticket.likeFfsPageProof ? (
+                                        <img src={ticket.likeFfsPageProof} alt="Like FFS Page Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likeFfsPageProof, name: `${ticket.ticketCode}_LikeFfsPage` })} />
                                       ) : <span style={{ color: 'var(--muted)' }}>Không có</span>}
                                     </div>
                                   </div>

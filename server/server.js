@@ -240,6 +240,7 @@ const NhatTicketSchema = new mongoose.Schema({
   classInfo: { type: String, required: true },
   likePostProof: { type: String, required: true },
   likePageProof: { type: String, required: true },
+  likeFfsPageProof: { type: String, required: true },
   question: { type: String, default: '' },
   ticketCode: { type: String, required: true, unique: true },
   ticketLink: { type: String },
@@ -1243,7 +1244,7 @@ app.delete('/api/casting-call-submissions/:id', async (req, res) => {
 // NHAT TICKETS
 app.post('/api/nhat/tickets', async (req, res) => {
   try {
-    const { fullName, email, school, studentId, classInfo, likePostProof, likePageProof, question } = req.body;
+    const { fullName, email, school, studentId, classInfo, likePostProof, likePageProof, likeFfsPageProof, question } = req.body;
     
     // upload proofs to cloudinary
     let postProofUrl = '';
@@ -1255,6 +1256,11 @@ app.post('/api/nhat/tickets', async (req, res) => {
     if (likePageProof && likePageProof.startsWith('data:image')) {
       const uploadRes = await cloudinary.uploader.upload(likePageProof, { folder: 'mfc_nhat_tickets' });
       pageProofUrl = uploadRes.secure_url;
+    }
+    let ffsPageProofUrl = '';
+    if (likeFfsPageProof && likeFfsPageProof.startsWith('data:image')) {
+      const uploadRes = await cloudinary.uploader.upload(likeFfsPageProof, { folder: 'mfc_nhat_tickets' });
+      ffsPageProofUrl = uploadRes.secure_url;
     }
 
     let ticketCode;
@@ -1273,7 +1279,7 @@ app.post('/api/nhat/tickets', async (req, res) => {
     const origin = req.headers.origin || 'http://localhost:3000';
     const ticketLink = `${origin}/nhatticket/${ticketCode}`;
     const ticket = await NhatTicket.create({
-      fullName, email, school, studentId, classInfo, likePostProof: postProofUrl, likePageProof: pageProofUrl, question, ticketCode, ticketLink
+      fullName, email, school, studentId, classInfo, likePostProof: postProofUrl, likePageProof: pageProofUrl, likeFfsPageProof: ffsPageProofUrl, question, ticketCode, ticketLink
     });
     res.status(201).json(ticket);
   } catch (err) { res.status(500).json({ error: err.message }); }
