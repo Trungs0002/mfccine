@@ -10,7 +10,7 @@ export const COL_PITCH     = 20;
 export const ROW_PITCH     = 20;
 export const ROW_LABEL_W   = 24;
 
-export const TOP_COLS = 8;
+export const TOP_COLS = 10;
 export const TOP_ROWS = 20;
 export const BOT_ROWS = 6;
 export const BOT_COLS = 25;
@@ -51,13 +51,13 @@ export const BOT_SECT_H = BOT_ROWS * ROW_PITCH - (ROW_PITCH - S);
 export const CANVAS_H   = BOT_SECT_Y + BOT_SECT_H + 60;
 
 const topLeftType = (col) => {
-  if (col >= 5) return 'VIP';
-  if (col >= 2) return 'Premium';
+  if (col >= 4) return 'VIP';
+  if (col >= 1) return 'Premium';
   return 'Standard';
 };
 const topRightType = (col) => {
-  if (col <= 2) return 'VIP';
-  if (col <= 5) return 'Premium';
+  if (col <= 3) return 'VIP';
+  if (col <= 6) return 'Premium';
   return 'Standard';
 };
 
@@ -86,9 +86,20 @@ export const buildSeats = (vi, vipPrice = 500000, premiumPrice = 250000, standar
     for (let c = 0; c < TOP_COLS; c++) {
       const x = TOP_LEFT_X + c * TOP_COL_PITCH;
       const y = TOP_SECT_Y + r * ROW_PITCH;
-      const colLetter = getColLetter(c);
+      
+      let colLetter, type;
+      if (c === 0) {
+        colLetter = 'AA';
+        type = 'Standard';
+      } else if (c === 1) {
+        colLetter = 'BB';
+        type = 'Standard';
+      } else {
+        colLetter = getColLetter(c - 2);
+        type = topLeftType(c - 2);
+      }
+      
       const rawNum = `${colLetter}${r + 1}`;
-      const type = topLeftType(c);
       const seatNum = `Khu 1 · ${rawNum}`;
       push(seatNum, seatNum, type, x, y);
     }
@@ -98,9 +109,20 @@ export const buildSeats = (vi, vipPrice = 500000, premiumPrice = 250000, standar
     for (let c = 0; c < TOP_COLS; c++) {
       const x = TOP_RIGHT_X + c * TOP_COL_PITCH;
       const y = TOP_SECT_Y + r * ROW_PITCH;
-      const colLetter = getColLetter(TOP_COLS + c);
+      
+      let colLetter, type;
+      if (c === TOP_COLS - 2) {
+        colLetter = 'OO';
+        type = 'Standard';
+      } else if (c === TOP_COLS - 1) {
+        colLetter = 'PP';
+        type = 'Standard';
+      } else {
+        colLetter = getColLetter(8 + c); // Hardcoded offset 8 to preserve existing IDs
+        type = topRightType(c);
+      }
+      
       const rawNum = `${colLetter}${r + 1}`;
-      const type = topRightType(c);
       const seatNum = `Khu 2 · ${rawNum}`;
       push(seatNum, seatNum, type, x, y);
     }
@@ -123,7 +145,7 @@ export const buildSeats = (vi, vipPrice = 500000, premiumPrice = 250000, standar
       const x = BOT_RIGHT_X + c * COL_PITCH;
       const y = BOT_SECT_Y + r * ROW_PITCH;
       const rowLetter = getColLetter(16 + r);
-      const rawNum = `${rowLetter}${BOT_COLS + c + 1}`;
+      const rawNum = `${rowLetter}${25 + c + 1}`; // Hardcoded offset 25 (was BOT_COLS) to preserve existing IDs
       const type = botRightType(r, c);
       const seatNum = `Khu 4 · ${rawNum}`;
       push(seatNum, seatNum, type, x, y);

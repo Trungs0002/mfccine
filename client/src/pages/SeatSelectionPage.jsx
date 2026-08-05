@@ -551,7 +551,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                       fontSize: 7, fontWeight: 600, color: 'rgba(168,150,246,.45)',
                       pointerEvents: 'none',
                     }}>
-                      {String.fromCharCode(65 + c)}
+                      {c === 0 ? 'AA' : c === 1 ? 'BB' : String.fromCharCode(65 + c - 2)}
                     </div>
                   ))}
 
@@ -566,7 +566,7 @@ const SeatSelectionPage = ({ event, setBookingDetails }) => {
                       fontSize: 7, fontWeight: 600, color: 'rgba(168,150,246,.45)',
                       pointerEvents: 'none',
                     }}>
-                      {String.fromCharCode(65 + TOP_COLS + c)}
+                      {c === TOP_COLS - 2 ? 'OO' : c === TOP_COLS - 1 ? 'PP' : String.fromCharCode(65 + 8 + c)}
                     </div>
                   ))}
 
