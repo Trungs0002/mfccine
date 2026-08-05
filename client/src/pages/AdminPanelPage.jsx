@@ -1376,7 +1376,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     { id: 'nhat-checkin', icon: 'local_activity', label: language === 'vi' ? 'Nhất Check-in' : 'Nhất Check-in' },
     { id: 'casting', icon: 'accessibility_new', label: language === 'vi' ? 'Đơn Casting Model' : 'Model Casting' },
   ].filter(tab => {
-    if (isCheckin) return tab.id === 'bookings' || tab.id === 'nhat-checkin';
+    if (isCheckin) return tab.id === 'bookings';
     if (isNhatViewer) return tab.id === 'nhat' || tab.id === 'nhat-checkin';
     if (isStaff) return tab.id === 'bookings' || tab.id === 'applications' || tab.id === 'nhat' || tab.id === 'casting' || tab.id === 'nhat-checkin';
     return true;
