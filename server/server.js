@@ -40,7 +40,7 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   phone: { type: String, default: '' },
   password: { type: String, required: true },
-  role: { type: String, enum: ['user', 'admin', 'staff', 'nhat_viewer'], default: 'user' },
+  role: { type: String, enum: ['user', 'admin', 'staff', 'nhat_viewer', 'checkin'], default: 'user' },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -349,7 +349,7 @@ app.post('/api/auth/register-staff', async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ error: 'Email already registered.' });
     const hashedPassword = await bcrypt.hash(password, 10);
-    const assignedRole = role && ['admin', 'staff', 'nhat_viewer'].includes(role) ? role : 'staff';
+    const assignedRole = role && ['admin', 'staff', 'nhat_viewer', 'checkin'].includes(role) ? role : 'staff';
     const user = await User.create({ fullName, email, password: hashedPassword, role: assignedRole });
     res.status(201).json({ id: user._id, fullName: user.fullName, email: user.email, role: user.role });
   } catch (err) { res.status(500).json({ error: err.message }); }

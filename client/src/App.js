@@ -156,7 +156,7 @@ function AppContent() {
           <Route path="/checkout"  element={(settings.ticketSalesEnabled === false && !(settings.adminTestSalesEnabled !== false && (user?.role === 'admin' || user?.role === 'staff'))) ? <Navigate to="/" /> : (selectedEvent ? <CheckoutPage event={selectedEvent} bookingDetails={bookingDetails} setBookingDetails={setBookingDetails} user={user} setCompletedBookingId={setCompletedBookingId} /> : <Navigate to="/" />)} />
           <Route path="/ticket"    element={<DigitalTicketPage completedBookingId={completedBookingId} settings={settings} />} />
           <Route path="/dashboard" element={user ? <UserDashboardPage userEmail={user.email} setCompletedBookingId={setCompletedBookingId} settings={settings} setUser={setUser} /> : <Navigate to="/login" />} />
-          <Route path="/admin"     element={(user?.role === 'admin' || user?.role === 'staff' || user?.role === 'nhat_viewer') ? <AdminPanelPage events={events} setEvents={setEvents} settings={settings} setSettings={setSettings} user={user} /> : <Navigate to="/login" />} />
+          <Route path="/admin"     element={(user?.role === 'admin' || user?.role === 'staff' || user?.role === 'nhat_viewer' || user?.role === 'checkin') ? <AdminPanelPage events={events} setEvents={setEvents} settings={settings} setSettings={setSettings} user={user} /> : <Navigate to="/login" />} />
           <Route path="*"          element={<Navigate to="/" />} />
         </Routes>
       </main>

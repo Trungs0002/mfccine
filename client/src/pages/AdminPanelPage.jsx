@@ -550,7 +550,8 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   const formatPrice = (p) => Number(p).toLocaleString('vi-VN') + (language === 'vi' ? 'đ' : ' VND');
   const isStaff = user?.role === 'staff'; // staff accounts only see Bookings & Applications
   const isNhatViewer = user?.role === 'nhat_viewer'; // nhat_viewer accounts only see Nhat tab
-  const [activeAdminTab, setActiveTab] = useState(isNhatViewer ? 'nhat' : isStaff ? 'bookings' : 'events');
+  const isCheckin = user?.role === 'checkin';
+  const [activeAdminTab, setActiveTab] = useState(isCheckin ? 'bookings' : isNhatViewer ? 'nhat' : isStaff ? 'bookings' : 'events');
   const [showEventForm, setShowEventForm] = useState(false); // Controls visibility of the Create/Edit form
   const [emailModalData, setEmailModalData] = useState(null);
   const [nhatEmailModalData, setNhatEmailModalData] = useState(null);
@@ -670,7 +671,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
   // eslint-disable-next-line no-unused-vars
   const [loadingNhatCheckouts, setLoadingNhatCheckouts] = useState(false);
   const [ftuFilter, setFtuFilter] = useState(false);
-  const [nhatCheckinTab, setNhatCheckinTab] = useState('pending'); // 'pending', 'checked_in', 'checked_out', 'both'
+  const [nhatCheckinTab, setNhatCheckinTab] = useState(isCheckin ? 'checked_in' : 'pending'); // 'pending', 'checked_in', 'checked_out', 'both'
   const [expandedNhatTicketId, setExpandedNhatTicketId] = useState(null);
   const [expandedNhatCheckoutId, setExpandedNhatCheckoutId] = useState(null);
 
@@ -1375,6 +1376,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
     { id: 'nhat-checkin', icon: 'local_activity', label: language === 'vi' ? 'Nhất Check-in' : 'Nhất Check-in' },
     { id: 'casting', icon: 'accessibility_new', label: language === 'vi' ? 'Đơn Casting Model' : 'Model Casting' },
   ].filter(tab => {
+    if (isCheckin) return tab.id === 'bookings' || tab.id === 'nhat-checkin';
     if (isNhatViewer) return tab.id === 'nhat' || tab.id === 'nhat-checkin';
     if (isStaff) return tab.id === 'bookings' || tab.id === 'applications' || tab.id === 'nhat' || tab.id === 'casting' || tab.id === 'nhat-checkin';
     return true;
@@ -2389,6 +2391,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                   <select value={newStaffRole} onChange={e => setNewStaffRole(e.target.value)} className="mfc-input" style={{ width: '100%', height: 44 }}>
                     <option value="staff">{language === 'vi' ? 'Nhân viên (Staff)' : 'Staff'}</option>
                     <option value="nhat_viewer">{language === 'vi' ? 'Chấm thi Nhất' : 'Nhat Viewer'}</option>
+                    <option value="checkin">{language === 'vi' ? 'Chỉ Check-in' : 'Check-in Only'}</option>
                   </select>
                 </div>
                 <button type="submit" disabled={creatingStaff} className="btn-pill" style={{ flexShrink: 0 }}>
@@ -2623,13 +2626,13 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                   {language === 'vi' ? 'Danh sách vé' : 'Ticket List'}
                 </h3>
                 <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                  {nhatCheckinTab === 'checked_out' && (
+                  {!isCheckin && nhatCheckinTab === 'checked_out' && (
                     <a href="/nhat-checkout" target="_blank" rel="noopener noreferrer" className="btn-outline-pill" style={{ fontSize: 12, padding: '8px 16px', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
                       <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>open_in_new</span>
                       {language === 'vi' ? 'Mở màn hình Checkout' : 'Open Checkout Screen'}
                     </a>
                   )}
-                  {nhatCheckinTab !== 'pending' && (
+                  {!isCheckin && nhatCheckinTab !== 'pending' && (
                     <>
                       <label style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--muted)', fontSize: 13, cursor: 'pointer' }}>
                         <input type="checkbox" checked={ftuFilter} onChange={(e) => setFtuFilter(e.target.checked)} />
@@ -2645,13 +2648,15 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
               </div>
 
               <div style={{ display: 'flex', gap: 10, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
-                <button
-                  onClick={() => setNhatCheckinTab('pending')}
-                  className={nhatCheckinTab === 'pending' ? 'btn-pill' : 'btn-outline-pill'}
-                  style={{ padding: '8px 16px', fontSize: 13, whiteSpace: 'nowrap' }}
-                >
-                  {language === 'vi' ? `Chưa check-in (${nhatTickets.filter(t => !t.isCheckedIn).length})` : `Pending (${nhatTickets.filter(t => !t.isCheckedIn).length})`}
-                </button>
+                {!isCheckin && (
+                  <button
+                    onClick={() => setNhatCheckinTab('pending')}
+                    className={nhatCheckinTab === 'pending' ? 'btn-pill' : 'btn-outline-pill'}
+                    style={{ padding: '8px 16px', fontSize: 13, whiteSpace: 'nowrap' }}
+                  >
+                    {language === 'vi' ? `Chưa check-in (${nhatTickets.filter(t => !t.isCheckedIn).length})` : `Pending (${nhatTickets.filter(t => !t.isCheckedIn).length})`}
+                  </button>
+                )}
                 <button
                   onClick={() => setNhatCheckinTab('checked_in')}
                   className={nhatCheckinTab === 'checked_in' ? 'btn-pill' : 'btn-outline-pill'}
@@ -2726,13 +2731,15 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                   >
                                     {expandedNhatCheckoutId === checkout._id ? 'Đóng' : 'Chi tiết'}
                                   </button>
-                                  <button
-                                    onClick={() => handleDeleteNhatCheckout(checkout._id)}
-                                    className="btn-outline-pill"
-                                    style={{ fontSize: 11, padding: '6px 12px', border: '1px solid #ff6b6b', color: '#ff6b6b' }}
-                                  >
-                                    Xóa
-                                  </button>
+                                  {!isCheckin && (
+                                    <button
+                                      onClick={() => handleDeleteNhatCheckout(checkout._id)}
+                                      className="btn-outline-pill"
+                                      style={{ fontSize: 11, padding: '6px 12px', border: '1px solid #ff6b6b', color: '#ff6b6b' }}
+                                    >
+                                      Xóa
+                                    </button>
+                                  )}
                                 </div>
                               </td>
                             </tr>
@@ -2881,7 +2888,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                     >
                                       {expandedNhatTicketId === ticket._id ? 'Đóng' : 'Chi tiết'}
                                     </button>
-                                    {nhatCheckinTab !== 'checked_in' && (
+                                    {!isCheckin && nhatCheckinTab !== 'checked_in' && (
                                       <button
                                         className="btn-outline-pill"
                                         onClick={() => setNhatEmailModalData({
@@ -2896,13 +2903,15 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                         {language === 'vi' ? 'Gửi Mail' : 'Email'}
                                       </button>
                                     )}
-                                    <button
-                                      onClick={() => handleDeleteNhatTicket(ticket._id)}
-                                      className="btn-outline-pill"
-                                      style={{ fontSize: 11, padding: '6px 12px', border: '1px solid #ff6b6b', color: '#ff6b6b' }}
-                                    >
-                                      Xóa
-                                    </button>
+                                    {!isCheckin && (
+                                      <button
+                                        onClick={() => handleDeleteNhatTicket(ticket._id)}
+                                        className="btn-outline-pill"
+                                        style={{ fontSize: 11, padding: '6px 12px', border: '1px solid #ff6b6b', color: '#ff6b6b' }}
+                                      >
+                                        Xóa
+                                      </button>
+                                    )}
                                   </div>
                               </td>
                             </tr>
@@ -3221,11 +3230,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
               })()}
 
               {/* ── Check-in overview: two split lists (FLATTENED TO INDIVIDUAL TICKETS) ── */}
-              <div className="admin-checkin-split" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 32 }}>
+              <div className="admin-checkin-split" style={{ display: 'grid', gridTemplateColumns: isCheckin ? '1fr' : '1fr 1fr', gap: 20, marginBottom: 32 }}>
                 {[
                   { key: 'in', title: language === 'vi' ? 'Đã check-in' : 'Checked-in', color: 'var(--mint)', icon: 'check_circle', list: allBookings.flatMap(b => (b.selectedSeats || []).filter(s => s.status !== 'Cancelled' && s.isCheckedIn).map(s => ({ ...b, seat: s, ticketId: s.ticketCode || `${b._id.toString().slice(-8).toUpperCase()}-${s.seatId}` }))) },
                   { key: 'out', title: language === 'vi' ? 'Chưa check-in' : 'Not Checked-in', color: '#ffb800', icon: 'schedule', list: allBookings.flatMap(b => (b.selectedSeats || []).filter(s => s.status !== 'Cancelled' && !s.isCheckedIn).map(s => ({ ...b, seat: s, ticketId: s.ticketCode || `${b._id.toString().slice(-8).toUpperCase()}-${s.seatId}` }))) },
-                ].map(group => (
+                ].filter(group => !isCheckin || group.key === 'in').map(group => (
                   <div key={group.key}>
                     <h4 style={{ ...sectionLabelStyle, color: group.color }}>{group.title} ({group.list.length})</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 340, overflowY: 'auto', paddingRight: 4 }}>
@@ -3248,9 +3257,11 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
               </div>
 
               {/* ── Master ledger: full ticket list ── */}
-              <div id="master-ledger-section" style={{ paddingBottom: 16, marginBottom: 20, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
-                <h3 className="serif" style={{ color: '#fff', fontSize: 22, margin: 0 }}>{t('masterLedger')}</h3>
-              </div>
+              {!isCheckin && (
+                <>
+                  <div id="master-ledger-section" style={{ paddingBottom: 16, marginBottom: 20, borderBottom: '1px solid rgba(168,150,246,.18)' }}>
+                    <h3 className="serif" style={{ color: '#fff', fontSize: 22, margin: 0 }}>{t('masterLedger')}</h3>
+                  </div>
 
               {loadingBookings ? (
                 <p style={{ textAlign: 'center', padding: '60px 0', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', fontSize: 12 }}>
@@ -3436,6 +3447,8 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                     </div>
                   ))}
                 </div>
+              )}
+                </>
               )}
             </div>
           )}
