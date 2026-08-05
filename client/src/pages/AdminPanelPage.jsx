@@ -1390,7 +1390,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
         { label: t('ticketsSold'), value: analytics.ticketsSold, icon: 'confirmation_number', color: 'var(--mint)' },
       ];
     }
-    if (activeAdminTab === 'bookings') {
+    if (activeAdminTab === 'bookings' && !isCheckin) {
       const totalTickets = allBookings.reduce((sum, b) => sum + (b.selectedSeats?.filter(s => s.status !== 'Cancelled').length || 0), 0);
       const checkedInTickets = allBookings.reduce((sum, b) => sum + (b.selectedSeats?.filter(s => s.status !== 'Cancelled' && s.isCheckedIn).length || 0), 0);
       return [
