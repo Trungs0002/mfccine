@@ -930,7 +930,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
 
   const fetchStaffAccounts = (silent = false) => {
     if (!silent) setLoadingStaffAccounts(true);
-    fetch(`${API_URL}/api/users?role=staff,nhat_viewer`)
+    fetch(`${API_URL}/api/users?role=staff,nhat_viewer,checkin`)
       .then(res => res.json())
       .then(data => {
         setStaffAccounts(data);
@@ -2414,7 +2414,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                       <div>
                         <span style={{ color: '#fff', fontWeight: 700, fontSize: 14 }}>{s.fullName}</span>
                         <span style={{ color: 'var(--muted)', fontSize: 12, marginLeft: 10 }}>{s.email}</span>
-                        <span style={{ color: 'var(--purple)', fontSize: 11, marginLeft: 10, padding: '2px 8px', borderRadius: 12, background: 'rgba(168,150,246,0.1)' }}>{s.role === 'nhat_viewer' ? 'Nhất Viewer' : 'Staff'}</span>
+                        <span style={{ color: 'var(--purple)', fontSize: 11, marginLeft: 10, padding: '2px 8px', borderRadius: 12, background: 'rgba(168,150,246,0.1)' }}>{s.role === 'nhat_viewer' ? 'Nhất Viewer' : s.role === 'checkin' ? 'Check-in' : 'Staff'}</span>
                       </div>
                       <button onClick={() => handleDeleteStaff(s._id)} style={{ padding: '8px 10px', borderRadius: 999, border: '1px solid rgba(255,107,107,.3)', background: 'rgba(255,107,107,.08)', color: '#ff6b6b', cursor: 'pointer', display: 'flex' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
