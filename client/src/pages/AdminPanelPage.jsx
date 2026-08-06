@@ -8,7 +8,7 @@ import {
   TOP_RIGHT_X, TOP_BLOCK_W, TOP_SECT_Y,
   TOP_ROWS, ROW_PITCH, S, TOP_LEFT_X, ROW_LABEL_W, BOT_ROWS, BOT_SECT_Y, BOT_LEFT_X, BOT_RIGHT_X, BOT_BLOCK_W, TOP_COLS, TOP_COL_PITCH, BOT_COLS, BOT_SECT_H, COL_PITCH
 } from '../utils/seatMap';
-import { getCloudinaryThumb, uploadToCloudinaryDirect } from '../utils/imageUtils';
+import { getCloudinaryThumb } from '../utils/imageUtils';
 
 const fieldLabelStyle = { display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 };
 const sectionLabelStyle = { fontSize: 11, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 18, paddingBottom: 10, borderBottom: '1px solid rgba(168,150,246,.18)' };
