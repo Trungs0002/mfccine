@@ -3,18 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
 import { useLoadingText } from '../hooks/useLoadingText';
+import { uploadToCloudinaryDirect } from '../utils/imageUtils';
 
 const fieldLabelStyle = { display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 };
 const errorTextStyle = { color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' };
 
 // Images are uploaded to Cloudinary server-side and only the resulting URL is stored in
 // MongoDB, so the original file is sent as-is here (no resizing/compression needed).
-const fileToBase64 = (file) => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.onload = () => resolve(reader.result);
-  reader.onerror = reject;
-  reader.readAsDataURL(file);
-});
+
 
 const ImageUploadField = ({ label, value, onChange, onRemove, error, isUploading }) => {
   const inputRef = useRef(null);
@@ -36,7 +32,7 @@ const ImageUploadField = ({ label, value, onChange, onRemove, error, isUploading
       )}
       {value && !isUploading && (
         <div style={{ position: 'relative', marginTop: 10, display: 'inline-block' }}>
-          <img src={value} alt="" style={{ maxHeight: 200, maxWidth: '100%', border: '1px solid var(--line)', display: 'block' }} />
+          <img src={value.previewUrl || value} alt="" style={{ maxHeight: 200, maxWidth: '100%', border: '1px solid var(--line)', display: 'block' }} />
           <span style={{
             position: 'absolute', top: 8, left: 8, display: 'flex', alignItems: 'center', gap: 4,
             background: 'rgba(1,1,10,.75)', color: 'var(--mint)', fontSize: 11, fontWeight: 700,
@@ -140,7 +136,7 @@ const NhatPage = ({ settings }) => {
     setErrors(er => (er[key] ? { ...er, [key]: undefined } : er));
   };
 
-  const handleOutfitFileChange = (index, field) => async (e) => {
+  const handleOutfitFileChange = (index, field) => (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const isAllowed = ALLOWED_TYPES.includes(file.type) || ALLOWED_EXTENSIONS.test(file.name);
@@ -156,29 +152,11 @@ const NhatPage = ({ settings }) => {
       return;
     }
 
-    try {
-      setUploadingImage(p => ({ ...p, [key]: true }));
-      setErrors(er => (er[key] ? { ...er, [key]: undefined } : er));
-      
-      const base64 = await fileToBase64(file);
-      const uploadRes = await fetch(`${API_URL}/api/upload-image`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64, folder: 'nhat_entries' }),
-      });
-      
-      const data = await uploadRes.json();
-      if (!uploadRes.ok) throw new Error(data.error || 'Upload failed');
-      
-      const newOutfits = [...outfits];
-      newOutfits[index][field] = data.url;
-      setOutfits(newOutfits);
-    } catch (err) {
-      setErrors(er => ({ ...er, [key]: vi ? 'Lỗi tải ảnh. Vui lòng thử lại.' : 'Upload error. Please try again.' }));
-    } finally {
-      setUploadingImage(p => ({ ...p, [key]: false }));
-      e.target.value = '';
-    }
+    const newOutfits = [...outfits];
+    newOutfits[index][field] = { file, previewUrl: URL.createObjectURL(file) };
+    setOutfits(newOutfits);
+    setErrors(er => (er[key] ? { ...er, [key]: undefined } : er));
+    e.target.value = '';
   };
 
   const handleSubmit = async (e) => {
@@ -211,10 +189,35 @@ const NhatPage = ({ settings }) => {
 
     setSubmitStatus('submitting');
     try {
+      // Process uploads sequentially
+      const finalOutfits = [];
+      const imageFields = ['designImage', 'outfitPhoto1', 'outfitPhoto2'];
+      
+      for (let i = 0; i < outfits.length; i++) {
+        const outfit = outfits[i];
+        const finalOutfit = { ...outfit };
+        for (const field of imageFields) {
+          const item = outfit[field];
+          if (item && item.file) {
+            const key = `${field}_${i}`;
+            setUploadingImage(p => ({ ...p, [key]: true }));
+            try {
+              const url = await uploadToCloudinaryDirect(item.file, 'nhat_entries', API_URL);
+              finalOutfit[field] = url;
+            } catch (err) {
+              throw new Error(`Upload ảnh ${field} của bộ ${i + 1} thất bại`);
+            } finally {
+              setUploadingImage(p => ({ ...p, [key]: false }));
+            }
+          }
+        }
+        finalOutfits.push(finalOutfit);
+      }
+
       const res = await fetch(`${API_URL}/api/nhat-submissions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, outfits }),
+        body: JSON.stringify({ ...formData, outfits: finalOutfits }),
       });
       
       await new Promise(r => setTimeout(r, 2500)); // Ensure loading text cycles

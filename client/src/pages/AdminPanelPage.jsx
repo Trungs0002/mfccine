@@ -8,6 +8,7 @@ import {
   TOP_RIGHT_X, TOP_BLOCK_W, TOP_SECT_Y,
   TOP_ROWS, ROW_PITCH, S, TOP_LEFT_X, ROW_LABEL_W, BOT_ROWS, BOT_SECT_Y, BOT_LEFT_X, BOT_RIGHT_X, BOT_BLOCK_W, TOP_COLS, TOP_COL_PITCH, BOT_COLS, BOT_SECT_H, COL_PITCH
 } from '../utils/seatMap';
+import { getCloudinaryThumb, uploadToCloudinaryDirect } from '../utils/imageUtils';
 
 const fieldLabelStyle = { display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 };
 const sectionLabelStyle = { fontSize: 11, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 18, paddingBottom: 10, borderBottom: '1px solid rgba(168,150,246,.18)' };
@@ -1588,7 +1589,6 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
 
       {/* Image zoom overlay */}
       {zoomedImage && (() => {
-        const ext = /^data:image\/png/.test(zoomedImage.src) ? 'png' : 'jpg';
         return (
           <div
             onClick={() => setZoomedImage(null)}
@@ -1597,24 +1597,38 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
               display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, cursor: 'zoom-out',
             }}
           >
-            <div style={{ position: 'absolute', top: 24, right: 24, display: 'flex', gap: 16 }}>
+            <div style={{ position: 'absolute', top: 24, right: 24, display: 'flex', gap: 16, alignItems: 'center', zIndex: 10 }}>
               <a
                 href={zoomedImage.src}
-                download={`${zoomedImage.name}.${ext}`}
+                target="_blank"
+                rel="noreferrer"
+                onClick={e => e.stopPropagation()}
+                style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 16px', borderRadius: 999, textDecoration: 'none', transition: 'all 0.2s', whiteSpace: 'nowrap' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>open_in_new</span>
+                <span style={{ fontSize: 13, fontWeight: 600 }}>{language === 'vi' ? 'Mở ảnh gốc' : 'Open Original'}</span>
+              </a>
+              <a
+                href={zoomedImage.src}
+                download={`${zoomedImage.name}.jpg`}
                 onClick={e => e.stopPropagation()}
                 title={language === 'vi' ? 'Tải ảnh chất lượng gốc' : 'Download original quality'}
-                style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex' }}
+                style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 32 }}>download</span>
               </a>
               <button
                 onClick={() => setZoomedImage(null)}
-                style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex' }}
+                style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 32 }}>close</span>
               </button>
             </div>
-            <img src={zoomedImage.src} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', boxShadow: '0 20px 60px rgba(0,0,0,.6)' }} />
+            <div style={{ position: 'relative', width: '90vw', height: '90vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={e => e.stopPropagation()}>
+              <img src={getCloudinaryThumb(zoomedImage.src, 1600)} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', boxShadow: '0 20px 60px rgba(0,0,0,.6)' }} />
+            </div>
           </div>
         );
       })()}
@@ -1833,7 +1847,9 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                           }}
                         >
                           <div style={{ position: 'relative', flexShrink: 0 }}>
-                            <img src={evt.image} alt="Show" style={{ width: 88, height: 88, borderRadius: 12, objectFit: 'cover' }} />
+                            <div style={{ width: 88, height: 88, borderRadius: 12, background: 'var(--card-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <img src={getCloudinaryThumb(evt.image, 300)} alt="Show" style={{ width: 88, height: 88, borderRadius: 12, objectFit: 'cover' }} />
+                            </div>
                             {isBeingEdited && (
                               <div style={{ position: 'absolute', top: -8, right: -8, background: 'var(--purple)', color: '#000', padding: '2px 8px', borderRadius: 999, fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>
                                 {language === 'vi' ? 'Đang sửa' : 'Editing'}
@@ -2499,7 +2515,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                       <p style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '0 0 6px' }}>{img.label}</p>
                                       {img.src ? (
                                         <img
-                                          src={img.src}
+                                          src={getCloudinaryThumb(img.src, 400)}
                                           alt={img.label}
                                           onClick={() => setZoomedImage({ src: img.src, name: img.name })}
                                           style={{ width: '100%', maxHeight: 180, objectFit: 'cover', border: '1px solid var(--line)', display: 'block', cursor: 'zoom-in' }}
@@ -2750,8 +2766,8 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                     <div>
                                       <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Ảnh minh chứng Checkout</p>
                                       {checkout.proofImage ? (
-                                        <img src={checkout.proofImage} alt="Checkout Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: checkout.proofImage, name: `${checkout.ticketCode}_Checkout` })} />
-                                      ) : <span style={{ color: 'var(--muted)' }}>Không có</span>}
+                                        <img src={getCloudinaryThumb(checkout.proofImage, 400)} alt="Checkout Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: checkout.proofImage, name: `${checkout.ticketCode}_Checkout` })} />
+                                      ) : <div style={{ fontSize: 12, color: 'var(--muted)', fontStyle: 'italic' }}>Không có</div>}
                                     </div>
                                   </div>
                                 </td>
@@ -2814,27 +2830,27 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 16 }}>
                                     <div>
                                       <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Minh chứng Checkout</p>
-                                      {checkoutInfo.proofImage ? (
-                                        <img src={checkoutInfo.proofImage} alt="Checkout Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: checkoutInfo.proofImage, name: `${ticket.ticketCode}_CheckoutProof` })} />
-                                      ) : <span style={{ color: 'var(--muted)' }}>Không có</span>}
+                                      {checkoutInfo && checkoutInfo.proofImage ? (
+                                        <img src={getCloudinaryThumb(checkoutInfo.proofImage, 400)} alt="Checkout Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: checkoutInfo.proofImage, name: `${ticket.ticketCode}_CheckoutProof` })} />
+                                      ) : <div style={{ fontSize: 12, color: 'var(--muted)', fontStyle: 'italic' }}>Không có</div>}
                                     </div>
                                     <div>
                                       <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Minh chứng Like Bài</p>
                                       {ticket.likePostProof ? (
-                                        <img src={ticket.likePostProof} alt="Like Post Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likePostProof, name: `${ticket.ticketCode}_LikePost` })} />
-                                      ) : <span style={{ color: 'var(--muted)' }}>Không có</span>}
+                                        <img src={getCloudinaryThumb(ticket.likePostProof, 400)} alt="Like Post Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likePostProof, name: `${ticket.ticketCode}_LikePost` })} />
+                                      ) : <div style={{ fontSize: 12, color: 'var(--muted)', fontStyle: 'italic' }}>Không có</div>}
                                     </div>
                                     <div>
                                       <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Minh chứng Like Page</p>
                                       {ticket.likePageProof ? (
-                                        <img src={ticket.likePageProof} alt="Like Page Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likePageProof, name: `${ticket.ticketCode}_LikePage` })} />
-                                      ) : <span style={{ color: 'var(--muted)' }}>Không có</span>}
+                                        <img src={getCloudinaryThumb(ticket.likePageProof, 400)} alt="Like Page Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likePageProof, name: `${ticket.ticketCode}_LikePage` })} />
+                                      ) : <div style={{ fontSize: 12, color: 'var(--muted)', fontStyle: 'italic' }}>Không có</div>}
                                     </div>
                                     <div>
                                       <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Minh chứng Like Page FFS</p>
                                       {ticket.likeFfsPageProof ? (
-                                        <img src={ticket.likeFfsPageProof} alt="Like FFS Page Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likeFfsPageProof, name: `${ticket.ticketCode}_LikeFfsPage` })} />
-                                      ) : <span style={{ color: 'var(--muted)' }}>Không có</span>}
+                                        <img src={getCloudinaryThumb(ticket.likeFfsPageProof, 400)} alt="Like FFS Page Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likeFfsPageProof, name: `${ticket.ticketCode}_LikeFfsPage` })} />
+                                      ) : <div style={{ fontSize: 12, color: 'var(--muted)', fontStyle: 'italic' }}>Không có</div>}
                                     </div>
                                   </div>
                                 </td>
@@ -2922,20 +2938,20 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                     <div>
                                       <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Minh chứng Like Bài</p>
                                       {ticket.likePostProof ? (
-                                        <img src={ticket.likePostProof} alt="Like Post Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likePostProof, name: `${ticket.ticketCode}_LikePost` })} />
-                                      ) : <span style={{ color: 'var(--muted)' }}>Không có</span>}
+                                        <img src={getCloudinaryThumb(ticket.likePostProof, 400)} alt="Like Post Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likePostProof, name: `${ticket.ticketCode}_LikePost` })} />
+                                      ) : <div style={{ fontSize: 12, color: 'var(--muted)', fontStyle: 'italic' }}>Không có</div>}
                                     </div>
                                     <div>
                                       <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Minh chứng Like Page</p>
                                       {ticket.likePageProof ? (
-                                        <img src={ticket.likePageProof} alt="Like Page Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likePageProof, name: `${ticket.ticketCode}_LikePage` })} />
-                                      ) : <span style={{ color: 'var(--muted)' }}>Không có</span>}
+                                        <img src={getCloudinaryThumb(ticket.likePageProof, 400)} alt="Like Page Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likePageProof, name: `${ticket.ticketCode}_LikePage` })} />
+                                      ) : <div style={{ fontSize: 12, color: 'var(--muted)', fontStyle: 'italic' }}>Không có</div>}
                                     </div>
                                     <div>
                                       <p style={{ color: 'var(--mint)', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Minh chứng Like Page FFS</p>
                                       {ticket.likeFfsPageProof ? (
-                                        <img src={ticket.likeFfsPageProof} alt="Like FFS Page Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likeFfsPageProof, name: `${ticket.ticketCode}_LikeFfsPage` })} />
-                                      ) : <span style={{ color: 'var(--muted)' }}>Không có</span>}
+                                        <img src={getCloudinaryThumb(ticket.likeFfsPageProof, 400)} alt="Like FFS Page Proof" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid var(--line)', background: '#000', cursor: 'zoom-in' }} onClick={() => setZoomedImage({ src: ticket.likeFfsPageProof, name: `${ticket.ticketCode}_LikeFfsPage` })} />
+                                      ) : <div style={{ fontSize: 12, color: 'var(--muted)', fontStyle: 'italic' }}>Không có</div>}
                                     </div>
                                   </div>
                                   {ticket.question && (
@@ -3039,7 +3055,7 @@ const AdminPanelPage = ({ events, setEvents, settings, setSettings, user }) => {
                                   <div key={i}>
                                     <p style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '0 0 6px' }}>{img.label}</p>
                                     {img.src ? (
-                                      <img src={img.src} alt={img.label} onClick={() => setZoomedImage({ src: img.src, name: img.name })}
+                                      <img src={getCloudinaryThumb(img.src, 400)} alt={img.label} onClick={() => setZoomedImage({ src: img.src, name: img.name })}
                                         style={{ width: '100%', maxHeight: 200, objectFit: 'cover', border: '1px solid var(--line)', display: 'block', cursor: 'zoom-in' }} />
                                     ) : (
                                       <div style={{ height: 160, border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}>N/A</div>

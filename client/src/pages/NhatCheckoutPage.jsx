@@ -3,7 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useLanguage } from '../context/LanguageContext';
 
 import { API_URL } from '../apiConfig';
-import { fileToBase64 } from '../utils/imageUtils';
+import { uploadToCloudinaryDirect } from '../utils/imageUtils';
 import { useLoadingText } from '../hooks/useLoadingText';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
@@ -15,7 +15,7 @@ const ImageUploadField = ({ label, value, onChange, onRemove, error, isUploading
       <label style={{ display: 'block', fontSize: 13, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.05em' }}>{label}</label>
       {value && !isUploading ? (
         <div style={{ position: 'relative', display: 'inline-block', width: '100%', maxWidth: 240 }}>
-          <img src={value} alt="Preview" style={{ width: '100%', borderRadius: 8, border: '1px solid rgba(168,150,246,.3)' }} />
+          <img src={value.previewUrl || value} alt="Preview" style={{ width: '100%', borderRadius: 8, border: '1px solid rgba(168,150,246,.3)' }} />
           <button type="button" onClick={onRemove} style={{ position: 'absolute', top: -10, right: -10, background: '#ff6b6b', color: '#fff', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
             <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
           </button>
@@ -58,7 +58,7 @@ const NhatCheckoutPage = () => {
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: null }));
   };
 
-  const handleFileChange = async (e) => {
+  const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const isAllowed = ALLOWED_TYPES.includes(file.type) || ALLOWED_EXTENSIONS.test(file.name);
@@ -72,25 +72,10 @@ const NhatCheckoutPage = () => {
       e.target.value = '';
       return;
     }
-    try {
-      setIsUploading(true);
-      const base64 = await fileToBase64(file);
-      const res = await fetch(`${API_URL}/api/upload-image`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64, folder: 'nhat_checkouts' }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
-      setFormData(f => ({ ...f, proofImage: data.url }));
-      setErrors(er => (er.proofImage ? { ...er, proofImage: undefined } : er));
-    } catch (err) {
-      setErrors(er => ({ ...er, proofImage: vi ? 'Lỗi tải ảnh' : 'Upload error' }));
-    } finally {
-      setIsUploading(false);
-      e.target.value = '';
-    }
+    
+    setFormData(f => ({ ...f, proofImage: { file, previewUrl: URL.createObjectURL(file) } }));
+    setErrors(er => (er.proofImage ? { ...er, proofImage: undefined } : er));
+    e.target.value = '';
   };
 
   const handleSubmit = async (e) => {
@@ -114,6 +99,18 @@ const NhatCheckoutPage = () => {
     setStatus('submitting');
     try {
       const payload = { ...formData };
+      
+      if (payload.proofImage && payload.proofImage.file) {
+        setIsUploading(true);
+        try {
+          payload.proofImage = await uploadToCloudinaryDirect(payload.proofImage.file, 'nhat_checkouts', API_URL);
+        } catch (uploadErr) {
+          throw new Error(`Upload ảnh minh chứng thất bại: ${uploadErr.message}`);
+        } finally {
+          setIsUploading(false);
+        }
+      }
+
       if (payload.schoolOption === 'Trường khác') {
         payload.studentId = 'Trường khác';
         payload.classInfo = 'Trường khác';

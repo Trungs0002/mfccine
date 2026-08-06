@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
-import { fileToBase64 } from '../utils/imageUtils';
+import { uploadToCloudinaryDirect } from '../utils/imageUtils';
 import { useLoadingText } from '../hooks/useLoadingText';
 
 const fieldLabelStyle = { display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 };
@@ -22,7 +22,7 @@ const ImageUploadField = ({ label, helpText, value, onChange, onRemove, error, i
       {isUploading && <p style={{ color: 'var(--mint)', fontSize: 12, margin: '6px 0 0', fontWeight: 600 }}>Đang tải lên...</p>}
       {value && !isUploading && (
         <div style={{ position: 'relative', marginTop: 10, display: 'inline-block' }}>
-          <img src={value} alt="" style={{ maxHeight: 200, maxWidth: '100%', border: '1px solid var(--line)', display: 'block' }} />
+          <img src={value.previewUrl || value} alt="" style={{ maxHeight: 200, maxWidth: '100%', border: '1px solid var(--line)', display: 'block' }} />
           <span style={{ position: 'absolute', top: 8, left: 8, display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(1,1,10,.75)', color: 'var(--mint)', fontSize: 11, fontWeight: 700, padding: '4px 10px', textTransform: 'uppercase', letterSpacing: '.05em' }}>
             <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check_circle</span>
           </span>
@@ -59,7 +59,7 @@ const NhatViewerRegisterPage = ({ settings }) => {
     setViewerErrors(er => (er[key] ? { ...er, [key]: undefined } : er));
   };
 
-  const handleViewerFileChange = (field) => async (e) => {
+  const handleViewerFileChange = (field) => (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const isAllowed = ALLOWED_TYPES.includes(file.type) || ALLOWED_EXTENSIONS.test(file.name);
@@ -73,25 +73,10 @@ const NhatViewerRegisterPage = ({ settings }) => {
       e.target.value = '';
       return;
     }
-    try {
-      setUploadingImage(p => ({ ...p, [field]: true }));
-      const base64 = await fileToBase64(file);
-      const res = await fetch(`${API_URL}/api/upload-image`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64, folder: 'mfc_nhat_tickets' }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      
-      setViewerFormData(f => ({ ...f, [field]: data.url }));
-      setViewerErrors(er => (er[field] ? { ...er, [field]: undefined } : er));
-    } catch (err) {
-      setViewerErrors(er => ({ ...er, [field]: vi ? 'Lỗi tải ảnh.' : 'Upload error.' }));
-    } finally {
-      setUploadingImage(p => ({ ...p, [field]: false }));
-      e.target.value = '';
-    }
+    
+    setViewerFormData(f => ({ ...f, [field]: { file, previewUrl: URL.createObjectURL(file) } }));
+    setViewerErrors(er => (er[field] ? { ...er, [field]: undefined } : er));
+    e.target.value = '';
   };
 
   const handleViewerSubmit = async (e) => {
@@ -117,16 +102,33 @@ const NhatViewerRegisterPage = ({ settings }) => {
 
     setViewerSubmitStatus('submitting');
     try {
-      const payload = { ...viewerFormData };
-      if (payload.schoolOption === 'Trường khác') {
-        payload.studentId = 'Trường khác';
-        payload.classInfo = 'Trường khác';
+      // Upload files first
+      const fieldsToUpload = ['likePostProof', 'likePageProof', 'likeFfsPageProof'];
+      const finalPayload = { ...viewerFormData };
+      
+      for (const field of fieldsToUpload) {
+        if (finalPayload[field] && finalPayload[field].file) {
+          setUploadingImage(p => ({ ...p, [field]: true }));
+          try {
+            const url = await uploadToCloudinaryDirect(finalPayload[field].file, 'mfc_nhat_tickets', API_URL);
+            finalPayload[field] = url;
+          } catch (uploadErr) {
+            throw new Error(`Upload ảnh ${field} thất bại`);
+          } finally {
+            setUploadingImage(p => ({ ...p, [field]: false }));
+          }
+        }
+      }
+
+      if (finalPayload.schoolOption === 'Trường khác') {
+        finalPayload.studentId = 'Trường khác';
+        finalPayload.classInfo = 'Trường khác';
       }
 
       const res = await fetch(`${API_URL}/api/nhat/tickets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(finalPayload),
       });
       await new Promise(r => setTimeout(r, 2500)); // Ensure loading text cycles
       if (res.ok) {

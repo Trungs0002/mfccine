@@ -28,3 +28,32 @@ export const fileToBase64 = (file) => new Promise((resolve, reject) => {
   reader.onerror = reject;
   reader.readAsDataURL(file);
 });
+
+export const uploadToCloudinaryDirect = async (file, folder, apiUrl) => {
+  const sigRes = await fetch(`${apiUrl}/api/cloudinary-signature?folder=${folder}`);
+  if (!sigRes.ok) throw new Error('Cannot get upload signature');
+  const { timestamp, signature, cloudName, apiKey, folder: signedFolder } = await sigRes.json();
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('api_key', apiKey);
+  formData.append('timestamp', timestamp);
+  formData.append('signature', signature);
+  formData.append('folder', signedFolder);
+
+  const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!uploadRes.ok) throw new Error('Cloudinary upload failed');
+  const data = await uploadRes.json();
+  return data.secure_url;
+};
+
+export const getCloudinaryThumb = (url, width = 300) => {
+  if (!url || typeof url !== 'string' || !url.includes('cloudinary.com')) return url;
+  const parts = url.split('/upload/');
+  if (parts.length !== 2) return url;
+  return `${parts[0]}/upload/c_limit,w_${width},f_auto,q_auto/${parts[1]}`;
+};

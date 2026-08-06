@@ -1200,18 +1200,25 @@ app.get('/api/casting-call-submissions', async (req, res) => {
 });
 
 // Single image upload route for immediate processing
-app.post('/api/upload-image', async (req, res) => {
+app.get('/api/cloudinary-signature', async (req, res) => {
   try {
-    const { imageBase64, folder } = req.body;
-    if (!imageBase64) return res.status(400).json({ error: 'Không tìm thấy dữ liệu ảnh.' });
-    if (!isJpegOrPngDataUri(imageBase64)) {
-      return res.status(400).json({ error: 'Chỉ chấp nhận ảnh định dạng JPG, JPEG hoặc PNG.' });
-    }
-    const result = await cloudinary.uploader.upload(imageBase64, { folder: folder || 'uploads' });
-    res.json({ url: result.secure_url });
+    const timestamp = Math.round(new Date().getTime() / 1000);
+    const folder = req.query.folder || 'uploads';
+    const signature = cloudinary.utils.api_sign_request({
+      timestamp: timestamp,
+      folder: folder
+    }, process.env.CLOUDINARY_API_SECRET);
+
+    res.json({
+      timestamp,
+      signature,
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+      apiKey: process.env.CLOUDINARY_API_KEY,
+      folder
+    });
   } catch (err) {
-    console.error('Upload Error:', err);
-    res.status(500).json({ error: 'Lỗi tải ảnh lên máy chủ.' });
+    console.error('Signature Error:', err);
+    res.status(500).json({ error: 'Lỗi cấp quyền tải ảnh.' });
   }
 });
 

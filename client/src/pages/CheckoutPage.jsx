@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
-import { fileToBase64 } from '../utils/imageUtils';
+import { fileToBase64, uploadToCloudinaryDirect } from '../utils/imageUtils';
 import { useLoadingText } from '../hooks/useLoadingText';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -20,6 +20,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
   const [qrData, setQrData] = useState(null);
   const [isUploadingBill, setIsUploadingBill] = useState(false);
   const [billImage, setBillImage] = useState(null);
+  const [billFile, setBillFile] = useState(null);
   const [uploadingBillLoading, setUploadingBillLoading] = useState(false);
   const loadingText = useLoadingText(uploadingBillLoading, vi);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
@@ -240,37 +241,23 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
   };
   const [uploadingImage, setUploadingImage] = useState(false);
 
-  const handleBillChange = async (e) => {
+  const handleBillChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    try {
-      setUploadingImage(true);
-      const b64 = await fileToBase64(file);
-      const res = await fetch(`${API_URL}/api/upload-image`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: b64, folder: 'mfc/bills' }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setBillImage(data.url);
-    } catch (err) {
-      console.error(err);
-      alert(vi ? 'Lỗi tải ảnh' : 'Upload error');
-    } finally {
-      setUploadingImage(false);
-      e.target.value = '';
-    }
+    setBillFile(file);
+    setBillImage(URL.createObjectURL(file));
+    e.target.value = '';
   };
 
   const handleUploadBillSubmit = async () => {
-    if (billImage) {
+    if (billFile) {
       setUploadingBillLoading(true);
       try {
+        const uploadedUrl = await uploadToCloudinaryDirect(billFile, 'mfc/bills', API_URL);
         await fetch(`${API_URL}/api/bookings/${qrData.bookingId}/bill`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: billImage }),
+          body: JSON.stringify({ image: uploadedUrl }),
         });
         await new Promise(r => setTimeout(r, 2500)); // Ensure loading text cycles
       } catch (e) {

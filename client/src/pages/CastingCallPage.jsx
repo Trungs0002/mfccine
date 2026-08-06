@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
 import { useLoadingText } from '../hooks/useLoadingText';
+import { uploadToCloudinaryDirect } from '../utils/imageUtils';
 
 /* ─── Shared styles ─────────────────────────────────── */
 const fieldLabelStyle = {
@@ -11,36 +12,7 @@ const fieldLabelStyle = {
 };
 const errorTextStyle = { color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' };
 
-const fileToBase64 = (file) => new Promise((resolve, reject) => {
-  if (file.size <= 200 * 1024 * 1024) { // Under 200MB: keep original quality
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-    return;
-  }
 
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      let { width, height } = img;
-      if (width > 2500 || height > 2500) {
-        if (width > height) { height = Math.round(height * (2500 / width)); width = 2500; }
-        else { width = Math.round(width * (2500 / height)); height = 2500; }
-      }
-      canvas.width = width;
-      canvas.height = height;
-      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', 0.95));
-    };
-    img.onerror = reject;
-    img.src = e.target.result;
-  };
-  reader.onerror = reject;
-  reader.readAsDataURL(file);
-});
 
 /* ─── Image upload field ─────────────────────────────── */
 const ImageUploadField = ({ label, value, onChange, onRemove, error, isUploading }) => {
@@ -56,7 +28,7 @@ const ImageUploadField = ({ label, value, onChange, onRemove, error, isUploading
       {isUploading && <p style={{ color: 'var(--mint)', fontSize: 12, margin: '6px 0 0', fontWeight: 600 }}>Đang tải lên...</p>}
       {value && !isUploading && (
         <div style={{ position: 'relative', marginTop: 10, display: 'inline-block' }}>
-          <img src={value} alt="" style={{ maxHeight: 180, maxWidth: '100%', border: '1px solid var(--line)', display: 'block' }} />
+          <img src={value.previewUrl || value} alt="" style={{ maxHeight: 180, maxWidth: '100%', border: '1px solid var(--line)', display: 'block' }} />
           <span style={{
             position: 'absolute', top: 6, left: 6, display: 'flex', alignItems: 'center', gap: 4,
             background: 'rgba(1,1,10,.82)', color: 'var(--mint)', fontSize: 10, fontWeight: 700,
@@ -140,34 +112,17 @@ const CastingCallPage = () => {
     if (typeof el.showPicker === 'function') el.showPicker();
     else el.focus();
   };
-  const handleImageChange = (key) => async (e) => {
+  const handleImageChange = (key) => (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const allowed = ['image/jpeg', 'image/png'].includes(file.type) || /\.(jpe?g|png)$/i.test(file.name);
     if (!allowed) { setErrors(er => ({ ...er, [key]: 'Chỉ JPG/PNG.' })); e.target.value = ''; return; }
     if (file.size > 200 * 1024 * 1024) { setErrors(er => ({ ...er, [key]: 'Ảnh không được vượt quá 200MB.' })); e.target.value = ''; return; }
     
-    try {
-      setUploadingImage(p => ({ ...p, [key]: true }));
-      setErrors(er => ({ ...er, [key]: undefined }));
-      
-      const b64 = await fileToBase64(file);
-      const res = await fetch(`${API_URL}/api/upload-image`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: b64, folder: 'casting_call_entries' }),
-      });
-      
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Upload thất bại');
-      
-      setCompcard(p => ({ ...p, [key]: data.url }));
-    } catch (err) { 
-      setErrors(er => ({ ...er, [key]: err.message || 'Lỗi đọc/tải tệp.' })); 
-    } finally {
-      setUploadingImage(p => ({ ...p, [key]: false }));
-      e.target.value = '';
-    }
+    setErrors(er => ({ ...er, [key]: undefined }));
+    const previewUrl = URL.createObjectURL(file);
+    setCompcard(p => ({ ...p, [key]: { file, previewUrl } }));
+    e.target.value = '';
   };
 
   const validate = () => {
@@ -195,10 +150,33 @@ const CastingCallPage = () => {
     }
     setSubmitting(true);
     try {
+      // 1. Upload images directly to Cloudinary
+      const finalCompcard = {};
+      const compcardKeys = ['portraitFront', 'portraitSide', 'halfBody', 'fullBody'];
+      
+      // We process sequentially to avoid overwhelming network, or Promise.all if preferred
+      for (const key of compcardKeys) {
+        const item = compcard[key];
+        if (item && item.file) {
+          setUploadingImage(p => ({ ...p, [key]: true }));
+          try {
+            const url = await uploadToCloudinaryDirect(item.file, 'casting_call_entries', API_URL);
+            finalCompcard[key] = url;
+          } catch (uploadErr) {
+            throw new Error(`Upload ảnh ${key} thất bại: ${uploadErr.message}`);
+          } finally {
+            setUploadingImage(p => ({ ...p, [key]: false }));
+          }
+        } else if (typeof item === 'string') {
+          finalCompcard[key] = item;
+        }
+      }
+
+      // 2. Submit form data
       const res = await fetch(`${API_URL}/api/casting-call-submissions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, ...compcard }),
+        body: JSON.stringify({ ...formData, ...finalCompcard }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Submit failed');
