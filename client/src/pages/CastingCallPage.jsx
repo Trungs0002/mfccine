@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
+import { useLoadingText } from '../hooks/useLoadingText';
 
 /* ─── Shared styles ─────────────────────────────────── */
 const fieldLabelStyle = {
@@ -11,24 +12,49 @@ const fieldLabelStyle = {
 const errorTextStyle = { color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' };
 
 const fileToBase64 = (file) => new Promise((resolve, reject) => {
+  if (file.size <= 200 * 1024 * 1024) { // Under 200MB: keep original quality
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+    return;
+  }
+
   const reader = new FileReader();
-  reader.onload = () => resolve(reader.result);
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let { width, height } = img;
+      if (width > 2500 || height > 2500) {
+        if (width > height) { height = Math.round(height * (2500 / width)); width = 2500; }
+        else { width = Math.round(width * (2500 / height)); height = 2500; }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', 0.95));
+    };
+    img.onerror = reject;
+    img.src = e.target.result;
+  };
   reader.onerror = reject;
   reader.readAsDataURL(file);
 });
 
 /* ─── Image upload field ─────────────────────────────── */
-const ImageUploadField = ({ label, value, onChange, onRemove, error }) => {
+const ImageUploadField = ({ label, value, onChange, onRemove, error, isUploading }) => {
   const inputRef = useRef(null);
   return (
     <div>
       <label style={fieldLabelStyle}>{label} <span style={{ color: 'var(--pink)' }}>*</span></label>
       <input
         ref={inputRef} type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png"
-        onChange={onChange} className="mfc-input"
-        style={{ padding: '10px 16px', cursor: 'pointer' }}
+        onChange={onChange} className="mfc-input" disabled={isUploading}
+        style={{ padding: '10px 16px', cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.6 : 1 }}
       />
-      {value && (
+      {isUploading && <p style={{ color: 'var(--mint)', fontSize: 12, margin: '6px 0 0', fontWeight: 600 }}>Đang tải lên...</p>}
+      {value && !isUploading && (
         <div style={{ position: 'relative', marginTop: 10, display: 'inline-block' }}>
           <img src={value} alt="" style={{ maxHeight: 180, maxWidth: '100%', border: '1px solid var(--line)', display: 'block' }} />
           <span style={{
@@ -77,8 +103,10 @@ const CastingCallPage = () => {
   const [compcard, setCompcard] = useState({
     portraitFront: null, portraitSide: null, halfBody: null, fullBody: null,
   });
+  const [uploadingImage, setUploadingImage] = useState({});
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const loadingText = useLoadingText(submitting, vi);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [serverError, setServerError] = useState('');
 
@@ -118,11 +146,28 @@ const CastingCallPage = () => {
     const allowed = ['image/jpeg', 'image/png'].includes(file.type) || /\.(jpe?g|png)$/i.test(file.name);
     if (!allowed) { setErrors(er => ({ ...er, [key]: 'Chỉ JPG/PNG.' })); e.target.value = ''; return; }
     if (file.size > 200 * 1024 * 1024) { setErrors(er => ({ ...er, [key]: 'Ảnh không được vượt quá 200MB.' })); e.target.value = ''; return; }
+    
     try {
-      const b64 = await fileToBase64(file);
-      setCompcard(p => ({ ...p, [key]: b64 }));
+      setUploadingImage(p => ({ ...p, [key]: true }));
       setErrors(er => ({ ...er, [key]: undefined }));
-    } catch { setErrors(er => ({ ...er, [key]: 'Lỗi đọc tệp.' })); }
+      
+      const b64 = await fileToBase64(file);
+      const res = await fetch(`${API_URL}/api/upload-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: b64, folder: 'casting_call_entries' }),
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload thất bại');
+      
+      setCompcard(p => ({ ...p, [key]: data.url }));
+    } catch (err) { 
+      setErrors(er => ({ ...er, [key]: err.message || 'Lỗi đọc/tải tệp.' })); 
+    } finally {
+      setUploadingImage(p => ({ ...p, [key]: false }));
+      e.target.value = '';
+    }
   };
 
   const validate = () => {
@@ -157,6 +202,7 @@ const CastingCallPage = () => {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Submit failed');
+      await new Promise(r => setTimeout(r, 2500)); // Ensure loading text cycles
       setSubmitSuccess(true);
       const el = document.getElementById('form-section');
       if (el) window.scrollTo({ top: el.offsetTop - 100, behavior: 'smooth' });
@@ -490,18 +536,20 @@ const CastingCallPage = () => {
                     {vi ? 'Vui lòng tải lên 4 ảnh bên dưới. Lưu ý: ảnh chụp không quá 5 tháng gần nhất.' : 'Please upload the 4 photos below. Note: photos must be taken within the last 5 months.'}
                   </p>
                   <div className="cc-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
-                    <ImageUploadField label={vi ? '1. Chân dung chính diện' : '1. Frontal Portrait'} value={compcard.portraitFront} onChange={handleImageChange('portraitFront')} onRemove={() => setCompcard(p => ({...p, portraitFront:null}))} error={errors.portraitFront} />
-                    <ImageUploadField label={vi ? '2. Chân dung góc nghiêng' : '2. Side-Profile Portrait'} value={compcard.portraitSide} onChange={handleImageChange('portraitSide')} onRemove={() => setCompcard(p => ({...p, portraitSide:null}))} error={errors.portraitSide} />
-                    <ImageUploadField label={vi ? '3. Bán toàn thân' : '3. Half-Body'} value={compcard.halfBody} onChange={handleImageChange('halfBody')} onRemove={() => setCompcard(p => ({...p, halfBody:null}))} error={errors.halfBody} />
-                    <ImageUploadField label={vi ? '4. Toàn thân' : '4. Full-Body'} value={compcard.fullBody} onChange={handleImageChange('fullBody')} onRemove={() => setCompcard(p => ({...p, fullBody:null}))} error={errors.fullBody} />
+                    <ImageUploadField label={vi ? '1. Chân dung chính diện' : '1. Frontal Portrait'} value={compcard.portraitFront} onChange={handleImageChange('portraitFront')} onRemove={() => setCompcard(p => ({...p, portraitFront:null}))} error={errors.portraitFront} isUploading={uploadingImage.portraitFront} />
+                    <ImageUploadField label={vi ? '2. Chân dung góc nghiêng' : '2. Side-Profile Portrait'} value={compcard.portraitSide} onChange={handleImageChange('portraitSide')} onRemove={() => setCompcard(p => ({...p, portraitSide:null}))} error={errors.portraitSide} isUploading={uploadingImage.portraitSide} />
+                    <ImageUploadField label={vi ? '3. Bán toàn thân' : '3. Half-Body'} value={compcard.halfBody} onChange={handleImageChange('halfBody')} onRemove={() => setCompcard(p => ({...p, halfBody:null}))} error={errors.halfBody} isUploading={uploadingImage.halfBody} />
+                    <ImageUploadField label={vi ? '4. Toàn thân' : '4. Full-Body'} value={compcard.fullBody} onChange={handleImageChange('fullBody')} onRemove={() => setCompcard(p => ({...p, fullBody:null}))} error={errors.fullBody} isUploading={uploadingImage.fullBody} />
                   </div>
                 </div>
 
-                <button type="submit" disabled={submitting} className="btn-pill btn-radiate"
-                  style={{ width:'100%', justifyContent:'center', opacity: submitting ? .65 : 1, padding:'16px', fontSize:15, letterSpacing:'.06em' }}>
-                  {submitting
-                    ? (vi ? 'Đang gửi...' : 'Submitting...')
-                    : (vi ? 'GỬI ĐƠN ĐĂNG KÝ' : 'SUBMIT APPLICATION')}
+                <button type="submit" disabled={submitting || Object.values(uploadingImage).some(Boolean)} className="btn-pill btn-radiate"
+                  style={{ width:'100%', justifyContent:'center', opacity: (submitting || Object.values(uploadingImage).some(Boolean)) ? .65 : 1, padding:'16px', fontSize:15, letterSpacing:'.06em' }}>
+                  {Object.values(uploadingImage).some(Boolean)
+                    ? (vi ? 'Đang xử lý ảnh...' : 'Processing images...')
+                    : submitting
+                      ? loadingText
+                      : (vi ? 'GỬI ĐƠN ĐĂNG KÝ' : 'SUBMIT APPLICATION')}
                 </button>
               </form>
             </div>

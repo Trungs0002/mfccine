@@ -625,8 +625,12 @@ app.post('/api/bookings/:id/bill', async (req, res) => {
 
     let imageUrl = '';
     try {
-      const uploadRes = await cloudinary.uploader.upload(image, { folder: 'mfc/bills' });
-      imageUrl = uploadRes.secure_url;
+      if (image.startsWith('http')) {
+        imageUrl = image;
+      } else {
+        const uploadRes = await cloudinary.uploader.upload(image, { folder: 'mfc/bills' });
+        imageUrl = uploadRes.secure_url;
+      }
     } catch (e) {
       console.error('Cloudinary upload failed:', e);
       return res.status(500).json({ error: 'Lỗi tải ảnh. Vui lòng thử lại.' });
@@ -1133,28 +1137,31 @@ app.post('/api/nhat-submissions', async (req, res) => {
       imagesToValidate.push(outfit.designImage, outfit.outfitPhoto1, outfit.outfitPhoto2);
     }
 
-    if (!imagesToValidate.every(isJpegOrPngDataUri)) {
-      return res.status(400).json({ error: 'Only JPG, JPEG, or PNG images are accepted.' });
-    }
-    // Upload original-quality images to Cloudinary instead of embedding base64 in MongoDB
-    // (a MongoDB document is capped at 16MB, which 3 full-resolution photos can easily exceed).
-    const uploadPromises = [];
-    for (const outfit of outfits) {
-      uploadPromises.push(
-        cloudinary.uploader.upload(outfit.designImage, { folder: 'nhat_entries' }),
-        cloudinary.uploader.upload(outfit.outfitPhoto1, { folder: 'nhat_entries' }),
-        cloudinary.uploader.upload(outfit.outfitPhoto2, { folder: 'nhat_entries' })
-      );
-    }
-
-    const uploadedResults = await Promise.all(uploadPromises);
     const uploadedOutfits = [];
     for (let i = 0; i < outfits.length; i++) {
+      let designImage = outfits[i].designImage;
+      let photo1 = outfits[i].outfitPhoto1;
+      let photo2 = outfits[i].outfitPhoto2;
+      
+      // Fallback for old base64 formats just in case
+      if (designImage.startsWith('data:image')) {
+        const u = await cloudinary.uploader.upload(designImage, { folder: 'nhat_entries' });
+        designImage = u.secure_url;
+      }
+      if (photo1.startsWith('data:image')) {
+        const u = await cloudinary.uploader.upload(photo1, { folder: 'nhat_entries' });
+        photo1 = u.secure_url;
+      }
+      if (photo2.startsWith('data:image')) {
+        const u = await cloudinary.uploader.upload(photo2, { folder: 'nhat_entries' });
+        photo2 = u.secure_url;
+      }
+
       uploadedOutfits.push({
         name: outfits[i].name.trim(),
-        designImage: uploadedResults[i * 3].secure_url,
-        outfitPhoto1: uploadedResults[i * 3 + 1].secure_url,
-        outfitPhoto2: uploadedResults[i * 3 + 2].secure_url
+        designImage: designImage,
+        outfitPhoto1: photo1,
+        outfitPhoto2: photo2
       });
     }
 
@@ -1192,6 +1199,22 @@ app.get('/api/casting-call-submissions', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// Single image upload route for immediate processing
+app.post('/api/upload-image', async (req, res) => {
+  try {
+    const { imageBase64, folder } = req.body;
+    if (!imageBase64) return res.status(400).json({ error: 'Không tìm thấy dữ liệu ảnh.' });
+    if (!isJpegOrPngDataUri(imageBase64)) {
+      return res.status(400).json({ error: 'Chỉ chấp nhận ảnh định dạng JPG, JPEG hoặc PNG.' });
+    }
+    const result = await cloudinary.uploader.upload(imageBase64, { folder: folder || 'uploads' });
+    res.json({ url: result.secure_url });
+  } catch (err) {
+    console.error('Upload Error:', err);
+    res.status(500).json({ error: 'Lỗi tải ảnh lên máy chủ.' });
+  }
+});
+
 app.post('/api/casting-call-submissions', async (req, res) => {
   try {
     const {
@@ -1209,25 +1232,17 @@ app.post('/api/casting-call-submissions', async (req, res) => {
     }
 
     const imagesToValidate = [portraitFront, portraitSide, halfBody, fullBody];
-    if (!imagesToValidate.every(isJpegOrPngDataUri)) {
-      return res.status(400).json({ error: 'Chỉ chấp nhận ảnh định dạng JPG, JPEG hoặc PNG.' });
+    if (!imagesToValidate.every(url => typeof url === 'string' && url.startsWith('http'))) {
+      return res.status(400).json({ error: 'Đường dẫn ảnh không hợp lệ. Vui lòng tải lại ảnh.' });
     }
-
-    // Upload compcard images to Cloudinary
-    const [frontRes, sideRes, halfRes, fullRes] = await Promise.all([
-      cloudinary.uploader.upload(portraitFront, { folder: 'casting_call_entries' }),
-      cloudinary.uploader.upload(portraitSide, { folder: 'casting_call_entries' }),
-      cloudinary.uploader.upload(halfBody, { folder: 'casting_call_entries' }),
-      cloudinary.uploader.upload(fullBody, { folder: 'casting_call_entries' })
-    ]);
 
     const submission = await CastingCallSubmission.create({
       fullName, dob, email, phone, facebook,
       height, weight, bust, waist, hips, experience,
-      portraitFront: frontRes.secure_url,
-      portraitSide: sideRes.secure_url,
-      halfBody: halfRes.secure_url,
-      fullBody: fullRes.secure_url
+      portraitFront,
+      portraitSide,
+      halfBody,
+      fullBody
     });
 
     res.status(201).json({ message: 'Đăng ký Casting Call thành công', submissionId: submission._id });
@@ -1246,19 +1261,26 @@ app.post('/api/nhat/tickets', async (req, res) => {
   try {
     const { fullName, email, school, studentId, classInfo, likePostProof, likePageProof, likeFfsPageProof, question } = req.body;
     
-    // upload proofs to cloudinary
     let postProofUrl = '';
-    if (likePostProof && likePostProof.startsWith('data:image')) {
+    if (likePostProof && likePostProof.startsWith('http')) {
+      postProofUrl = likePostProof;
+    } else if (likePostProof && likePostProof.startsWith('data:image')) {
       const uploadRes = await cloudinary.uploader.upload(likePostProof, { folder: 'mfc_nhat_tickets' });
       postProofUrl = uploadRes.secure_url;
     }
+
     let pageProofUrl = '';
-    if (likePageProof && likePageProof.startsWith('data:image')) {
+    if (likePageProof && likePageProof.startsWith('http')) {
+      pageProofUrl = likePageProof;
+    } else if (likePageProof && likePageProof.startsWith('data:image')) {
       const uploadRes = await cloudinary.uploader.upload(likePageProof, { folder: 'mfc_nhat_tickets' });
       pageProofUrl = uploadRes.secure_url;
     }
+
     let ffsPageProofUrl = '';
-    if (likeFfsPageProof && likeFfsPageProof.startsWith('data:image')) {
+    if (likeFfsPageProof && likeFfsPageProof.startsWith('http')) {
+      ffsPageProofUrl = likeFfsPageProof;
+    } else if (likeFfsPageProof && likeFfsPageProof.startsWith('data:image')) {
       const uploadRes = await cloudinary.uploader.upload(likeFfsPageProof, { folder: 'mfc_nhat_tickets' });
       ffsPageProofUrl = uploadRes.secure_url;
     }

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
+import { useLoadingText } from '../hooks/useLoadingText';
 
 const fieldLabelStyle = { display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 };
 const errorTextStyle = { color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' };
@@ -15,7 +16,7 @@ const fileToBase64 = (file) => new Promise((resolve, reject) => {
   reader.readAsDataURL(file);
 });
 
-const ImageUploadField = ({ label, value, onChange, onRemove, error }) => {
+const ImageUploadField = ({ label, value, onChange, onRemove, error, isUploading }) => {
   const inputRef = useRef(null);
 
   const handleRemove = () => {
@@ -26,8 +27,14 @@ const ImageUploadField = ({ label, value, onChange, onRemove, error }) => {
   return (
     <div>
       <label style={fieldLabelStyle}>{label} *</label>
-      <input ref={inputRef} type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" onChange={onChange} className="mfc-input" style={{ padding: '10px 16px', cursor: 'pointer' }} />
-      {value && (
+      <input ref={inputRef} type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" onChange={onChange} disabled={isUploading} className="mfc-input" style={{ padding: '10px 16px', cursor: 'pointer', opacity: isUploading ? 0.5 : 1 }} />
+      {isUploading && (
+        <div style={{ marginTop: 8, fontSize: 12, color: 'var(--mint)', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span className="material-symbols-outlined" style={{ animation: 'spin 1s linear infinite', fontSize: 14 }}>refresh</span>
+          Đang tải ảnh lên...
+        </div>
+      )}
+      {value && !isUploading && (
         <div style={{ position: 'relative', marginTop: 10, display: 'inline-block' }}>
           <img src={value} alt="" style={{ maxHeight: 200, maxWidth: '100%', border: '1px solid var(--line)', display: 'block' }} />
           <span style={{
@@ -107,7 +114,10 @@ const NhatPage = ({ settings }) => {
   const [formData, setFormData] = useState({ fullName: '', email: '', phone: '', school: '', note: '' });
   const [outfits, setOutfits] = useState([{ name: '', designImage: null, outfitPhoto1: null, outfitPhoto2: null }]);
   const [errors, setErrors] = useState({});
-  const [submitStatus, setSubmitStatus] = useState(null); // null | 'success' | 'error' | 'closed'
+  const [submitStatus, setSubmitStatus] = useState(null); // null | 'submitting' | 'success' | 'error' | 'closed'
+  const [uploadingImage, setUploadingImage] = useState({});
+  const loadingText = useLoadingText(submitStatus === 'submitting', vi);
+  
   useEffect(() => {
     const intervalId = setInterval(() => {
       setHeroImageIndex(i => (i + 1) % HERO_IMAGES.length);
@@ -140,11 +150,35 @@ const NhatPage = ({ settings }) => {
       e.target.value = '';
       return;
     }
-    const base64 = await fileToBase64(file);
-    const newOutfits = [...outfits];
-    newOutfits[index][field] = base64;
-    setOutfits(newOutfits);
-    setErrors(er => (er[key] ? { ...er, [key]: undefined } : er));
+    if (file.size > 200 * 1024 * 1024) {
+      setErrors(er => ({ ...er, [key]: vi ? 'Kích thước ảnh vượt quá 200MB.' : 'File size exceeds 200MB.' }));
+      e.target.value = '';
+      return;
+    }
+
+    try {
+      setUploadingImage(p => ({ ...p, [key]: true }));
+      setErrors(er => (er[key] ? { ...er, [key]: undefined } : er));
+      
+      const base64 = await fileToBase64(file);
+      const uploadRes = await fetch(`${API_URL}/api/upload-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, folder: 'nhat_entries' }),
+      });
+      
+      const data = await uploadRes.json();
+      if (!uploadRes.ok) throw new Error(data.error || 'Upload failed');
+      
+      const newOutfits = [...outfits];
+      newOutfits[index][field] = data.url;
+      setOutfits(newOutfits);
+    } catch (err) {
+      setErrors(er => ({ ...er, [key]: vi ? 'Lỗi tải ảnh. Vui lòng thử lại.' : 'Upload error. Please try again.' }));
+    } finally {
+      setUploadingImage(p => ({ ...p, [key]: false }));
+      e.target.value = '';
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -175,12 +209,16 @@ const NhatPage = ({ settings }) => {
       return;
     }
 
+    setSubmitStatus('submitting');
     try {
       const res = await fetch(`${API_URL}/api/nhat-submissions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, outfits }),
       });
+      
+      await new Promise(r => setTimeout(r, 2500)); // Ensure loading text cycles
+      
       if (res.ok) {
         setSubmitStatus('success');
       } else {
@@ -478,6 +516,7 @@ const NhatPage = ({ settings }) => {
                           onChange={handleOutfitFileChange(index, 'designImage')}
                           onRemove={() => { const newO = [...outfits]; newO[index].designImage = null; setOutfits(newO); }}
                           error={errors[`designImage_${index}`]}
+                          isUploading={uploadingImage[`designImage_${index}`]}
                         />
                         <ImageUploadField
                           label={vi ? `Ảnh chụp sơ bộ bộ đồ ${index + 1} (1)` : `Preliminary Outfit ${index + 1} Photo (1)`}
@@ -485,6 +524,7 @@ const NhatPage = ({ settings }) => {
                           onChange={handleOutfitFileChange(index, 'outfitPhoto1')}
                           onRemove={() => { const newO = [...outfits]; newO[index].outfitPhoto1 = null; setOutfits(newO); }}
                           error={errors[`outfitPhoto1_${index}`]}
+                          isUploading={uploadingImage[`outfitPhoto1_${index}`]}
                         />
                         <ImageUploadField
                           label={vi ? `Ảnh chụp sơ bộ bộ đồ ${index + 1} (2)` : `Preliminary Outfit ${index + 1} Photo (2)`}
@@ -492,6 +532,7 @@ const NhatPage = ({ settings }) => {
                           onChange={handleOutfitFileChange(index, 'outfitPhoto2')}
                           onRemove={() => { const newO = [...outfits]; newO[index].outfitPhoto2 = null; setOutfits(newO); }}
                           error={errors[`outfitPhoto2_${index}`]}
+                          isUploading={uploadingImage[`outfitPhoto2_${index}`]}
                         />
                       </div>
                     </div>
@@ -529,8 +570,12 @@ const NhatPage = ({ settings }) => {
                   </p>
                 )}
 
-                <button type="submit" className="btn-pill" style={{ width: '100%', justifyContent: 'center' }}>
-                  {vi ? 'Gửi bài dự thi' : 'Submit Entry'}
+                <button type="submit" disabled={submitStatus === 'submitting' || Object.values(uploadingImage).some(Boolean)} className="btn-pill btn-radiate" style={{ width: '100%', justifyContent: 'center', opacity: (submitStatus === 'submitting' || Object.values(uploadingImage).some(Boolean)) ? 0.7 : 1, padding: '16px', fontSize: 16 }}>
+                  {Object.values(uploadingImage).some(Boolean)
+                    ? (vi ? 'Đang xử lý ảnh...' : 'Processing images...')
+                    : submitStatus === 'submitting'
+                      ? loadingText
+                      : (vi ? 'GỬI BÀI DỰ THI' : 'SUBMIT ENTRY')}
                 </button>
               </form>
             </div>

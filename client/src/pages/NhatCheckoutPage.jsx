@@ -3,22 +3,17 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useLanguage } from '../context/LanguageContext';
 
 import { API_URL } from '../apiConfig';
+import { fileToBase64 } from '../utils/imageUtils';
+import { useLoadingText } from '../hooks/useLoadingText';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
 const ALLOWED_EXTENSIONS = /\.(jpg|jpeg|png)$/i;
 
-const fileToBase64 = (file) => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.readAsDataURL(file);
-  reader.onload = () => resolve(reader.result);
-  reader.onerror = error => reject(error);
-});
-
-const ImageUploadField = ({ label, value, onChange, onRemove, error }) => {
+const ImageUploadField = ({ label, value, onChange, onRemove, error, isUploading, vi }) => {
   return (
     <div>
       <label style={{ display: 'block', fontSize: 13, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.05em' }}>{label}</label>
-      {value ? (
+      {value && !isUploading ? (
         <div style={{ position: 'relative', display: 'inline-block', width: '100%', maxWidth: 240 }}>
           <img src={value} alt="Preview" style={{ width: '100%', borderRadius: 8, border: '1px solid rgba(168,150,246,.3)' }} />
           <button type="button" onClick={onRemove} style={{ position: 'absolute', top: -10, right: -10, background: '#ff6b6b', color: '#fff', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
@@ -27,10 +22,10 @@ const ImageUploadField = ({ label, value, onChange, onRemove, error }) => {
         </div>
       ) : (
         <div style={{ position: 'relative' }}>
-          <input type="file" accept="image/png, image/jpeg" onChange={onChange} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
-          <div style={{ padding: '24px', border: '1px dashed rgba(168,150,246,.4)', borderRadius: 8, textAlign: 'center', background: 'rgba(168,150,246,.05)', transition: 'all 0.3s' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'var(--mint)', marginBottom: 8 }}>cloud_upload</span>
-            <p style={{ margin: 0, fontSize: 13, color: 'var(--muted)' }}>Nhấp để tải ảnh lên (JPG, PNG)</p>
+          <input type="file" accept="image/png, image/jpeg" onChange={onChange} disabled={isUploading} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: isUploading ? 'not-allowed' : 'pointer', zIndex: 2 }} />
+          <div style={{ padding: '24px', border: '1px dashed rgba(168,150,246,.4)', borderRadius: 8, textAlign: 'center', background: 'rgba(168,150,246,.05)', transition: 'all 0.3s', opacity: isUploading ? 0.6 : 1 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'var(--mint)', marginBottom: 8 }}>{isUploading ? 'hourglass_empty' : 'cloud_upload'}</span>
+            <p style={{ margin: 0, fontSize: 13, color: 'var(--mint)', fontWeight: isUploading ? 600 : 400 }}>{isUploading ? (vi ? 'Đang tải lên...' : 'Uploading...') : (vi ? 'Nhấp để tải ảnh lên (JPG, PNG)' : 'Click to upload image')}</p>
           </div>
         </div>
       )}
@@ -55,6 +50,8 @@ const NhatCheckoutPage = () => {
   });
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState(null); // 'submitting', 'success', 'error'
+  const loadingText = useLoadingText(status === 'submitting', vi);
+  const [isUploading, setIsUploading] = useState(false);
 
   const setField = (field) => (e) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
@@ -75,9 +72,25 @@ const NhatCheckoutPage = () => {
       e.target.value = '';
       return;
     }
-    const base64 = await fileToBase64(file);
-    setFormData(f => ({ ...f, proofImage: base64 }));
-    setErrors(er => (er.proofImage ? { ...er, proofImage: undefined } : er));
+    try {
+      setIsUploading(true);
+      const base64 = await fileToBase64(file);
+      const res = await fetch(`${API_URL}/api/upload-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, folder: 'nhat_checkouts' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setFormData(f => ({ ...f, proofImage: data.url }));
+      setErrors(er => (er.proofImage ? { ...er, proofImage: undefined } : er));
+    } catch (err) {
+      setErrors(er => ({ ...er, proofImage: vi ? 'Lỗi tải ảnh' : 'Upload error' }));
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -111,6 +124,7 @@ const NhatCheckoutPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+      await new Promise(r => setTimeout(r, 2500)); // Ensure loading text cycles
       if (res.ok) {
         setStatus('success');
         setTimeout(() => document.getElementById('nhat-checkout-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
@@ -201,16 +215,18 @@ const NhatCheckoutPage = () => {
 
               <div style={{ marginBottom: 24 }}>
                 <ImageUploadField
-                  label="Ảnh chụp minh chứng có mặt cuối sự kiện *"
+                  label={vi ? "Ảnh minh chứng Check-in/Nhận vé" : "Check-in/Ticket Proof Image"}
                   value={formData.proofImage}
                   onChange={handleFileChange}
                   onRemove={() => setFormData(f => ({ ...f, proofImage: null }))}
                   error={errors.proofImage}
+                  isUploading={isUploading}
+                  vi={vi}
                 />
               </div>
 
-              <button type="submit" className="btn-pill" style={{ width: '100%', justifyContent: 'center' }} disabled={status === 'submitting'}>
-                {status === 'submitting' ? 'Đang xử lý...' : 'Checkout'}
+              <button type="submit" className="btn-pill btn-radiate" style={{ width: '100%', justifyContent: 'center', opacity: (status === 'submitting' || isUploading) ? 0.7 : 1, padding: '16px', fontSize: 16 }} disabled={status === 'submitting' || isUploading}>
+                {status === 'submitting' ? loadingText : (vi ? 'Hoàn Tất Xác Nhận' : 'Complete Confirmation')}
               </button>
             </form>
           )}

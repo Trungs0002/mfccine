@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
+import { fileToBase64 } from '../utils/imageUtils';
+import { useLoadingText } from '../hooks/useLoadingText';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -19,6 +21,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
   const [isUploadingBill, setIsUploadingBill] = useState(false);
   const [billImage, setBillImage] = useState(null);
   const [uploadingBillLoading, setUploadingBillLoading] = useState(false);
+  const loadingText = useLoadingText(uploadingBillLoading, vi);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const receiptRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -235,13 +238,29 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
       }
     })();
   };
+  const [uploadingImage, setUploadingImage] = useState(false);
 
-  const handleBillChange = (e) => {
+  const handleBillChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = () => setBillImage(reader.result);
+    try {
+      setUploadingImage(true);
+      const b64 = await fileToBase64(file);
+      const res = await fetch(`${API_URL}/api/upload-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: b64, folder: 'mfc/bills' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setBillImage(data.url);
+    } catch (err) {
+      console.error(err);
+      alert(vi ? 'Lỗi tải ảnh' : 'Upload error');
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
+    }
   };
 
   const handleUploadBillSubmit = async () => {
@@ -253,6 +272,7 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ image: billImage }),
         });
+        await new Promise(r => setTimeout(r, 2500)); // Ensure loading text cycles
       } catch (e) {
         console.error(e);
       } finally {
@@ -703,9 +723,14 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
                   {vi ? 'Vui lòng tải lên ảnh chụp màn hình (bill) đã chuyển khoản để chúng tôi xác nhận nhanh hơn.' : 'Please upload a screenshot of your transfer bill.'}
                 </p>
 
-                <label style={{ display: 'block', background: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.2)', padding: 32, borderRadius: 12, cursor: 'pointer', marginBottom: 24 }}>
-                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleBillChange} />
-                  {billImage ? (
+                <label style={{ display: 'block', background: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.2)', padding: 32, borderRadius: 12, cursor: uploadingImage ? 'not-allowed' : 'pointer', marginBottom: 24, opacity: uploadingImage ? 0.6 : 1 }}>
+                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleBillChange} disabled={uploadingImage} />
+                  {uploadingImage ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'var(--mint)' }}>cloud_upload</span>
+                      <span style={{ fontSize: 13, color: 'var(--mint)', fontWeight: 600 }}>{vi ? 'Đang tải lên...' : 'Uploading...'}</span>
+                    </div>
+                  ) : billImage ? (
                     <img src={billImage} alt="Bill preview" style={{ width: '100%', maxHeight: 200, objectFit: 'contain', borderRadius: 8 }} />
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
@@ -718,11 +743,11 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
                 <div style={{ display: 'flex', gap: 12, flexDirection: 'column' }}>
                   <button
                     className="btn-pill"
-                    style={{ width: '100%', justifyContent: 'center', opacity: (uploadingBillLoading || !billImage) ? 0.5 : 1, pointerEvents: (uploadingBillLoading || !billImage) ? 'none' : 'auto' }}
+                    style={{ width: '100%', justifyContent: 'center', opacity: (uploadingBillLoading || !billImage || uploadingImage) ? 0.5 : 1, pointerEvents: (uploadingBillLoading || !billImage || uploadingImage) ? 'none' : 'auto' }}
                     onClick={handleUploadBillSubmit}
-                    disabled={!billImage}
+                    disabled={!billImage || uploadingImage}
                   >
-                    {uploadingBillLoading ? (vi ? 'Đang tải lên...' : 'Uploading...') : (vi ? 'Đã thanh toán' : 'I have paid')}
+                    {uploadingBillLoading ? loadingText : (vi ? 'Đã thanh toán' : 'I have paid')}
                   </button>
                   <button
                     style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: 13, textDecoration: 'underline', cursor: 'pointer', padding: '8px 0' }}

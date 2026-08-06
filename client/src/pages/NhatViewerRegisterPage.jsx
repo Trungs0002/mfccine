@@ -2,18 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../apiConfig';
+import { fileToBase64 } from '../utils/imageUtils';
+import { useLoadingText } from '../hooks/useLoadingText';
 
 const fieldLabelStyle = { display: 'block', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 };
 const errorTextStyle = { color: '#ff6b6b', fontSize: 12, margin: '6px 0 0' };
 
-const fileToBase64 = (file) => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.onload = () => resolve(reader.result);
-  reader.onerror = reject;
-  reader.readAsDataURL(file);
-});
-
-const ImageUploadField = ({ label, helpText, value, onChange, onRemove, error }) => {
+const ImageUploadField = ({ label, helpText, value, onChange, onRemove, error, isUploading }) => {
   const inputRef = useRef(null);
   const handleRemove = () => {
     if (inputRef.current) inputRef.current.value = '';
@@ -23,8 +18,9 @@ const ImageUploadField = ({ label, helpText, value, onChange, onRemove, error })
     <div>
       <label style={fieldLabelStyle}>{label} *</label>
       {helpText && <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: -4, marginBottom: 8 }}>{helpText}</p>}
-      <input ref={inputRef} type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" onChange={onChange} className="mfc-input" style={{ padding: '10px 16px', cursor: 'pointer' }} />
-      {value && (
+      <input ref={inputRef} type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" onChange={onChange} className="mfc-input" disabled={isUploading} style={{ padding: '10px 16px', cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.6 : 1 }} />
+      {isUploading && <p style={{ color: 'var(--mint)', fontSize: 12, margin: '6px 0 0', fontWeight: 600 }}>Đang tải lên...</p>}
+      {value && !isUploading && (
         <div style={{ position: 'relative', marginTop: 10, display: 'inline-block' }}>
           <img src={value} alt="" style={{ maxHeight: 200, maxWidth: '100%', border: '1px solid var(--line)', display: 'block' }} />
           <span style={{ position: 'absolute', top: 8, left: 8, display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(1,1,10,.75)', color: 'var(--mint)', fontSize: 11, fontWeight: 700, padding: '4px 10px', textTransform: 'uppercase', letterSpacing: '.05em' }}>
@@ -51,6 +47,8 @@ const NhatViewerRegisterPage = ({ settings }) => {
   const [viewerFormData, setViewerFormData] = useState({ fullName: '', email: '', schoolOption: '', school: '', studentId: '', classInfo: '', likePostProof: null, likePageProof: null, likeFfsPageProof: null, question: '' });
   const [viewerErrors, setViewerErrors] = useState({});
   const [viewerSubmitStatus, setViewerSubmitStatus] = useState(null);
+  const loadingText = useLoadingText(viewerSubmitStatus === 'submitting', vi);
+  const [uploadingImage, setUploadingImage] = useState({});
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -75,9 +73,25 @@ const NhatViewerRegisterPage = ({ settings }) => {
       e.target.value = '';
       return;
     }
-    const base64 = await fileToBase64(file);
-    setViewerFormData(f => ({ ...f, [field]: base64 }));
-    setViewerErrors(er => (er[field] ? { ...er, [field]: undefined } : er));
+    try {
+      setUploadingImage(p => ({ ...p, [field]: true }));
+      const base64 = await fileToBase64(file);
+      const res = await fetch(`${API_URL}/api/upload-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, folder: 'mfc_nhat_tickets' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
+      setViewerFormData(f => ({ ...f, [field]: data.url }));
+      setViewerErrors(er => (er[field] ? { ...er, [field]: undefined } : er));
+    } catch (err) {
+      setViewerErrors(er => ({ ...er, [field]: vi ? 'Lỗi tải ảnh.' : 'Upload error.' }));
+    } finally {
+      setUploadingImage(p => ({ ...p, [field]: false }));
+      e.target.value = '';
+    }
   };
 
   const handleViewerSubmit = async (e) => {
@@ -114,6 +128,7 @@ const NhatViewerRegisterPage = ({ settings }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      await new Promise(r => setTimeout(r, 2500)); // Ensure loading text cycles
       if (res.ok) {
         setViewerSubmitStatus('success');
         setTimeout(() => document.getElementById('nhat-register-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
@@ -315,6 +330,7 @@ const NhatViewerRegisterPage = ({ settings }) => {
                   onChange={handleViewerFileChange('likePostProof')}
                   onRemove={() => setViewerFormData(f => ({ ...f, likePostProof: null }))}
                   error={viewerErrors.likePostProof}
+                  isUploading={uploadingImage.likePostProof}
                 />
               </div>
               <div style={{ marginBottom: 16 }}>
@@ -325,6 +341,7 @@ const NhatViewerRegisterPage = ({ settings }) => {
                   onChange={handleViewerFileChange('likeFfsPageProof')}
                   onRemove={() => setViewerFormData(f => ({ ...f, likeFfsPageProof: null }))}
                   error={viewerErrors.likeFfsPageProof}
+                  isUploading={uploadingImage.likeFfsPageProof}
                 />
               </div>
               <div style={{ marginBottom: 16 }}>
@@ -335,14 +352,15 @@ const NhatViewerRegisterPage = ({ settings }) => {
                   onChange={handleViewerFileChange('likePageProof')}
                   onRemove={() => setViewerFormData(f => ({ ...f, likePageProof: null }))}
                   error={viewerErrors.likePageProof}
+                  isUploading={uploadingImage.likePageProof}
                 />
               </div>
               <div style={{ marginBottom: 24 }}>
                 <label style={fieldLabelStyle}>{vi ? 'Bạn có câu hỏi gì cho BTC không? (Tùy chọn)' : 'Any questions for the organizers? (Optional)'}</label>
                 <textarea className="mfc-input" rows={3} value={viewerFormData.question} onChange={setViewerField('question')} />
               </div>
-              <button type="submit" className="btn-pill" style={{ width: '100%', justifyContent: 'center' }} disabled={viewerSubmitStatus === 'submitting'}>
-                {viewerSubmitStatus === 'submitting' ? (vi ? 'Đang xử lý...' : 'Processing...') : (vi ? 'Đăng kí' : 'Register')}
+              <button type="submit" className="btn-pill" style={{ width: '100%', justifyContent: 'center', opacity: (viewerSubmitStatus === 'submitting' || Object.values(uploadingImage).some(Boolean)) ? 0.7 : 1 }} disabled={viewerSubmitStatus === 'submitting' || Object.values(uploadingImage).some(Boolean)}>
+                {viewerSubmitStatus === 'submitting' ? loadingText : (vi ? 'Đăng kí' : 'Register')}
               </button>
             </form>
           </>
