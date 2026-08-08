@@ -29,17 +29,49 @@ export const fileToBase64 = (file) => new Promise((resolve, reject) => {
   reader.readAsDataURL(file);
 });
 
+export const compressImageFile = (file, maxMB = 10) => new Promise((resolve, reject) => {
+  if (file.size <= maxMB * 1024 * 1024) return resolve(file);
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let { width, height } = img;
+      const MAX_DIM = 2500;
+      if (width > MAX_DIM || height > MAX_DIM) {
+        if (width > height) { height = Math.round(height * (MAX_DIM / width)); width = MAX_DIM; }
+        else { width = Math.round(width * (MAX_DIM / height)); height = MAX_DIM; }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob((blob) => {
+        if (!blob) return reject(new Error('Compression failed'));
+        const compressedFile = new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() });
+        resolve(compressedFile);
+      }, 'image/jpeg', 0.85);
+    };
+    img.onerror = reject;
+    img.src = e.target.result;
+  };
+  reader.onerror = reject;
+  reader.readAsDataURL(file);
+});
+
 export const uploadToCloudinaryDirect = async (file, folder, apiUrl) => {
   const sigRes = await fetch(`${apiUrl}/api/cloudinary-signature?folder=${folder}`);
   if (!sigRes.ok) throw new Error('Cannot get upload signature');
   const { timestamp, signature, cloudName, apiKey, folder: signedFolder } = await sigRes.json();
+
+  // Compress the image before uploading to save bandwidth (if it's large)
+  const processedFile = await compressImageFile(file, 10);
 
   const formData = new FormData();
   formData.append('api_key', apiKey);
   formData.append('timestamp', timestamp);
   formData.append('signature', signature);
   formData.append('folder', signedFolder);
-  formData.append('file', file);
+  formData.append('file', processedFile);
 
   const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
     method: 'POST',

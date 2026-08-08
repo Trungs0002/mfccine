@@ -243,6 +243,11 @@ const CheckoutPage = ({ event, bookingDetails, setBookingDetails, user, setCompl
   const handleBillChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (file.size > 200 * 1024 * 1024) {
+      alert(vi ? 'Kích thước ảnh không được vượt quá 200MB.' : 'File size must not exceed 200MB.');
+      e.target.value = '';
+      return;
+    }
     setBillFile(file);
     setBillImage(URL.createObjectURL(file));
     e.target.value = '';

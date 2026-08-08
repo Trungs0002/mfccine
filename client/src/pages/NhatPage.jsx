@@ -147,7 +147,7 @@ const NhatPage = ({ settings }) => {
       return;
     }
     if (file.size > 200 * 1024 * 1024) {
-      setErrors(er => ({ ...er, [key]: vi ? 'Kích thước ảnh vượt quá 200MB.' : 'File size exceeds 200MB.' }));
+      setErrors(er => ({ ...er, [key]: vi ? 'Ảnh không được vượt quá 200MB.' : 'File size must not exceed 200MB.' }));
       e.target.value = '';
       return;
     }
