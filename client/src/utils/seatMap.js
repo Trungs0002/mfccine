@@ -10,7 +10,7 @@ export const COL_PITCH     = 20;
 export const ROW_PITCH     = 20;
 export const ROW_LABEL_W   = 24;
 
-export const TOP_COLS = 10;
+export const TOP_COLS = 11;
 export const TOP_ROWS = 20;
 export const BOT_ROWS = 6;
 export const BOT_COLS = 25;
@@ -52,12 +52,12 @@ export const CANVAS_H   = BOT_SECT_Y + BOT_SECT_H + 60;
 
 const topLeftType = (col) => {
   if (col >= 4) return 'VIP';
-  if (col >= 1) return 'Premium';
+  if (col >= 0) return 'Premium';
   return 'Standard';
 };
 const topRightType = (col) => {
   if (col <= 3) return 'VIP';
-  if (col <= 6) return 'Premium';
+  if (col <= 7) return 'Premium';
   return 'Standard';
 };
 
@@ -94,9 +94,12 @@ export const buildSeats = (vi, vipPrice = 500000, premiumPrice = 250000, standar
       } else if (c === 1) {
         colLetter = 'BB';
         type = 'Standard';
+      } else if (c === 2) {
+        colLetter = 'CC';
+        type = 'Standard';
       } else {
-        colLetter = getColLetter(c - 2);
-        type = topLeftType(c - 2);
+        colLetter = getColLetter(c - 3);
+        type = topLeftType(c - 3);
       }
       
       const rawNum = `${colLetter}${r + 1}`;
@@ -111,7 +114,10 @@ export const buildSeats = (vi, vipPrice = 500000, premiumPrice = 250000, standar
       const y = TOP_SECT_Y + r * ROW_PITCH;
       
       let colLetter, type;
-      if (c === TOP_COLS - 2) {
+      if (c === TOP_COLS - 3) {
+        colLetter = 'NN';
+        type = 'Standard';
+      } else if (c === TOP_COLS - 2) {
         colLetter = 'OO';
         type = 'Standard';
       } else if (c === TOP_COLS - 1) {
