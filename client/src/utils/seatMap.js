@@ -12,7 +12,7 @@ export const ROW_LABEL_W   = 24;
 
 export const TOP_COLS = 10;
 export const TOP_ROWS = 20;
-export const BOT_ROWS = 8;
+export const BOT_ROWS = 6;
 export const BOT_COLS = 25;
 
 export const RUNWAY_W  = 70;
