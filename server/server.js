@@ -25,6 +25,54 @@ app.use(cors());
 app.use(express.json({ limit: '200mb' }));
 app.use(express.urlencoded({ limit: '200mb', extended: true }));
 
+// --- Bandwidth Limiter (5GB/day) ---
+const BandwidthSchema = new mongoose.Schema({
+  dateStr: { type: String, required: true, unique: true },
+  bytes: { type: Number, default: 0 }
+});
+const Bandwidth = mongoose.model('Bandwidth', BandwidthSchema);
+
+let memoryBytes = 0;
+let currentDayStr = new Date().toISOString().split('T')[0];
+const MAX_BYTES = 5 * 1024 * 1024 * 1024; // 5GB
+
+mongoose.connection.once('open', async () => {
+  try {
+    const record = await Bandwidth.findOne({ dateStr: currentDayStr });
+    if (record) memoryBytes = record.bytes;
+  } catch (e) { console.error('Bandwidth load error', e); }
+});
+
+setInterval(async () => {
+  if (mongoose.connection.readyState !== 1) return;
+  const dayStr = new Date().toISOString().split('T')[0];
+  if (dayStr !== currentDayStr) {
+    currentDayStr = dayStr;
+    memoryBytes = 0;
+  }
+  try {
+    await Bandwidth.updateOne(
+      { dateStr: currentDayStr },
+      { $set: { bytes: memoryBytes } },
+      { upsert: true }
+    );
+  } catch (e) { console.error('Bandwidth flush error', e); }
+}, 10000);
+
+app.use((req, res, next) => {
+  if (memoryBytes > MAX_BYTES) {
+    return res.status(503).send('<h1>Hệ thống tạm ngưng do vượt quá giới hạn băng thông trong ngày (5GB). Vui lòng quay lại vào ngày mai!</h1><p>Bandwidth Limit Exceeded.</p>');
+  }
+  const initialBytes = req.socket ? req.socket.bytesWritten : 0;
+  res.on('finish', () => {
+    const finalBytes = req.socket ? req.socket.bytesWritten : 0;
+    const written = finalBytes - initialBytes;
+    if (written > 0) memoryBytes += written;
+  });
+  next();
+});
+// -----------------------------------
+
 // Cloudinary Configuration
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
